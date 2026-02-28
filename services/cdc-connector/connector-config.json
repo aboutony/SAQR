@@ -1,0 +1,36 @@
+{
+  "name": "saqr-source-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "source-db",
+    "database.port": "5432",
+    "database.user": "client_app",
+    "database.password": "client_dev_password",
+    "database.dbname": "client_banking",
+    "database.server.name": "client_banking",
+
+    "topic.prefix": "saqr.cdc",
+    "table.include.list": "public.consumer_disclosures,public.fee_schedule,public.cooling_off_periods,public.branch_compliance",
+
+    "plugin.name": "pgoutput",
+    "slot.name": "saqr_slot",
+    "publication.name": "saqr_publication",
+    "publication.autocreate.mode": "filtered",
+
+    "snapshot.mode": "initial",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "connect",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": true,
+
+    "tombstones.on.delete": false,
+    "include.schema.changes": true,
+
+    "_comment": "SAQR Golden Rule: This connector is READ-ONLY. It reads the WAL stream and never issues any writes to the source database."
+  }
+}

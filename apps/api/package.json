@@ -1,0 +1,19 @@
+{
+    "name": "saqr-api",
+    "version": "0.1.0",
+    "private": true,
+    "description": "SAQR API — Backend gateway for Shield UI and Evidence Vault queries",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "node --watch src/index.js"
+    },
+    "dependencies": {
+        "fastify": "^5.2.1",
+        "@fastify/cors": "^10.0.2",
+        "pg": "^8.13.1"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    }
+}

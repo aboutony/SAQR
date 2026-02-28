@@ -1,0 +1,19 @@
+{
+    "name": "saqr-nlp-interpreter",
+    "version": "0.1.0",
+    "private": true,
+    "description": "SAQR NLP Interpreter — Regulatory circular parser with BERT-compatible interface",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "node --watch src/index.js",
+        "test": "node --test src/**/*.test.js",
+        "ingest": "node src/cli-ingest.js"
+    },
+    "dependencies": {
+        "pg": "^8.13.1"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    }
+}

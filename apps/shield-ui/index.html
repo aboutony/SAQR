@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="SAQR — Violation Interceptor Dashboard. Real-time compliance monitoring for SAMA, MOH/SFDA, and MOMAH regulations.">
+    <title>صقر | SAQR — Shield Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <!-- ============================================ -->
+    <!-- Top Navigation Bar                          -->
+    <!-- ============================================ -->
+    <nav class="topbar" id="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="url(#shield-grad)" stroke-width="2.5" fill="none" />
+                        <path d="M20 8 L28 14 L28 22 C28 28 20 32 20 32 C20 32 12 28 12 22 L12 14 Z"
+                            fill="url(#shield-grad)" opacity="0.15" stroke="url(#shield-grad)" stroke-width="1.5" />
+                        <path d="M17 20 L19 22 L23 18" stroke="var(--accent-primary)" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <defs>
+                            <linearGradient id="shield-grad" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="var(--accent-primary)" />
+                                <stop offset="100%" stop-color="var(--accent-blue)" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-main">SAQR</span>
+                    <span class="logo-sub">صقر</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="topbar-center">
+            <!-- Demo Mode Sector Selector -->
+            <div class="demo-selector" id="demoSelector">
+                <button class="demo-sector-btn active" data-sector="banking" title="Banking (SAMA)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                    </svg>
+                    <span data-i18n="demo.banking">Banking (SAMA)</span>
+                </button>
+                <button class="demo-sector-btn" data-sector="healthcare" title="Healthcare (MOH/SFDA)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    <span data-i18n="demo.healthcare">Healthcare (MOH/SFDA)</span>
+                </button>
+                <button class="demo-sector-btn" data-sector="fnb" title="F&B / Retail (MOMAH)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                    </svg>
+                    <span data-i18n="demo.fnb">F&B / Retail (MOMAH)</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <div class="golden-rule-badge" id="goldenRuleBadge">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span>READ-ONLY</span>
+            </div>
+
+            <!-- Language Toggle -->
+            <button class="toggle-btn" id="langToggle" aria-label="Toggle Language">
+                <span class="toggle-label" id="langLabel">AR</span>
+            </button>
+
+            <!-- Theme Toggle -->
+            <button class="toggle-btn theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+                <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+            </button>
+
+            <div class="timestamp-display" id="ntpTimestamp">--:--:-- NTP</div>
+        </div>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- Heartbeat Status Bar                        -->
+    <!-- ============================================ -->
+    <div class="heartbeat-bar" id="heartbeatBar">
+        <span class="heartbeat-dot"></span>
+        <span class="heartbeat-label" data-i18n="heartbeat.status">SYSTEM ACTIVE</span>
+        <span class="heartbeat-separator">|</span>
+        <span class="heartbeat-detail" data-i18n="heartbeat.detail">Monitoring 242 Real-Time Regulations</span>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Executive Demo — Manual Controls            -->
+    <!-- ============================================ -->
+    <div class="exec-toolbar" id="execToolbar">
+        <button class="exec-btn exec-btn-simulate" id="execSimulateBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <span class="exec-btn-text">⚡ Simulate Violation</span>
+        </button>
+        <button class="exec-btn exec-btn-resolve exec-btn-disabled" id="execResolveBtn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <span class="exec-btn-text">✓ Resolution Verified</span>
+        </button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- Main Dashboard Content                      -->
+    <!-- ============================================ -->
+    <main class="dashboard" id="dashboard">
+
+        <!-- Hero Section: 3D Shield + ROI Counter -->
+        <section class="hero-section" id="heroSection">
+            <div class="hero-3d-container" id="shieldContainer">
+                <canvas id="shieldCanvas"></canvas>
+                <div class="hero-status-label" id="shieldStatusLabel">
+                    <span class="status-icon">🛡️</span>
+                    <span data-i18n="hero.status" id="shieldStatusText">SHIELD ACTIVE</span>
+                </div>
+            </div>
+            <div class="hero-roi-container" id="roiContainer">
+                <div class="roi-header" data-i18n="hero.roi.title">Penalties Intercepted</div>
+                <div class="roi-value-wrapper">
+                    <span class="roi-currency">SAR</span>
+                    <span class="roi-value" id="roiValue">0</span>
+                </div>
+                <div class="roi-subtitle" data-i18n="hero.roi.subtitle">Total savings from proactive compliance</div>
+                <div class="roi-bar-container">
+                    <div class="roi-bar-track">
+                        <div class="roi-bar-fill" id="roiBar" style="width: 0%"></div>
+                    </div>
+                    <div class="roi-bar-labels">
+                        <span>0</span>
+                        <span data-i18n="hero.roi.target">Target: SAR 2M</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI Cards Row -->
+        <section class="kpi-row" id="kpiSection">
+            <div class="kpi-card kpi-intercepted" id="kpiIntercepted">
+                <div class="kpi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="M9 12l2 2 4-4" />
+                    </svg></div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiInterceptedValue">—</div>
+                    <div class="kpi-label" data-i18n="kpi.intercepted">Violations Intercepted</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-critical" id="kpiCritical">
+                <div class="kpi-icon kpi-icon-critical"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg></div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiCriticalValue">—</div>
+                    <div class="kpi-label" data-i18n="kpi.critical">Critical Severity</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-exposure" id="kpiExposure">
+                <div class="kpi-icon kpi-icon-exposure"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23" />
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                    </svg></div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiExposureValue">—</div>
+                    <div class="kpi-label" data-i18n="kpi.exposure">Penalty Exposure</div>
+                </div>
+            </div>
+            <div class="kpi-card kpi-drift" id="kpiDrift">
+                <div class="kpi-icon kpi-icon-drift"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg></div>
+                <div class="kpi-content">
+                    <div class="kpi-value" id="kpiDriftValue">—</div>
+                    <div class="kpi-label" data-i18n="kpi.drift">Instruction Drift Alerts</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <section class="content-grid">
+            <!-- Violations Table -->
+            <div class="panel panel-violations" id="violationsPanel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <span data-i18n="panel.violations">Violation Evidence Log</span>
+                    </h2>
+                    <div class="panel-filters">
+                        <select class="filter-select" id="filterAuthority">
+                            <option value="">All</option>
+                            <option value="SAMA">SAMA</option>
+                            <option value="MOMAH">MOMAH</option>
+                            <option value="SFDA">SFDA</option>
+                        </select>
+                        <select class="filter-select" id="filterSeverity">
+                            <option value="">All</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-body table-scroll">
+                    <table class="violations-table" id="violationsTable">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.timestamp">Timestamp</th>
+                                <th data-i18n="table.code">Code</th>
+                                <th data-i18n="table.authority">Authority</th>
+                                <th data-i18n="table.severity">Severity</th>
+                                <th data-i18n="table.title">Title</th>
+                                <th>SHA-256</th>
+                            </tr>
+                        </thead>
+                        <tbody id="violationsTableBody">
+                            <tr class="loading-row">
+                                <td colspan="6">
+                                    <div class="loading-spinner"></div><span data-i18n="table.awaiting">Awaiting CDC
+                                        events...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <aside class="sidebar">
+                <!-- Instruction Drift Panel -->
+                <div class="panel panel-drift" id="driftPanel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                            <span data-i18n="panel.drift">Instruction Drift</span>
+                        </h2>
+                    </div>
+                    <div class="panel-body" id="driftBody">
+                        <div class="drift-empty" data-i18n="drift.empty">No drift alerts — regulations stable</div>
+                    </div>
+                </div>
+
+                <!-- Evidence Integrity Panel -->
+                <div class="panel panel-integrity" id="integrityPanel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0110 0v4" />
+                            </svg>
+                            <span data-i18n="panel.integrity">Evidence Integrity</span>
+                        </h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="integrity-item"><span class="integrity-label">Hash</span><span
+                                class="integrity-value code">SHA-256</span></div>
+                        <div class="integrity-item"><span class="integrity-label">Time</span><span
+                                class="integrity-value code">NTP</span></div>
+                        <div class="integrity-item"><span class="integrity-label">Merkle</span><span
+                                class="integrity-value code hash" id="merkleRoot">—</span></div>
+                        <div class="integrity-item"><span class="integrity-label">Law</span><span
+                                class="integrity-value">M/43 (2022)</span></div>
+                        <div class="integrity-item"><span class="integrity-label"
+                                data-i18n="integrity.residency">Residency</span><span
+                                class="integrity-value residency"><svg width="12" height="12" viewBox="0 0 24 24"
+                                    fill="none" stroke="var(--accent-primary)" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg> KSA (STC Cloud)</span></div>
+                    </div>
+                </div>
+
+                <!-- Authority Breakdown -->
+                <div class="panel panel-breakdown" id="breakdownPanel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <line x1="3" y1="9" x2="21" y2="9" />
+                                <line x1="9" y1="21" x2="9" y2="9" />
+                            </svg><span data-i18n="panel.breakdown">Authority Breakdown</span></h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="breakdown-item">
+                            <div class="breakdown-header"><span class="breakdown-authority sama">SAMA</span><span
+                                    class="breakdown-count" id="samaCount">0</span></div>
+                            <div class="breakdown-bar">
+                                <div class="breakdown-fill sama-fill" id="samaBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-header"><span class="breakdown-authority momah">MOMAH</span><span
+                                    class="breakdown-count" id="momahCount">0</span></div>
+                            <div class="breakdown-bar">
+                                <div class="breakdown-fill momah-fill" id="momahBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-header"><span class="breakdown-authority sfda">SFDA</span><span
+                                    class="breakdown-count" id="sfdaCount">0</span></div>
+                            <div class="breakdown-bar">
+                                <div class="breakdown-fill sfda-fill" id="sfdaBar" style="width:0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CDC Pipeline Status -->
+                <div class="panel panel-pipeline" id="pipelinePanel">
+                    <div class="panel-header">
+                        <h2 class="panel-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg><span data-i18n="panel.pipeline">CDC Pipeline</span></h2>
+                    </div>
+                    <div class="panel-body">
+                        <div class="pipeline-stages">
+                            <div class="pipeline-stage active">
+                                <div class="stage-dot"></div>
+                                <div class="stage-info"><span class="stage-name">Debezium</span><span
+                                        class="stage-status">Streaming</span></div>
+                            </div>
+                            <div class="pipeline-connector"></div>
+                            <div class="pipeline-stage active">
+                                <div class="stage-dot"></div>
+                                <div class="stage-info"><span class="stage-name">Kafka</span><span
+                                        class="stage-status">Connected</span></div>
+                            </div>
+                            <div class="pipeline-connector"></div>
+                            <div class="pipeline-stage active">
+                                <div class="stage-dot"></div>
+                                <div class="stage-info"><span class="stage-name">NLP Engine</span><span
+                                        class="stage-status">Ready</span></div>
+                            </div>
+                            <div class="pipeline-connector"></div>
+                            <div class="pipeline-stage active">
+                                <div class="stage-dot"></div>
+                                <div class="stage-info"><span class="stage-name">Vault</span><span
+                                        class="stage-status">Sealing</span></div>
+                            </div>
+                            <div class="pipeline-connector"></div>
+                            <div class="pipeline-stage active">
+                                <div class="stage-dot"></div>
+                                <div class="stage-info"><span class="stage-name">CV Watchman</span><span
+                                        class="stage-status">Scanning</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remediation Panel (F&B demo only) -->
+                <div class="panel panel-remediation" id="remediationPanel" style="display:none;"></div>
+            </aside>
+        </section>
+
+        <!-- CV Watchman: Visual Evidence Gallery -->
+        <section class="cv-gallery-section" id="cvGallerySection">
+            <div class="panel panel-gallery">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="2" y="2" width="20" height="20" rx="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        <span data-i18n="panel.gallery">Visual Evidence Gallery</span>
+                    </h2>
+                    <div class="panel-filters">
+                        <select class="filter-select" id="filterCvCategory">
+                            <option value="">All Categories</option>
+                            <option value="signage">Signage</option>
+                            <option value="visual">Visual</option>
+                            <option value="structural">Structural</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="gallery-grid" id="cvGalleryGrid">
+                        <div class="gallery-empty" data-i18n="gallery.empty">No visual detections yet — cameras scanning
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Evidence Detail Modal (Legacy) -->
+    <div class="modal-overlay" id="evidenceModal">
+        <div class="modal" id="evidenceModalContent">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Evidence Detail</h2>
+                <button class="modal-close" id="modalClose" aria-label="Close"><svg width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- SHA-256 Hash Certificate Modal -->
+    <div class="modal-overlay cert-modal-overlay" id="certModal">
+        <div class="modal cert-modal" id="certModalContent">
+            <div class="modal-header cert-modal-header">
+                <h2 class="modal-title" id="certModalTitle">Evidence Hash Certificate</h2>
+                <button class="modal-close" id="certModalClose" aria-label="Close"><svg width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg></button>
+            </div>
+            <div class="modal-body cert-modal-body" id="certModalBody"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

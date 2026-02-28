@@ -1,0 +1,138 @@
+# ============================================
+# SAQR — Local Development Infrastructure
+# Non-Intrusive Vertical Slice: CDC + Evidence Vault
+# ============================================
+
+version: "3.9"
+
+services:
+  # -----------------------------------------------
+  # Apache Kafka (KRaft mode — no ZooKeeper)
+  # -----------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: saqr-kafka
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CLUSTER_ID: "saqr-dev-cluster-001"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # -----------------------------------------------
+  # Kafka Connect (Debezium CDC)
+  # -----------------------------------------------
+  kafka-connect:
+    image: debezium/connect:2.5
+    container_name: saqr-kafka-connect
+    hostname: kafka-connect
+    ports:
+      - "8083:8083"
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: saqr-connect
+      CONFIG_STORAGE_TOPIC: _saqr_connect_configs
+      OFFSET_STORAGE_TOPIC: _saqr_connect_offsets
+      STATUS_STORAGE_TOPIC: _saqr_connect_status
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  # -----------------------------------------------
+  # Shadow Database (PostgreSQL 16 — Read-Only Mirror)
+  # -----------------------------------------------
+  shadow-db:
+    image: postgres:16-alpine
+    container_name: saqr-shadow-db
+    hostname: shadow-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: saqr_shadow
+      POSTGRES_USER: saqr
+      POSTGRES_PASSWORD: saqr_dev_password
+    volumes:
+      - shadow_db_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U saqr -d saqr_shadow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------
+  # Source Database Mock (PostgreSQL acting as client DB)
+  # For local dev/testing — simulates the client Oracle DB
+  # -----------------------------------------------
+  source-db:
+    image: postgres:16-alpine
+    container_name: saqr-source-db
+    hostname: source-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: client_banking
+      POSTGRES_USER: client_app
+      POSTGRES_PASSWORD: client_dev_password
+    command: >
+      postgres
+        -c wal_level=logical
+        -c max_replication_slots=4
+        -c max_wal_senders=4
+    volumes:
+      - source_db_data:/var/lib/postgresql/data
+      - ./source-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U client_app -d client_banking"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------
+  # Kafka UI (optional — for development visibility)
+  # -----------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: saqr-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: saqr-dev
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: saqr-connect
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+volumes:
+  kafka_data:
+  shadow_db_data:
+  source_db_data:

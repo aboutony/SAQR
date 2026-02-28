@@ -1,0 +1,14 @@
+{
+    "outputDirectory": "apps/shield-ui",
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-cache"
+                }
+            ]
+        }
+    ]
+}

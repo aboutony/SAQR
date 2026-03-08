@@ -1153,6 +1153,65 @@ body {
   opacity: 1;
 }
 
+/* CDC Handshake — Verify Button */
+.drift-verify-btn {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.drift-verify-btn:hover:not(.verifying) {
+  background: var(--accent-primary-15);
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(0, 229, 160, 0.4);
+}
+
+.drift-verify-btn.verifying {
+  opacity: 1;
+  animation: handshakePulse 1.2s ease infinite;
+}
+
+@keyframes handshakePulse {
+
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Drift Panel Pulse (triggered by remediation card click) */
+.panel.drift-pulse {
+  animation: driftGlow 1.5s ease;
+}
+
+@keyframes driftGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(0, 229, 160, 0);
+  }
+
+  30% {
+    box-shadow: 0 0 24px rgba(0, 229, 160, 0.3);
+    border-color: var(--accent-primary);
+  }
+
+  100% {
+    box-shadow: 0 0 0 rgba(0, 229, 160, 0);
+  }
+}
+
+/* Remediation Card Active State */
+.rem-ticket.rem-card-active {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 12px rgba(0, 229, 160, 0.2);
+  transform: scale(1.01);
+  transition: all 0.3s ease;
+}
+
 /* Integrity */
 .integrity-item {
   display: flex;

@@ -925,11 +925,11 @@ function simulateViolation() {
       driftBody.innerHTML = `<div class="drift-empty">${strings['drift.empty']}</div>`;
     } else {
       driftBody.innerHTML = data.driftAlerts.map(d => `
-        <div class="drift-alert drift-${d.severity === 'critical' ? 'critical' : d.drift_type === 'added' ? 'added' : ''}" onclick="openCertificate('${d.alert_id}', '${d.title}', '${d.detected_at}')">
+        <div class="drift-alert drift-${d.severity === 'critical' ? 'critical' : d.drift_type === 'added' ? 'added' : ''}">
           <div class="drift-alert-type" style="color: var(--accent-${d.severity === 'critical' ? 'red' : d.drift_type === 'added' ? 'blue' : 'amber'});">${d.drift_type.toUpperCase()} — ${d.authority}</div>
           <div class="drift-alert-title">${d.title}</div>
           <div class="drift-alert-desc">${(d.description || '').substring(0, 140)}</div>
-          <div class="cert-verify-hint">${strings['cert.verify']} →</div>
+          <div class="cert-verify-hint drift-verify-btn" data-drift-id="${d.alert_id}" data-drift-authority="${d.authority}" data-drift-title="${d.title}" onclick="startCDCHandshake(this)">${strings['cert.verify']} →</div>
         </div>
       `).join('');
     }
@@ -1139,6 +1139,29 @@ function openCertificate(evidenceId, title, timestamp) {
   const hash = generateDemoHash(`${evidenceId}-${timestamp}`);
   const merkleProof = generateDemoHash(`merkle-proof-${evidenceId}`);
 
+  // Authority Sync: determine correct authority signature from session
+  let authSignature = 'SAMA';
+  let lawValue = strings['cert.law.value'];
+  let residencyValue = strings['cert.residency.value'];
+
+  if (typeof SessionArchitect !== 'undefined') {
+    const s = SessionArchitect.getSession();
+    if (s && s.active && s.industry) {
+      const AUTH_SIGS = {
+        BFSI: 'SAMA — Saudi Central Bank',
+        Healthcare: 'MOH — Ministry of Health',
+        'F&B': 'MOMAH — Ministry of Municipal Affairs',
+        Manufacturing: 'SASO — Saudi Standards, Metrology & Quality Org',
+        Hospitality: 'MOT — Ministry of Tourism',
+        Education: 'MOE — Ministry of Education',
+      };
+      authSignature = AUTH_SIGS[s.industry.key] || authSignature;
+      if (s.market && s.market.residency) {
+        residencyValue = `${s.market.residency} — ${s.market.cloud || 'STC Cloud'}`;
+      }
+    }
+  }
+
   document.getElementById('certModalTitle').textContent = strings['cert.title'];
   document.getElementById('certModalBody').innerHTML = `
     <div class="cert-card">
@@ -1172,8 +1195,12 @@ function openCertificate(evidenceId, title, timestamp) {
       </div>
       <div class="cert-divider"></div>
       <div class="cert-field">
+        <div class="cert-field-label">${currentLang === 'ar' ? 'الجهة المختصة' : 'Regulatory Authority'}</div>
+        <div class="cert-field-value" style="color:var(--accent-primary);font-weight:600">${authSignature}</div>
+      </div>
+      <div class="cert-field">
         <div class="cert-field-label">${strings['cert.law']}</div>
-        <div class="cert-field-value">${strings['cert.law.value']}</div>
+        <div class="cert-field-value">${lawValue}</div>
       </div>
       <div class="cert-field">
         <div class="cert-field-label">${strings['cert.residency']}</div>
@@ -1182,7 +1209,7 @@ function openCertificate(evidenceId, title, timestamp) {
             <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
-          ${strings['cert.residency.value']}
+          ${residencyValue}
         </div>
       </div>
     </div>
@@ -1200,6 +1227,58 @@ function openDemoCertificate(id, sector) {
 
 window.openCertificate = openCertificate;
 window.openDemoCertificate = openDemoCertificate;
+
+// -----------------------------------------------
+// CDC Handshake Animation — In-Panel Verification
+// -----------------------------------------------
+function startCDCHandshake(el) {
+  // Prevent double-click
+  if (el.classList.contains('verifying')) return;
+  el.classList.add('verifying');
+
+  // Determine industry name for database label
+  let industryName = 'Regulatory';
+  if (typeof SessionArchitect !== 'undefined') {
+    const s = SessionArchitect.getSession();
+    if (s && s.active && s.industry) industryName = s.industry.key;
+  }
+  const driftAuthority = el.getAttribute('data-drift-authority') || '';
+  const driftTitle = el.getAttribute('data-drift-title') || '';
+
+  // Step 1: Verifying...
+  el.innerHTML = `⏳ Verifying with ${industryName} Database...`;
+  el.style.color = 'var(--accent-amber)';
+  el.style.pointerEvents = 'none';
+
+  // Step 2: Confirmed (after 2s)
+  setTimeout(() => {
+    el.innerHTML = `✅ Compliance Confirmed. Closing Ticket.`;
+    el.style.color = 'var(--accent-primary)';
+
+    // Pulse the parent drift alert with green glow
+    const driftAlert = el.closest('.drift-alert');
+    if (driftAlert) {
+      driftAlert.style.transition = 'box-shadow 0.5s ease, border-color 0.5s ease';
+      driftAlert.style.boxShadow = '0 0 16px rgba(0, 229, 160, 0.3)';
+      driftAlert.style.borderColor = 'var(--accent-primary)';
+    }
+
+    // Step 3: Shield → Green (after 1.5s more)
+    setTimeout(() => {
+      const greenHex = currentTheme === 'dark' ? 0x00E5A0 : 0x0D9668;
+      setShieldColor(greenHex, false);
+      violationIntensity = Math.max(0, violationIntensity - 0.15);
+
+      // Fade the verified drift alert
+      if (driftAlert) {
+        driftAlert.style.opacity = '0.5';
+        el.innerHTML = `🔒 Verified & Sealed`;
+        el.style.fontSize = '0.65rem';
+      }
+    }, 1500);
+  }, 2000);
+}
+window.startCDCHandshake = startCDCHandshake;
 
 function closeCertModal() { document.getElementById('certModal').classList.remove('visible'); }
 
@@ -1924,6 +2003,26 @@ simulateViolation = function () {
     }).join('');
 
     updateBadge();
+
+    // Remediation card click → Drift Pulse
+    ticketList.querySelectorAll('.rem-ticket').forEach(card => {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        // Pulse the Instruction Drift panel to guide user to next step
+        const driftPanel = document.getElementById('driftAlerts');
+        if (driftPanel) {
+          const parent = driftPanel.closest('.panel');
+          if (parent) {
+            parent.classList.add('drift-pulse');
+            parent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => parent.classList.remove('drift-pulse'), 1500);
+          }
+        }
+        // Highlight the clicked card briefly
+        card.classList.add('rem-card-active');
+        setTimeout(() => card.classList.remove('rem-card-active'), 1200);
+      });
+    });
   }
 
   // Listen for changes

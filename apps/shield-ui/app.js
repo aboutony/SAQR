@@ -3,6 +3,20 @@
 // Three.js 3D Shield + Demo Mode + BiDi + All Engines
 // ============================================
 
+// -----------------------------------------------
+// Gateway Session Enforcement
+// Redirect to GatewaySelector if no active session
+// -----------------------------------------------
+(function enforceGateway() {
+  if (typeof SessionArchitect !== 'undefined') {
+    const session = SessionArchitect.getSession();
+    if (!session || !session.active) {
+      window.location.href = 'GatewaySelector.html';
+      return;
+    }
+  }
+})();
+
 const API_BASE = 'http://localhost:3001';
 
 // -----------------------------------------------
@@ -1357,3 +1371,435 @@ setInterval(async () => {
 
 console.log('🦅 SAQR Shield UI v7 — Sentinel Engine + Sovereign Bridge');
 console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelDetection()');
+
+// -----------------------------------------------
+// Gateway Session Context — Apply on Load
+// -----------------------------------------------
+(function applyGatewaySession() {
+  if (typeof SessionArchitect === 'undefined') return;
+  const session = SessionArchitect.getSession();
+  if (!session || !session.active) return;
+
+  console.log(`[Gateway] Session active — Silo: ${session.siloId}`);
+  console.log(`[Gateway] Industry: ${session.industry.key} → ${session.industry.schema}`);
+  console.log(`[Gateway] Market: ${session.market.isoCode} (${session.market.residency})`);
+  console.log(`[Gateway] Sentinels: ${session.market.scrapers.join(', ')}`);
+  console.log(`[Gateway] Language: ${session.language.code} → ${session.language.locale}`);
+
+  // 1. Apply language from session
+  if (session.language.code === 'ar') {
+    setLanguage('ar');
+  } else {
+    setLanguage('en');
+  }
+
+  // 2. Dynamic Session Header
+  const FLAGS = { SA: '🇸🇦', AE: '🇦🇪', BH: '🇧🇭', QA: '🇶🇦', KW: '🇰🇼', OM: '🇴🇲', EG: '🇪🇬', JO: '🇯🇴', GB: '🇬🇧', US: '🇺🇸', DE: '🇩🇪', FR: '🇫🇷', SG: '🇸🇬', IN: '🇮🇳', MY: '🇲🇾' };
+  const COUNTRY_NAMES = { SA: 'KSA', AE: 'UAE', BH: 'BHR', QA: 'QAT', KW: 'KWT', OM: 'OMN', EG: 'EGY', JO: 'JOR', GB: 'GBR', US: 'USA', DE: 'DEU', FR: 'FRA', SG: 'SGP', IN: 'IND', MY: 'MYS' };
+
+  const sessionFlag = document.getElementById('sessionFlag');
+  const sessionMarket = document.getElementById('sessionMarket');
+  const sessionIndustry = document.getElementById('sessionIndustry');
+
+  if (sessionFlag) sessionFlag.textContent = FLAGS[session.market.isoCode] || '🌐';
+  if (sessionMarket) sessionMarket.textContent = COUNTRY_NAMES[session.market.isoCode] || session.market.isoCode;
+  if (sessionIndustry) sessionIndustry.textContent = `${session.industry.key} Regulatory Shield`;
+
+  // Also update the legacy market badge if it exists
+  const badge = document.getElementById('gatewayMarketBadge');
+  const flagEl = document.getElementById('marketFlag');
+  const codeEl = document.getElementById('marketCode');
+  if (badge && flagEl && codeEl) {
+    flagEl.textContent = FLAGS[session.market.isoCode] || '🌐';
+    codeEl.textContent = session.market.isoCode;
+    badge.style.display = 'flex';
+  }
+
+  // 3. Dynamic Authority Grid (AuthorityMapper)
+  if (typeof AuthorityMapper !== 'undefined') {
+    const grid = document.getElementById('authorityGrid');
+    if (grid) {
+      grid.innerHTML = AuthorityMapper.renderGrid(session.market.isoCode, session.industry.key);
+      console.log(`[AuthorityMapper] Grid populated: ${session.market.isoCode} × ${session.industry.key}`);
+    }
+
+    // Update regulation counter
+    const regInfo = AuthorityMapper.getRegCount(session.industry.key);
+    const detailEl = document.getElementById('heartbeatDetail');
+    if (detailEl) {
+      detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
+    }
+
+    // Update heartbeat label
+    const labelEl = document.getElementById('heartbeatLabel');
+    if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
+  }
+
+  // 4. Auto-select the matching demo sector from session industry
+  if (session.industry.demoSector) {
+    const sectorMap = { banking: 'banking', healthcare: 'healthcare', fnb: 'fnb' };
+    const sector = sectorMap[session.industry.demoSector];
+    if (sector && DEMO_DATA[sector]) {
+      activateDemoSector(sector);
+    }
+  }
+
+  // 5. Initialize Neural Translation Matrix
+  if (typeof TranslatorCore !== 'undefined') {
+    TranslatorCore.init();
+  }
+})();
+
+// -----------------------------------------------
+// Neural Translation Matrix — Toggle & Integration
+// -----------------------------------------------
+(function initNTM() {
+  if (typeof TranslatorCore === 'undefined') return;
+
+  const ntmBtn = document.getElementById('ntmToggle');
+  if (!ntmBtn) return;
+
+  ntmBtn.addEventListener('click', () => {
+    const nowActive = TranslatorCore.toggle();
+    ntmBtn.classList.toggle('ntm-active', nowActive);
+
+    if (nowActive) {
+      ntmTranslateViolations();
+    } else {
+      // Re-render the current sector to restore originals
+      if (currentDemoSector && demoPhase === 'violation') {
+        simulateViolation();
+      }
+    }
+  });
+})();
+
+/**
+ * NTM: Translate all visible violation and Intelligence Reveal text.
+ * Called after simulateViolation() when NTM is enabled.
+ */
+function ntmTranslateViolations() {
+  if (typeof TranslatorCore === 'undefined' || !TranslatorCore.isEnabled()) return;
+
+  const lang = TranslatorCore.getTargetLang();
+  if (lang === 'en' || lang === 'ar') return; // en is source, ar has its own i18n
+
+  let uid = 0;
+
+  // 1. Translate violation titles in the table
+  document.querySelectorAll('#violationsTableBody tr:not(.intelligence-reveal) td:nth-child(5)').forEach(td => {
+    const original = td.textContent.trim();
+    if (!original) return;
+    const translated = TranslatorCore.translate(original, lang);
+    if (translated !== original) {
+      td.innerHTML = TranslatorCore.wrapTranslatable(original, translated, `vt-${uid++}`);
+    }
+  });
+
+  // 2. Translate Intelligence Reveal panels
+  document.querySelectorAll('.intelligence-panel').forEach(panel => {
+    panel.querySelectorAll('.intel-value').forEach(el => {
+      if (el.classList.contains('hash-cell')) return; // Don't translate hashes
+      if (el.classList.contains('intel-fine')) return; // Don't translate SAR amounts
+
+      const original = el.textContent.trim();
+      if (!original) return;
+      const translated = TranslatorCore.translate(original, lang);
+      if (translated !== original) {
+        el.innerHTML = TranslatorCore.wrapTranslatable(original, translated, `ir-${uid++}`);
+      }
+    });
+
+    // Translate Intel labels
+    panel.querySelectorAll('.intel-label').forEach(el => {
+      const original = el.textContent.trim();
+      if (!original) return;
+      const translated = TranslatorCore.translate(original, lang);
+      if (translated !== original) {
+        el.innerHTML = TranslatorCore.wrapTranslatable(original, translated, `il-${uid++}`);
+      }
+    });
+  });
+
+  // 3. Translate drift alert titles
+  document.querySelectorAll('.drift-alert-title').forEach(el => {
+    const original = el.textContent.trim();
+    if (!original) return;
+    const translated = TranslatorCore.translate(original, lang);
+    if (translated !== original) {
+      el.innerHTML = TranslatorCore.wrapTranslatable(original, translated, `da-${uid++}`);
+    }
+  });
+
+  console.log(`[NTM] Translated ${uid} elements → ${lang}`);
+}
+
+// Hook NTM into simulateViolation — call translation after rendering
+const _origSimulateViolation = simulateViolation;
+simulateViolation = function () {
+  _origSimulateViolation.apply(this, arguments);
+  // Allow DOM to settle, then translate
+  setTimeout(() => ntmTranslateViolations(), 200);
+};
+
+// -----------------------------------------------
+// WorkflowManager — Remediation Panel Integration
+// -----------------------------------------------
+(function initWorkflow() {
+  if (typeof WorkflowManager === 'undefined') return;
+
+  const slideout = document.getElementById('remediationSlideout');
+  const fab = document.getElementById('remFab');
+  const fabBadge = document.getElementById('remFabBadge');
+  const closeBtn = document.getElementById('remCloseBtn');
+  const ticketList = document.getElementById('remTicketList');
+  const ticketCount = document.getElementById('remTicketCount');
+
+  if (!slideout || !fab) return;
+
+  // Toggle panel
+  fab.addEventListener('click', () => {
+    slideout.classList.toggle('open');
+  });
+  if (closeBtn) closeBtn.addEventListener('click', () => {
+    slideout.classList.remove('open');
+  });
+
+  // Update badge count
+  function updateBadge() {
+    const active = WorkflowManager.getActiveTickets();
+    const count = active.length;
+    fabBadge.textContent = count;
+    fabBadge.style.display = count > 0 ? 'flex' : 'none';
+    if (ticketCount) ticketCount.textContent = count;
+  }
+
+  // Render ticket cards
+  function renderTickets() {
+    const tickets = WorkflowManager.getTickets();
+    if (!ticketList) return;
+
+    if (tickets.length === 0) {
+      ticketList.innerHTML = '<div class="rem-empty">No active remediation tickets</div>';
+      return;
+    }
+
+    ticketList.innerHTML = tickets.map(t => {
+      const stateDef = WorkflowManager.getStateDef(t.state);
+      const mttr = WorkflowManager.getMTTR(t);
+      const stateOrder = stateDef ? stateDef.order : 0;
+
+      // MTTR bar color
+      let mttrClass = 'green';
+      if (mttr.isOverdue) mttrClass = 'overdue';
+      else if (mttr.isCritical) mttrClass = 'red';
+      else if (mttr.percentage > 50) mttrClass = 'amber';
+
+      // Progress steps (6 stages)
+      const progressHTML = [0, 1, 2, 3, 4, 5].map(i => {
+        if (i < stateOrder) return '<div class="rem-progress-step done"></div>';
+        if (i === stateOrder && t.state !== 'CLOSED') return '<div class="rem-progress-step active"></div>';
+        if (t.state === 'CLOSED') return '<div class="rem-progress-step done"></div>';
+        return '<div class="rem-progress-step"></div>';
+      }).join('');
+
+      const assigneeHTML = t.assignee
+        ? `<div class="rem-assignee"><span class="rem-assignee-icon">${t.assignee.charAt(0)}</span>${t.assignee}</div>`
+        : '';
+
+      const showMTTR = t.state !== 'CLOSED' && t.state !== 'VERIFIED';
+
+      return `
+        <div class="rem-ticket" data-ticket-id="${t.id}">
+          <div class="rem-ticket-header">
+            <span class="rem-ticket-id">${t.id}</span>
+            <span class="rem-state-badge rem-state-${t.state}">${stateDef ? stateDef.icon : ''} ${stateDef ? stateDef.label : t.state}</span>
+          </div>
+          <div class="rem-ticket-title">${t.title}</div>
+          <div class="rem-ticket-meta">
+            <span class="rem-authority-badge">${t.authority}</span>
+            <span class="rem-severity-badge severity-${t.severity}">${t.severity.toUpperCase()}</span>
+            ${t.cdcVerified ? '<span class="rem-severity-badge" style="color:var(--accent-primary)">✓ CDC</span>' : ''}
+          </div>
+          ${showMTTR ? `
+          <div class="mttr-container" data-mttr-ticket="${t.id}">
+            <div class="mttr-bar"><div class="mttr-fill ${mttrClass}" style="width:${mttr.percentage}%"></div></div>
+            <div class="mttr-countdown ${mttrClass}" data-mttr-display="${t.id}">${mttr.formatted}</div>
+          </div>` : ''}
+          ${assigneeHTML}
+          <div class="rem-progress">${progressHTML}</div>
+        </div>`;
+    }).join('');
+
+    updateBadge();
+  }
+
+  // Listen for changes
+  WorkflowManager.on('tickets:changed', () => renderTickets());
+
+  // Live MTTR countdown timer (updates every second)
+  setInterval(() => {
+    document.querySelectorAll('[data-mttr-display]').forEach(el => {
+      const ticketId = el.getAttribute('data-mttr-display');
+      const ticket = WorkflowManager.getTicketById(ticketId);
+      if (!ticket || ticket.state === 'CLOSED' || ticket.state === 'VERIFIED') return;
+
+      const mttr = WorkflowManager.getMTTR(ticket);
+      el.textContent = mttr.formatted;
+
+      // Update classes
+      el.classList.remove('green', 'amber', 'red', 'overdue');
+      const container = el.closest('.mttr-container');
+      const fill = container ? container.querySelector('.mttr-fill') : null;
+
+      if (mttr.isOverdue) {
+        el.classList.add('overdue');
+        if (fill) { fill.className = 'mttr-fill red'; fill.style.width = '100%'; }
+      } else if (mttr.isCritical) {
+        el.classList.add('red');
+        if (fill) { fill.className = 'mttr-fill red'; fill.style.width = mttr.percentage + '%'; }
+      } else if (mttr.percentage > 50) {
+        el.classList.add('amber');
+        if (fill) { fill.className = 'mttr-fill amber'; fill.style.width = mttr.percentage + '%'; }
+      } else {
+        if (fill) { fill.className = 'mttr-fill green'; fill.style.width = mttr.percentage + '%'; }
+      }
+    });
+  }, 1000);
+
+  // Hook into simulateViolation to auto-create tickets
+  const _origSimViolationWF = simulateViolation;
+  simulateViolation = function () {
+    _origSimViolationWF.apply(this, arguments);
+
+    // Create tickets from current sector's violations
+    setTimeout(() => {
+      if (!currentDemoSector || !DEMO_DATA[currentDemoSector]) return;
+      const data = DEMO_DATA[currentDemoSector];
+
+      data.violations.forEach(v => {
+        // Don't create duplicate tickets
+        const existing = WorkflowManager.getTickets().find(t => t.violationId === v.id);
+        if (!existing) {
+          WorkflowManager.createTicket(v);
+        }
+      });
+
+      // Auto-demo: advance the first ticket through lifecycle
+      const tickets = WorkflowManager.getActiveTickets();
+      if (tickets.length > 0) {
+        WorkflowManager.demoAdvance(tickets[0].id, 2500);
+      }
+
+      // Auto-open the panel
+      slideout.classList.add('open');
+    }, 500);
+  };
+
+  console.log('[Workflow] Remediation panel initialized — FAB active');
+})();
+
+// -----------------------------------------------
+// Dispatcher — Notification Hub Integration
+// -----------------------------------------------
+(function initDispatcher() {
+  if (typeof Dispatcher === 'undefined') return;
+
+  const bell = document.getElementById('notifBell');
+  const badge = document.getElementById('notifBadge');
+  const dropdown = document.getElementById('notifDropdown');
+  const notifList = document.getElementById('notifList');
+  const markAllBtn = document.getElementById('notifMarkAll');
+
+  if (!bell || !dropdown) return;
+
+  // Bind to WorkflowManager if available
+  if (typeof WorkflowManager !== 'undefined') {
+    Dispatcher.bindWorkflow(WorkflowManager);
+  }
+
+  // Toggle dropdown
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+    if (dropdown.classList.contains('open')) {
+      renderNotifications();
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.notif-bell-wrapper')) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // Mark all read
+  if (markAllBtn) {
+    markAllBtn.addEventListener('click', () => {
+      Dispatcher.markAllRead();
+      bell.classList.remove('has-unread');
+      renderNotifications();
+    });
+  }
+
+  // Render notification items
+  function renderNotifications() {
+    const notifications = Dispatcher.getNotifications();
+    if (!notifList) return;
+
+    if (notifications.length === 0) {
+      notifList.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+      return;
+    }
+
+    notifList.innerHTML = notifications.slice(0, 20).map(n => {
+      const channelLabels = n.channels.map(c => c.icon).join(' ');
+      const timeAgo = _relativeTime(n.timestamp);
+
+      return `
+        <div class="notif-item ${n.read ? '' : 'unread'} priority-${n.typeDef.priority}"
+             data-notif-id="${n.id}" onclick="Dispatcher.markRead('${n.id}')">
+          <span class="notif-icon">${n.typeDef.icon}</span>
+          <div class="notif-content">
+            <div class="notif-item-title">${n.title}</div>
+            <div class="notif-item-message">${n.message}</div>
+            <div class="notif-item-meta">
+              <span class="notif-item-time">${timeAgo}</span>
+              <span class="notif-item-channels">${channelLabels}</span>
+            </div>
+          </div>
+          ${n.read ? '' : '<div class="notif-unread-dot"></div>'}
+        </div>`;
+    }).join('');
+  }
+
+  // Update badge on unread changes
+  Dispatcher.on('unread:changed', (count) => {
+    if (badge) {
+      badge.textContent = count > 9 ? '9+' : count;
+      badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+    bell.classList.toggle('has-unread', count > 0);
+  });
+
+  // Re-render dropdown when new notification arrives and it's open
+  Dispatcher.on('notification', () => {
+    if (dropdown.classList.contains('open')) {
+      renderNotifications();
+    }
+  });
+
+  // Relative time formatter
+  function _relativeTime(iso) {
+    const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (seconds < 10) return 'just now';
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    return `${hours}h ago`;
+  }
+
+  console.log('[Dispatcher] Notification hub initialized — bell active');
+})();

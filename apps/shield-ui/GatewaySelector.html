@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SAQR Global Gateway — Multi-Market, Multi-Industry Session Initialization">
+    <title>SAQR — Global Gateway</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="SessionArchitect.js"></script>
+    <style>
+        /* ============================================
+   SAQR Gateway — Premium Glassmorphism Theme
+   ============================================ */
+        :root {
+            --bg-deep: #060b14;
+            --bg-surface: #0d1525;
+            --bg-card: rgba(13, 21, 37, 0.65);
+            --bg-card-solid: #131d30;
+            --bg-elevated: #1e2d4a;
+            --bg-input: #0f1a2e;
+            --accent-primary: #00E5A0;
+            --accent-primary-15: rgba(0, 229, 160, 0.12);
+            --accent-primary-30: rgba(0, 229, 160, 0.25);
+            --accent-blue: #3B82F6;
+            --accent-blue-15: rgba(59, 130, 246, 0.12);
+            --accent-amber: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-purple: #A855F7;
+            --text-primary: #F0F4F8;
+            --text-secondary: #8B9FC0;
+            --text-muted: #546886;
+            --border-subtle: rgba(139, 159, 192, 0.08);
+            --border-medium: rgba(139, 159, 192, 0.15);
+            --border-accent: rgba(0, 229, 160, 0.25);
+            --glass-bg: rgba(13, 21, 37, 0.7);
+            --glass-blur: 24px;
+            --shadow-glow: 0 0 60px rgba(0, 229, 160, 0.06);
+            --roi-gradient: linear-gradient(135deg, #00E5A0 0%, #3B82F6 100%);
+            --font-latin: 'Inter', -apple-system, sans-serif;
+            --font-arabic: 'IBM Plex Sans Arabic', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 18px;
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 450ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 15px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-latin);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 20%, rgba(0, 229, 160, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating grid lines */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(139, 159, 192, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 159, 192, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+            animation: gridDrift 30s linear infinite;
+        }
+
+        @keyframes gridDrift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(60px, 60px);
+            }
+        }
+
+        /* ---- Gateway Container ---- */
+        .gateway-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 580px;
+            padding: 20px;
+        }
+
+        .gateway-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 40px 36px 36px;
+            box-shadow: var(--shadow-glow), 0 8px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gateway-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--roi-gradient);
+        }
+
+        /* ---- Logo ---- */
+        .gw-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 8px;
+        }
+
+        .gw-logo-icon svg {
+            width: 38px;
+            height: 38px;
+        }
+
+        .gw-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .gw-logo-main {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: var(--roi-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gw-logo-sub {
+            font-family: var(--font-arabic);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .gw-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
+
+        /* ---- Selector Groups ---- */
+        .selector-group {
+            margin-bottom: 24px;
+        }
+
+        .selector-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .selector-label .label-icon {
+            font-size: 0.8rem;
+        }
+
+        /* Searchable Dropdown */
+        .search-dropdown {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-latin);
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-primary-15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            transition: color var(--transition-fast);
+        }
+
+        .search-input:focus~.search-icon,
+        .search-dropdown.open .search-icon {
+            color: var(--accent-primary);
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            max-height: 220px;
+            overflow-y: auto;
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            display: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary-30) transparent;
+        }
+
+        .dropdown-list.visible {
+            display: block;
+            animation: dropIn 200ms ease-out;
+        }
+
+        @keyframes dropIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item:hover {
+            background: var(--accent-primary-15);
+            color: var(--text-primary);
+        }
+
+        .dropdown-item.selected {
+            background: var(--accent-primary-15);
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .dropdown-item .item-flag {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .dropdown-item .item-code {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-left: auto;
+            letter-spacing: 0.5px;
+        }
+
+        .dropdown-item .nmt-badge {
+            font-family: var(--font-mono);
+            font-size: 0.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            background: var(--accent-blue-15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+        }
+
+        /* ---- Industry Pill Buttons ---- */
+        .industry-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .industry-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: 24px;
+            color: var(--text-secondary);
+            font-family: var(--font-latin);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            letter-spacing: 0.2px;
+        }
+
+        .industry-pill:hover {
+            border-color: var(--accent-primary-30);
+            background: var(--accent-primary-15);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .industry-pill.selected {
+            background: var(--accent-primary-15);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            box-shadow: 0 0 16px rgba(0, 229, 160, 0.1);
+        }
+
+        .industry-pill .pill-icon {
+            font-size: 0.95rem;
+        }
+
+        /* ---- CTA Button ---- */
+        .gw-cta-wrapper {
+            margin-top: 32px;
+        }
+
+        .gw-cta {
+            width: 100%;
+            padding: 16px 28px;
+            background: var(--roi-gradient);
+            border: none;
+            border-radius: var(--radius-lg);
+            color: #060b14;
+            font-family: var(--font-latin);
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gw-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 229, 160, 0.25);
+        }
+
+        .gw-cta:active {
+            transform: translateY(0);
+        }
+
+        .gw-cta:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .gw-cta::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 600ms ease;
+        }
+
+        .gw-cta:hover::after {
+            transform: translateX(100%);
+        }
+
+        /* ---- Handshake Overlay ---- */
+        .handshake-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 11, 20, 0.96);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        .handshake-overlay.active {
+            display: flex;
+            animation: fadeIn 400ms ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .hs-title {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent-primary);
+            text-shadow: 0 0 20px rgba(0, 229, 160, 0.3);
+        }
+
+        .hs-mapping {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .hs-map-node {
+            padding: 8px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            color: var(--accent-primary);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+        }
+
+        .hs-map-line {
+            width: 60px;
+            height: 2px;
+            background: var(--roi-gradient);
+            position: relative;
+            border-radius: 1px;
+        }
+
+        .hs-map-line::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: -3px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            animation: linePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes linePulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 4px var(--accent-primary);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 0 12px var(--accent-primary);
+                transform: scale(1.3);
+            }
+        }
+
+        /* Progress bar */
+        .hs-progress-container {
+            width: 360px;
+        }
+
+        .hs-progress-track {
+            height: 6px;
+            background: var(--bg-elevated);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .hs-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--roi-gradient);
+            border-radius: 3px;
+            transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hs-stages {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .hs-stage {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            transition: all var(--transition-normal);
+        }
+
+        .hs-stage.active {
+            color: var(--accent-primary);
+        }
+
+        .hs-stage.done {
+            color: var(--accent-primary);
+            opacity: 0.6;
+        }
+
+        .hs-stage .stage-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            flex-shrink: 0;
+            transition: all var(--transition-normal);
+        }
+
+        .hs-stage.active .stage-dot {
+            background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
+            animation: linePulse 1.2s ease-in-out infinite;
+        }
+
+        .hs-stage.done .stage-dot {
+            background: var(--accent-primary);
+            box-shadow: none;
+        }
+
+        /* ---- Version Badge ---- */
+        .gw-version {
+            position: fixed;
+            bottom: 16px;
+            right: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            opacity: 0.5;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="gateway-container">
+        <div class="gateway-card" id="gatewayCard">
+
+            <!-- Logo -->
+            <div class="gw-logo">
+                <div class="gw-logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 2L37 12V28L20 38L3 28V12L20 2Z" stroke="url(#gwGrad)" stroke-width="2"
+                            fill="none" />
+                        <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="url(#gwGrad)" opacity="0.3" />
+                        <path d="M20 14L25 17.5V24.5L20 28L15 24.5V17.5L20 14Z" fill="url(#gwGrad)" />
+                        <defs>
+                            <linearGradient id="gwGrad" x1="3" y1="2" x2="37" y2="38">
+                                <stop stop-color="#00E5A0" />
+                                <stop offset="1" stop-color="#3B82F6" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="gw-logo-text">
+                    <span class="gw-logo-main">SAQR</span>
+                    <span class="gw-logo-sub">صقر</span>
+                </div>
+            </div>
+            <div class="gw-subtitle">GLOBAL GATEWAY — SESSION INITIALIZATION</div>
+
+            <!-- Dropdown A: Market Context -->
+            <div class="selector-group">
+                <div class="selector-label"><span class="label-icon">🌍</span> MARKET CONTEXT</div>
+                <div class="search-dropdown" id="marketDropdown">
+                    <input type="text" class="search-input" id="marketSearch" placeholder="Search country..."
+                        autocomplete="off">
+                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <div class="dropdown-list" id="marketList"></div>
+                </div>
+            </div>
+
+            <!-- Dropdown B: Industry Vertical -->
+            <div class="selector-group">
+                <div class="selector-label"><span class="label-icon">🏗️</span> INDUSTRY VERTICAL</div>
+                <div class="industry-pills" id="industryPills"></div>
+            </div>
+
+            <!-- Dropdown C: Language -->
+            <div class="selector-group">
+                <div class="selector-label"><span class="label-icon">🗣️</span> USER LANGUAGE</div>
+                <div class="search-dropdown" id="langDropdown">
+                    <input type="text" class="search-input" id="langSearch" placeholder="Search language..."
+                        autocomplete="off">
+                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <div class="dropdown-list" id="langList"></div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="gw-cta-wrapper">
+                <button class="gw-cta" id="enterBtn" disabled>ENTER THE SHIELD →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Handshake Overlay -->
+    <div class="handshake-overlay" id="handshakeOverlay">
+        <div class="hs-title" id="hsTitle">⟐ SYNCING GLOBAL RULES ⟐</div>
+        <div class="hs-mapping" id="hsMapping">
+            <div class="hs-map-node" id="hsIndustry">—</div>
+            <div class="hs-map-line"></div>
+            <div class="hs-map-node" id="hsMarket">—</div>
+        </div>
+        <div class="hs-progress-container">
+            <div class="hs-progress-track">
+                <div class="hs-progress-fill" id="hsProgressFill"></div>
+            </div>
+            <div class="hs-stages" id="hsStages">
+                <div class="hs-stage" data-stage="0"><span class="stage-dot"></span>Initializing Silo…</div>
+                <div class="hs-stage" data-stage="1"><span class="stage-dot"></span>Loading Schema…</div>
+                <div class="hs-stage" data-stage="2"><span class="stage-dot"></span>Activating Sentinels…</div>
+                <div class="hs-stage" data-stage="3"><span class="stage-dot"></span>Configuring NMT…</div>
+                <div class="hs-stage" data-stage="4"><span class="stage-dot"></span>Shield Ready</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="gw-version">SAQR GATEWAY v1.0 — SOVEREIGN SESSION ENGINE</div>
+
+    <script>
+        // ============================================
+        // SAQR Gateway — Controller
+        // ============================================
+        (function () {
+            'use strict';
+
+            // --- ISO 3166-1 Country Database (249 Entries) ---
+            const COUNTRIES = [{ n: "Afghanistan", c: "AF", f: "🇦🇫" }, { n: "Albania", c: "AL", f: "🇦🇱" }, { n: "Algeria", c: "DZ", f: "🇩🇿" }, { n: "Andorra", c: "AD", f: "🇦🇩" }, { n: "Angola", c: "AO", f: "🇦🇴" }, { n: "Antigua and Barbuda", c: "AG", f: "🇦🇬" }, { n: "Argentina", c: "AR", f: "🇦🇷" }, { n: "Armenia", c: "AM", f: "🇦🇲" }, { n: "Australia", c: "AU", f: "🇦🇺" }, { n: "Austria", c: "AT", f: "🇦🇹" }, { n: "Azerbaijan", c: "AZ", f: "🇦🇿" }, { n: "Bahamas", c: "BS", f: "🇧🇸" }, { n: "Bahrain", c: "BH", f: "🇧🇭" }, { n: "Bangladesh", c: "BD", f: "🇧🇩" }, { n: "Barbados", c: "BB", f: "🇧🇧" }, { n: "Belarus", c: "BY", f: "🇧🇾" }, { n: "Belgium", c: "BE", f: "🇧🇪" }, { n: "Belize", c: "BZ", f: "🇧🇿" }, { n: "Benin", c: "BJ", f: "🇧🇯" }, { n: "Bhutan", c: "BT", f: "🇧🇹" }, { n: "Bolivia", c: "BO", f: "🇧🇴" }, { n: "Bosnia and Herzegovina", c: "BA", f: "🇧🇦" }, { n: "Botswana", c: "BW", f: "🇧🇼" }, { n: "Brazil", c: "BR", f: "🇧🇷" }, { n: "Brunei", c: "BN", f: "🇧🇳" }, { n: "Bulgaria", c: "BG", f: "🇧🇬" }, { n: "Burkina Faso", c: "BF", f: "🇧🇫" }, { n: "Burundi", c: "BI", f: "🇧🇮" }, { n: "Cambodia", c: "KH", f: "🇰🇭" }, { n: "Cameroon", c: "CM", f: "🇨🇲" }, { n: "Canada", c: "CA", f: "🇨🇦" }, { n: "Cape Verde", c: "CV", f: "🇨🇻" }, { n: "Central African Republic", c: "CF", f: "🇨🇫" }, { n: "Chad", c: "TD", f: "🇹🇩" }, { n: "Chile", c: "CL", f: "🇨🇱" }, { n: "China", c: "CN", f: "🇨🇳" }, { n: "Colombia", c: "CO", f: "🇨🇴" }, { n: "Comoros", c: "KM", f: "🇰🇲" }, { n: "Congo", c: "CG", f: "🇨🇬" }, { n: "Costa Rica", c: "CR", f: "🇨🇷" }, { n: "Croatia", c: "HR", f: "🇭🇷" }, { n: "Cuba", c: "CU", f: "🇨🇺" }, { n: "Cyprus", c: "CY", f: "🇨🇾" }, { n: "Czechia", c: "CZ", f: "🇨🇿" }, { n: "Denmark", c: "DK", f: "🇩🇰" }, { n: "Djibouti", c: "DJ", f: "🇩🇯" }, { n: "Dominica", c: "DM", f: "🇩🇲" }, { n: "Dominican Republic", c: "DO", f: "🇩🇴" }, { n: "Ecuador", c: "EC", f: "🇪🇨" }, { n: "Egypt", c: "EG", f: "🇪🇬" }, { n: "El Salvador", c: "SV", f: "🇸🇻" }, { n: "Equatorial Guinea", c: "GQ", f: "🇬🇶" }, { n: "Eritrea", c: "ER", f: "🇪🇷" }, { n: "Estonia", c: "EE", f: "🇪🇪" }, { n: "Eswatini", c: "SZ", f: "🇸🇿" }, { n: "Ethiopia", c: "ET", f: "🇪🇹" }, { n: "Fiji", c: "FJ", f: "🇫🇯" }, { n: "Finland", c: "FI", f: "🇫🇮" }, { n: "France", c: "FR", f: "🇫🇷" }, { n: "Gabon", c: "GA", f: "🇬🇦" }, { n: "Gambia", c: "GM", f: "🇬🇲" }, { n: "Georgia", c: "GE", f: "🇬🇪" }, { n: "Germany", c: "DE", f: "🇩🇪" }, { n: "Ghana", c: "GH", f: "🇬🇭" }, { n: "Greece", c: "GR", f: "🇬🇷" }, { n: "Grenada", c: "GD", f: "🇬🇩" }, { n: "Guatemala", c: "GT", f: "🇬🇹" }, { n: "Guinea", c: "GN", f: "🇬🇳" }, { n: "Guinea-Bissau", c: "GW", f: "🇬🇼" }, { n: "Guyana", c: "GY", f: "🇬🇾" }, { n: "Haiti", c: "HT", f: "🇭🇹" }, { n: "Honduras", c: "HN", f: "🇭🇳" }, { n: "Hungary", c: "HU", f: "🇭🇺" }, { n: "Iceland", c: "IS", f: "🇮🇸" }, { n: "India", c: "IN", f: "🇮🇳" }, { n: "Indonesia", c: "ID", f: "🇮🇩" }, { n: "Iran", c: "IR", f: "🇮🇷" }, { n: "Iraq", c: "IQ", f: "🇮🇶" }, { n: "Ireland", c: "IE", f: "🇮🇪" }, { n: "Israel", c: "IL", f: "🇮🇱" }, { n: "Italy", c: "IT", f: "🇮🇹" }, { n: "Jamaica", c: "JM", f: "🇯🇲" }, { n: "Japan", c: "JP", f: "🇯🇵" }, { n: "Jordan", c: "JO", f: "🇯🇴" }, { n: "Kazakhstan", c: "KZ", f: "🇰🇿" }, { n: "Kenya", c: "KE", f: "🇰🇪" }, { n: "Kiribati", c: "KI", f: "🇰🇮" }, { n: "Kuwait", c: "KW", f: "🇰🇼" }, { n: "Kyrgyzstan", c: "KG", f: "🇰🇬" }, { n: "Laos", c: "LA", f: "🇱🇦" }, { n: "Latvia", c: "LV", f: "🇱🇻" }, { n: "Lebanon", c: "LB", f: "🇱🇧" }, { n: "Lesotho", c: "LS", f: "🇱🇸" }, { n: "Liberia", c: "LR", f: "🇱🇷" }, { n: "Libya", c: "LY", f: "🇱🇾" }, { n: "Liechtenstein", c: "LI", f: "🇱🇮" }, { n: "Lithuania", c: "LT", f: "🇱🇹" }, { n: "Luxembourg", c: "LU", f: "🇱🇺" }, { n: "Madagascar", c: "MG", f: "🇲🇬" }, { n: "Malawi", c: "MW", f: "🇲🇼" }, { n: "Malaysia", c: "MY", f: "🇲🇾" }, { n: "Maldives", c: "MV", f: "🇲🇻" }, { n: "Mali", c: "ML", f: "🇲🇱" }, { n: "Malta", c: "MT", f: "🇲🇹" }, { n: "Marshall Islands", c: "MH", f: "🇲🇭" }, { n: "Mauritania", c: "MR", f: "🇲🇷" }, { n: "Mauritius", c: "MU", f: "🇲🇺" }, { n: "Mexico", c: "MX", f: "🇲🇽" }, { n: "Micronesia", c: "FM", f: "🇫🇲" }, { n: "Moldova", c: "MD", f: "🇲🇩" }, { n: "Monaco", c: "MC", f: "🇲🇨" }, { n: "Mongolia", c: "MN", f: "🇲🇳" }, { n: "Montenegro", c: "ME", f: "🇲🇪" }, { n: "Morocco", c: "MA", f: "🇲🇦" }, { n: "Mozambique", c: "MZ", f: "🇲🇿" }, { n: "Myanmar", c: "MM", f: "🇲🇲" }, { n: "Namibia", c: "NA", f: "🇳🇦" }, { n: "Nauru", c: "NR", f: "🇳🇷" }, { n: "Nepal", c: "NP", f: "🇳🇵" }, { n: "Netherlands", c: "NL", f: "🇳🇱" }, { n: "New Zealand", c: "NZ", f: "🇳🇿" }, { n: "Nicaragua", c: "NI", f: "🇳🇮" }, { n: "Niger", c: "NE", f: "🇳🇪" }, { n: "Nigeria", c: "NG", f: "🇳🇬" }, { n: "North Korea", c: "KP", f: "🇰🇵" }, { n: "North Macedonia", c: "MK", f: "🇲🇰" }, { n: "Norway", c: "NO", f: "🇳🇴" }, { n: "Oman", c: "OM", f: "🇴🇲" }, { n: "Pakistan", c: "PK", f: "🇵🇰" }, { n: "Palau", c: "PW", f: "🇵🇼" }, { n: "Palestine", c: "PS", f: "🇵🇸" }, { n: "Panama", c: "PA", f: "🇵🇦" }, { n: "Papua New Guinea", c: "PG", f: "🇵🇬" }, { n: "Paraguay", c: "PY", f: "🇵🇾" }, { n: "Peru", c: "PE", f: "🇵🇪" }, { n: "Philippines", c: "PH", f: "🇵🇭" }, { n: "Poland", c: "PL", f: "🇵🇱" }, { n: "Portugal", c: "PT", f: "🇵🇹" }, { n: "Qatar", c: "QA", f: "🇶🇦" }, { n: "Romania", c: "RO", f: "🇷🇴" }, { n: "Russia", c: "RU", f: "🇷🇺" }, { n: "Rwanda", c: "RW", f: "🇷🇼" }, { n: "Saint Kitts and Nevis", c: "KN", f: "🇰🇳" }, { n: "Saint Lucia", c: "LC", f: "🇱🇨" }, { n: "Saint Vincent", c: "VC", f: "🇻🇨" }, { n: "Samoa", c: "WS", f: "🇼🇸" }, { n: "San Marino", c: "SM", f: "🇸🇲" }, { n: "Sao Tome and Principe", c: "ST", f: "🇸🇹" }, { n: "Saudi Arabia", c: "SA", f: "🇸🇦" }, { n: "Senegal", c: "SN", f: "🇸🇳" }, { n: "Serbia", c: "RS", f: "🇷🇸" }, { n: "Seychelles", c: "SC", f: "🇸🇨" }, { n: "Sierra Leone", c: "SL", f: "🇸🇱" }, { n: "Singapore", c: "SG", f: "🇸🇬" }, { n: "Slovakia", c: "SK", f: "🇸🇰" }, { n: "Slovenia", c: "SI", f: "🇸🇮" }, { n: "Solomon Islands", c: "SB", f: "🇸🇧" }, { n: "Somalia", c: "SO", f: "🇸🇴" }, { n: "South Africa", c: "ZA", f: "🇿🇦" }, { n: "South Korea", c: "KR", f: "🇰🇷" }, { n: "South Sudan", c: "SS", f: "🇸🇸" }, { n: "Spain", c: "ES", f: "🇪🇸" }, { n: "Sri Lanka", c: "LK", f: "🇱🇰" }, { n: "Sudan", c: "SD", f: "🇸🇩" }, { n: "Suriname", c: "SR", f: "🇸🇷" }, { n: "Sweden", c: "SE", f: "🇸🇪" }, { n: "Switzerland", c: "CH", f: "🇨🇭" }, { n: "Syria", c: "SY", f: "🇸🇾" }, { n: "Taiwan", c: "TW", f: "🇹🇼" }, { n: "Tajikistan", c: "TJ", f: "🇹🇯" }, { n: "Tanzania", c: "TZ", f: "🇹🇿" }, { n: "Thailand", c: "TH", f: "🇹🇭" }, { n: "Timor-Leste", c: "TL", f: "🇹🇱" }, { n: "Togo", c: "TG", f: "🇹🇬" }, { n: "Tonga", c: "TO", f: "🇹🇴" }, { n: "Trinidad and Tobago", c: "TT", f: "🇹🇹" }, { n: "Tunisia", c: "TN", f: "🇹🇳" }, { n: "Turkey", c: "TR", f: "🇹🇷" }, { n: "Turkmenistan", c: "TM", f: "🇹🇲" }, { n: "Tuvalu", c: "TV", f: "🇹🇻" }, { n: "Uganda", c: "UG", f: "🇺🇬" }, { n: "Ukraine", c: "UA", f: "🇺🇦" }, { n: "United Arab Emirates", c: "AE", f: "🇦🇪" }, { n: "United Kingdom", c: "GB", f: "🇬🇧" }, { n: "United States", c: "US", f: "🇺🇸" }, { n: "Uruguay", c: "UY", f: "🇺🇾" }, { n: "Uzbekistan", c: "UZ", f: "🇺🇿" }, { n: "Vanuatu", c: "VU", f: "🇻🇺" }, { n: "Vatican City", c: "VA", f: "🇻🇦" }, { n: "Venezuela", c: "VE", f: "🇻🇪" }, { n: "Vietnam", c: "VN", f: "🇻🇳" }, { n: "Yemen", c: "YE", f: "🇾🇪" }, { n: "Zambia", c: "ZM", f: "🇿🇲" }, { n: "Zimbabwe", c: "ZW", f: "🇿🇼" }];
+
+            const INDUSTRY_ICONS = { BFSI: '🏦', Healthcare: '🏥', 'F&B': '🍽️', Hospitality: '🏨', Education: '🎓', Manufacturing: '🏭' };
+
+            // State
+            let selectedMarket = null;
+            let selectedIndustry = null;
+            let selectedLanguage = null;
+
+            // --- Render Markets ---
+            const marketList = document.getElementById('marketList');
+            const marketSearch = document.getElementById('marketSearch');
+            const marketDropdown = document.getElementById('marketDropdown');
+
+            function renderMarketList(filter = '') {
+                const q = filter.toLowerCase();
+                const filtered = COUNTRIES.filter(c => c.n.toLowerCase().includes(q) || c.c.toLowerCase().includes(q));
+                marketList.innerHTML = filtered.map(c =>
+                    `<div class="dropdown-item ${selectedMarket === c.c ? 'selected' : ''}" data-code="${c.c}">
+        <span class="item-flag">${c.f}</span>
+        <span>${c.n}</span>
+        <span class="item-code">${c.c}</span>
+      </div>`
+                ).join('');
+                filtered.length > 0 ? marketList.classList.add('visible') : marketList.classList.remove('visible');
+            }
+
+            marketSearch.addEventListener('focus', () => { marketDropdown.classList.add('open'); renderMarketList(marketSearch.value); });
+            marketSearch.addEventListener('input', () => renderMarketList(marketSearch.value));
+            marketList.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (!item) return;
+                const code = item.dataset.code;
+                const country = COUNTRIES.find(c => c.c === code);
+                if (!country) return;
+                selectedMarket = code;
+                marketSearch.value = `${country.f}  ${country.n}`;
+                marketList.classList.remove('visible');
+                marketDropdown.classList.remove('open');
+                updateCTA();
+            });
+            document.addEventListener('click', (e) => {
+                if (!marketDropdown.contains(e.target)) { marketList.classList.remove('visible'); marketDropdown.classList.remove('open'); }
+                if (!langDropdown.contains(e.target)) { langListEl.classList.remove('visible'); langDropdown.classList.remove('open'); }
+            });
+
+            // Default: KSA
+            selectedMarket = 'SA';
+            const ksa = COUNTRIES.find(c => c.c === 'SA');
+            marketSearch.value = `${ksa.f}  ${ksa.n}`;
+
+            // --- Render Industries ---
+            const pillsContainer = document.getElementById('industryPills');
+            const industries = SessionArchitect.getIndustries();
+            pillsContainer.innerHTML = industries.map(ind =>
+                `<button class="industry-pill" data-industry="${ind.key}">
+      <span class="pill-icon">${INDUSTRY_ICONS[ind.key] || '📋'}</span>
+      ${ind.key}
+    </button>`
+            ).join('');
+
+            pillsContainer.addEventListener('click', (e) => {
+                const pill = e.target.closest('.industry-pill');
+                if (!pill) return;
+                selectedIndustry = pill.dataset.industry;
+                pillsContainer.querySelectorAll('.industry-pill').forEach(p => p.classList.remove('selected'));
+                pill.classList.add('selected');
+                updateCTA();
+            });
+
+            // --- Render Languages ---
+            const langListEl = document.getElementById('langList');
+            const langSearch = document.getElementById('langSearch');
+            const langDropdown = document.getElementById('langDropdown');
+            const languages = SessionArchitect.getLanguages();
+
+            function renderLangList(filter = '') {
+                const q = filter.toLowerCase();
+                const filtered = languages.filter(l => l.label.toLowerCase().includes(q) || l.code.toLowerCase().includes(q) || l.locale.toLowerCase().includes(q));
+                langListEl.innerHTML = filtered.map(l =>
+                    `<div class="dropdown-item ${selectedLanguage === l.code ? 'selected' : ''}" data-code="${l.code}">
+        <span>${l.label}</span>
+        <span class="nmt-badge">NMT</span>
+      </div>`
+                ).join('');
+                filtered.length > 0 ? langListEl.classList.add('visible') : langListEl.classList.remove('visible');
+            }
+
+            langSearch.addEventListener('focus', () => { langDropdown.classList.add('open'); renderLangList(langSearch.value); });
+            langSearch.addEventListener('input', () => renderLangList(langSearch.value));
+            langListEl.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (!item) return;
+                const code = item.dataset.code;
+                const lang = languages.find(l => l.code === code);
+                if (!lang) return;
+                selectedLanguage = code;
+                langSearch.value = lang.label;
+                langListEl.classList.remove('visible');
+                langDropdown.classList.remove('open');
+                updateCTA();
+            });
+
+            // Default: English
+            selectedLanguage = 'en';
+            langSearch.value = 'English';
+
+            // --- CTA ---
+            const enterBtn = document.getElementById('enterBtn');
+            function updateCTA() {
+                enterBtn.disabled = !(selectedMarket && selectedIndustry && selectedLanguage);
+            }
+            updateCTA();
+
+            enterBtn.addEventListener('click', () => {
+                if (enterBtn.disabled) return;
+                startHandshake();
+            });
+
+            // --- Narrative Handshake ---
+            function startHandshake() {
+                const overlay = document.getElementById('handshakeOverlay');
+                const fill = document.getElementById('hsProgressFill');
+                const stages = document.querySelectorAll('.hs-stage');
+
+                // Set mapping display
+                document.getElementById('hsIndustry').textContent = selectedIndustry;
+                const mc = COUNTRIES.find(c => c.c === selectedMarket);
+                document.getElementById('hsMarket').textContent = mc ? `${mc.f} ${mc.c}` : selectedMarket;
+
+                // Update stage labels with dynamic values
+                stages[1].innerHTML = `<span class="stage-dot"></span>Loading ${selectedIndustry} Schema…`;
+                stages[2].innerHTML = `<span class="stage-dot"></span>Activating ${selectedMarket} Sentinels…`;
+                const lang = languages.find(l => l.code === selectedLanguage);
+                stages[3].innerHTML = `<span class="stage-dot"></span>Configuring ${lang ? lang.label : selectedLanguage} NMT…`;
+
+                overlay.classList.add('active');
+                fill.style.width = '0%';
+                stages.forEach(s => { s.classList.remove('active', 'done'); });
+
+                const stageDelays = [0, 600, 1200, 1800, 2400];
+                const progressPcts = [10, 30, 55, 80, 100];
+
+                stageDelays.forEach((delay, i) => {
+                    setTimeout(() => {
+                        // Mark previous as done
+                        if (i > 0) stages[i - 1].classList.remove('active');
+                        if (i > 0) stages[i - 1].classList.add('done');
+                        stages[i].classList.add('active');
+                        fill.style.width = progressPcts[i] + '%';
+                    }, delay);
+                });
+
+                // Initialize session and redirect
+                setTimeout(() => {
+                    try {
+                        SessionArchitect.initialize({
+                            market: selectedMarket,
+                            industry: selectedIndustry,
+                            language: selectedLanguage,
+                        });
+                    } catch (err) {
+                        console.error('[Gateway] Session init failed:', err);
+                    }
+
+                    stages[4].classList.remove('active');
+                    stages[4].classList.add('done');
+
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 500);
+                }, 3000);
+            }
+
+            // If session already exists, redirect
+            const existingSession = SessionArchitect.getSession();
+            if (existingSession && existingSession.active) {
+                window.location.href = 'index.html';
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

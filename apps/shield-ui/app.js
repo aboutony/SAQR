@@ -491,7 +491,7 @@ const DEMO_DATA = {
       { id: 3, alert_id: 'DRIFT-SAMA-003', drift_type: 'modified', authority: 'SAMA', severity: 'high', title: 'UPDATED: Disclosure Language Requirements', description: 'All product disclosures must now be in both Arabic and English. Arabic-only no longer sufficient for digital channels.', detected_at: '2026-02-26T11:00:00.000Z' },
     ],
     cvDetections: [],
-    breakdown: { SAMA: 47, MOMAH: 0, SFDA: 0 },
+    breakdown: { SAMA: 35, CMA: 5, ZATCA: 4, SDAIA: 2, GOSI: 1 },
     roiTarget: 1450000,
     shieldState: 'amber',
   },
@@ -505,15 +505,15 @@ const DEMO_DATA = {
       { id: 4, evidence_type: 'visual_audit', violation_code: 'MOH-HY-002', authority: 'SFDA', severity: 'high', title: 'Waste Segregation Violation', description: 'Medical waste container in pharmacy area not color-coded per MOH waste management circular.', ntp_timestamp: '2026-02-28T07:15:45.000Z', sha256_hash: generateDemoHash('MOH-HY-002-waste') },
     ],
     driftAlerts: [
-      { id: 1, alert_id: 'DRIFT-SFDA-001', drift_type: 'added', authority: 'SFDA', severity: 'critical', title: 'NEW: Cold Chain Monitoring Mandate', description: 'SFDA requires continuous IoT / visual monitoring of all cold storage units. Manual logs no longer sufficient.', detected_at: '2026-02-28T08:00:00.000Z' },
-      { id: 2, alert_id: 'DRIFT-MOH-001', drift_type: 'parameter_change', authority: 'MOH', severity: 'high', title: 'UPDATED: PPE Requirements in Sterile Zones', description: 'MOH updated sterile zone requirements. N95 masks now mandatory (replacing surgical masks).', detected_at: '2026-02-27T09:00:00.000Z' },
+      { id: 1, alert_id: 'DRIFT-MOH-001', drift_type: 'added', authority: 'MOH', severity: 'critical', title: 'NEW: MOH Patient Privacy Circular (March 2026)', description: 'MOH mandates all healthcare providers implement real-time consent tracking for patient data access. Effective immediately.', detected_at: '2026-02-28T09:00:00.000Z' },
+      { id: 2, alert_id: 'DRIFT-SFDA-001', drift_type: 'parameter_change', authority: 'SFDA', severity: 'high', title: 'MODIFIED: SFDA Cold Chain Temperature Threshold', description: 'SFDA reduced max cold chain temperature variance from ±3°C to ±1.5°C for all pharmaceutical storage facilities.', detected_at: '2026-02-27T14:00:00.000Z' },
     ],
     cvDetections: [
       { id: 1, evidence_id: 'CVE-HC-001', camera_id: 'CAM-COLD-01', source: 'genetec', violation_code: 'SFDA-HC-001', category: 'structural', confidence: 0.94, bbox: { x: 0.3, y: 0.2, width: 0.4, height: 0.35 }, severity: 'critical', name_en: 'Cold Chain Temperature Breach', name_ar: 'خرق سلسلة التبريد', ntp_timestamp: '2026-02-28T10:02:15.000Z' },
       { id: 2, evidence_id: 'CVE-HC-002', camera_id: 'CAM-STR-02', source: 'milestone', violation_code: 'MOH-HY-001', category: 'visual', confidence: 0.91, bbox: { x: 0.15, y: 0.1, width: 0.55, height: 0.7 }, severity: 'critical', name_en: 'PPE Violation — Sterile Zone', name_ar: 'مخالفة معدات الوقاية — منطقة معقمة', ntp_timestamp: '2026-02-28T09:48:30.000Z' },
       { id: 3, evidence_id: 'CVE-HC-003', camera_id: 'CAM-SHELF-01', source: 'genetec', violation_code: 'SFDA-HC-002', category: 'visual', confidence: 0.87, bbox: { x: 0.4, y: 0.3, width: 0.3, height: 0.2 }, severity: 'high', name_en: 'Expired Product on Shelf', name_ar: 'منتج منتهي الصلاحية على الرف', ntp_timestamp: '2026-02-28T08:33:12.000Z' },
     ],
-    breakdown: { SAMA: 0, MOMAH: 0, SFDA: 31 },
+    breakdown: { MOH: 12, SFDA: 10, SCFHS: 5, NUPCO: 4 },
     roiTarget: 820000,
     shieldState: 'red',
   },
@@ -534,7 +534,7 @@ const DEMO_DATA = {
       { id: 2, evidence_id: 'CVE-FB-002', camera_id: 'CAM-SIDE-02', source: 'milestone', violation_code: 'MOMAH-BR-002', category: 'structural', confidence: 0.88, bbox: { x: 0.6, y: 0.4, width: 0.35, height: 0.5 }, severity: 'high', name_en: 'Sidewalk Encroachment', name_ar: 'تعدي على الرصيف', ntp_timestamp: '2026-02-28T09:30:22.000Z' },
       { id: 3, evidence_id: 'CVE-FB-003', camera_id: 'CAM-FRONT-01', source: 'milestone', violation_code: 'MOMAH-BR-001', category: 'signage', confidence: 0.79, bbox: { x: 0.2, y: 0.1, width: 0.6, height: 0.15 }, severity: 'medium', name_en: 'Non-Bilingual Signage', name_ar: 'لوحة غير ثنائية اللغة', ntp_timestamp: '2026-02-27T14:10:05.000Z' },
     ],
-    breakdown: { SAMA: 0, MOMAH: 24, SFDA: 0 },
+    breakdown: { MOMAH: 14, SFDA: 8, ZATCA: 2 },
     roiTarget: 680000,
     shieldState: 'amber',
     remediation: {
@@ -573,6 +573,10 @@ const DEMO_DATA = {
         reasoning: { pipeline: 'Phase C — NLP Semantic', source: 'SDAIA PDPL Art. 18', constraint: 'Terminated employee data: delete within 90 days', cdcValue: 'Records found: 43 profiles > 180 days post-termination', verdict: 'DATA RETENTION VIOLATION', potentialFine: 'SAR 200,000', hashedLink: generateDemoHash('LINK-SDAIA-18') }
       },
     ],
+    driftAlerts: [
+      { id: 1, alert_id: 'DRIFT-SASO-001', drift_type: 'modified', authority: 'SASO', severity: 'critical', title: 'MODIFIED: SASO Industrial Safety Protocol v4', description: 'SASO updated ISO 9001 compliance threshold. Max defect rate reduced from 3% to 2%. All manufacturing facilities must comply by April 2026.', detected_at: '2026-02-28T08:00:00.000Z' },
+      { id: 2, alert_id: 'DRIFT-MODON-001', drift_type: 'added', authority: 'MODON', severity: 'high', title: 'NEW: MODON Environmental Emission Standard', description: 'MODON issued new emission monitoring regulation requiring real-time IoT sensor integration for all Class-A industrial zones.', detected_at: '2026-02-27T12:00:00.000Z' },
+    ],
     cvDetections: [],
     breakdown: { SASO: 14, MODON: 8, MHRSD: 7, ZATCA: 5, SDAIA: 4 },
     roiTarget: 920000,
@@ -602,6 +606,10 @@ const DEMO_DATA = {
         reasoning: { pipeline: 'Phase A — Rule Engine', source: 'ZATCA Tourism Levy Regulation', constraint: 'Municipal levy: 5% on accommodation', cdcValue: 'PMS: 340 bookings, levy_applied = false', verdict: 'TAX COLLECTION FAILURE', potentialFine: 'SAR 90,000 + Back Levy', hashedLink: generateDemoHash('LINK-ZATCA-levy') }
       },
     ],
+    driftAlerts: [
+      { id: 1, alert_id: 'DRIFT-MOT-001', drift_type: 'added', authority: 'MOT', severity: 'critical', title: 'NEW: MOT Digital Booking Platform Licensing', description: 'All tourist accommodations listed on digital booking platforms must display valid MOT license number in listings. Effective March 2026.', detected_at: '2026-02-28T09:30:00.000Z' },
+      { id: 2, alert_id: 'DRIFT-CD-001', drift_type: 'parameter_change', authority: 'Civil Defense', severity: 'high', title: 'MODIFIED: Fire System Uptime Requirement 99.9%', description: 'Civil Defense updated fire suppression system uptime requirement from 99% to 99.9% for all hospitality establishments.', detected_at: '2026-02-27T11:00:00.000Z' },
+    ],
     cvDetections: [],
     breakdown: { MOT: 10, MOMAH: 8, MHRSD: 5, ZATCA: 4, SDAIA: 2 },
     roiTarget: 540000,
@@ -627,12 +635,112 @@ const DEMO_DATA = {
         reasoning: { pipeline: 'Phase C — NLP Semantic', source: 'SDAIA PDPL Art. 5 (Consent)', constraint: 'Student data sharing requires explicit consent', cdcValue: 'Data pipeline: vendor_share = true, consent_flag = false', verdict: 'UNAUTHORIZED DATA SHARING', potentialFine: 'SAR 100,000', hashedLink: generateDemoHash('LINK-SDAIA-5') }
       },
     ],
+    driftAlerts: [
+      { id: 1, alert_id: 'DRIFT-MOE-001', drift_type: 'added', authority: 'MOE', severity: 'critical', title: 'NEW: MOE Program Accreditation Enforcement', description: 'MOE mandates all higher education programs must display real-time accreditation status on institutional websites. Non-compliant programs face enrollment freeze.', detected_at: '2026-02-28T08:00:00.000Z' },
+      { id: 2, alert_id: 'DRIFT-ETEC-001', drift_type: 'parameter_change', authority: 'ETEC', severity: 'high', title: 'MODIFIED: ETEC Student-Faculty Ratio Cap Reduced', description: 'ETEC reduced maximum student-to-faculty ratio from 30:1 to 25:1 for all STEM programs. Effective Q2 2026.', detected_at: '2026-02-27T10:00:00.000Z' },
+    ],
     cvDetections: [],
     breakdown: { MOE: 8, ETEC: 6, SDAIA: 4, MHRSD: 3, MoC: 1 },
     roiTarget: 380000,
     shieldState: 'green',
   },
 };
+
+// -----------------------------------------------
+// Dynamic UI Helpers — Industry-Aware Rendering
+// -----------------------------------------------
+
+// Authority color palette for breakdown bars
+const AUTHORITY_COLORS = {
+  SAMA: '#00E5A0', CMA: '#3B82F6', ZATCA: '#F59E0B', SDAIA: '#8B5CF6', GOSI: '#06B6D4', MHRSD: '#EF4444', MoC: '#F97316',
+  MOH: '#00E5A0', SFDA: '#3B82F6', SCFHS: '#F59E0B', NUPCO: '#8B5CF6',
+  MOMAH: '#00E5A0', MOT: '#3B82F6',
+  SASO: '#00E5A0', MODON: '#3B82F6',
+  MOE: '#00E5A0', ETEC: '#3B82F6',
+};
+
+function renderDynamicBreakdown(breakdown) {
+  const body = document.getElementById('breakdownBody');
+  if (!body) return;
+
+  if (!breakdown || Object.keys(breakdown).length === 0) {
+    body.innerHTML = '<div class="drift-empty">No authority data — awaiting simulation</div>';
+    return;
+  }
+
+  const total = Math.max(Object.values(breakdown).reduce((a, b) => a + b, 0), 1);
+  body.innerHTML = Object.entries(breakdown).map(([auth, count]) => {
+    const color = AUTHORITY_COLORS[auth] || '#00E5A0';
+    const pct = (count / total) * 100;
+    return `
+      <div class="breakdown-item">
+        <div class="breakdown-header">
+          <span class="breakdown-authority" style="color:${color}">${auth}</span>
+          <span class="breakdown-count">${count}</span>
+        </div>
+        <div class="breakdown-bar">
+          <div class="breakdown-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderDynamicPipeline() {
+  const container = document.getElementById('pipelineStages');
+  if (!container) return;
+
+  // Build pipeline stages from industry CDC sources or fallback
+  let stages = [
+    { name: 'CDC Ingestion', status: 'Streaming', icon: '📡' },
+    { name: 'NLP Engine', status: 'Processing', icon: '🧠' },
+    { name: 'Evidence Vault', status: 'Sealing', icon: '🔐' },
+  ];
+
+  // Add industry-specific source from CDCPipeline if available
+  if (typeof CDCPipeline !== 'undefined') {
+    const industryKey = sessionStorage.getItem('industry') || 'BFSI';
+    const sources = CDCPipeline.getSources ? CDCPipeline.getSources(industryKey) : null;
+    if (sources && sources.primary && sources.primary.length > 0) {
+      stages = [
+        { name: sources.primary[0].name, status: sources.primary[0].frequency || 'Active', icon: sources.primary[0].icon || '📡' },
+        { name: sources.primary.length > 1 ? sources.primary[1].name : 'Kafka Bridge', status: sources.primary.length > 1 ? (sources.primary[1].frequency || 'Active') : 'Connected', icon: sources.primary.length > 1 ? (sources.primary[1].icon || '🔗') : '🔗' },
+        { name: 'NLP Engine', status: 'Processing', icon: '🧠' },
+        { name: 'Evidence Vault', status: 'Sealing', icon: '🔐' },
+      ];
+    }
+  }
+
+  container.innerHTML = stages.map((s, i) => `
+    ${i > 0 ? '<div class="pipeline-connector"></div>' : ''}
+    <div class="pipeline-stage active">
+      <div class="stage-dot"></div>
+      <div class="stage-info">
+        <span class="stage-name">${s.name}</span>
+        <span class="stage-status">${s.status}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function populateAuthorityFilter() {
+  const select = document.getElementById('filterAuthority');
+  if (!select) return;
+
+  // Get unique authorities from current sector's violations
+  const data = DEMO_DATA[currentDemoSector];
+  const authorities = new Set();
+  if (data && data.violations) {
+    data.violations.forEach(v => authorities.add(v.authority));
+  }
+  if (data && data.breakdown) {
+    Object.keys(data.breakdown).forEach(a => authorities.add(a));
+  }
+
+  select.innerHTML = '<option value="">All Authorities</option>';
+  [...authorities].sort().forEach(auth => {
+    select.innerHTML += `<option value="${auth}">${auth}</option>`;
+  });
+}
 
 // -----------------------------------------------
 // Demo Mode — Activation (Executive: Baseline Green)
@@ -695,28 +803,18 @@ function activateDemoSector(sector) {
     grid.innerHTML = `<div class="gallery-empty">${strings['gallery.empty']}</div>`;
   }
 
-  // Breakdown → Zeroed
-  document.getElementById('samaCount').textContent = '0';
-  document.getElementById('momahCount').textContent = '0';
-  document.getElementById('sfdaCount').textContent = '0';
-  document.getElementById('samaBar').style.width = '0%';
-  document.getElementById('momahBar').style.width = '0%';
-  document.getElementById('sfdaBar').style.width = '0%';
-
-  // Merkle root
-  const merkleEl = document.getElementById('merkleRoot');
-  if (merkleEl) {
-    const demoRoot = generateDemoHash(`merkle-root-${sector}-${Date.now()}`);
-    merkleEl.textContent = demoRoot.substring(0, 22) + '…';
-    merkleEl.title = demoRoot;
-  }
+  // Breakdown → Dynamic rendering
+  renderDynamicBreakdown({});
 
   // Hide remediation panel
   const remPanel = document.getElementById('remediationPanel');
   if (remPanel) remPanel.style.display = 'none';
 
-  // Pipeline status active
-  document.querySelectorAll('.pipeline-stage').forEach(s => s.classList.add('active'));
+  // Pipeline → Render dynamic CDC stages
+  renderDynamicPipeline();
+
+  // Authority filter → Populate dynamically
+  populateAuthorityFilter();
 
   // Update exec controls
   updateExecControls();
@@ -867,14 +965,8 @@ function simulateViolation() {
     }
   }
 
-  // Breakdown Bars
-  const total = Math.max(data.breakdown.SAMA + data.breakdown.MOMAH + data.breakdown.SFDA, 1);
-  document.getElementById('samaCount').textContent = data.breakdown.SAMA;
-  document.getElementById('momahCount').textContent = data.breakdown.MOMAH;
-  document.getElementById('sfdaCount').textContent = data.breakdown.SFDA;
-  document.getElementById('samaBar').style.width = `${(data.breakdown.SAMA / total) * 100}%`;
-  document.getElementById('momahBar').style.width = `${(data.breakdown.MOMAH / total) * 100}%`;
-  document.getElementById('sfdaBar').style.width = `${(data.breakdown.SFDA / total) * 100}%`;
+  // Dynamic Breakdown Bars
+  renderDynamicBreakdown(data.breakdown);
 
   // Remediation ticket (F&B only)
   const remPanel = document.getElementById('remediationPanel');

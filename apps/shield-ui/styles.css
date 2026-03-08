@@ -3263,3 +3263,273 @@ body {
   color: var(--text-secondary);
   letter-spacing: 1px;
 }
+
+/* ============================================ */
+/* Certificate Modal — Download PDF Button      */
+/* ============================================ */
+.cert-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cert-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--accent-primary);
+  background: var(--accent-primary-15);
+  border: 1px solid var(--accent-primary-30);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cert-download-btn:hover {
+  background: var(--accent-primary-30);
+  box-shadow: 0 0 12px rgba(0, 229, 160, 0.2);
+}
+
+.cert-download-btn svg {
+  flex-shrink: 0;
+}
+
+/* ============================================ */
+/* Court Ready Report — Print Layout            */
+/* ============================================ */
+#courtReadyPrintView {
+  display: none;
+}
+
+.court-ready-report {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  color: #1a1a2e;
+  background: #fff;
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #00E5A0;
+  margin-bottom: 24px;
+}
+
+.cr-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.cr-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cr-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.cr-subtitle {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.cr-header-right {
+  text-align: right;
+}
+
+.cr-report-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #00E5A0;
+}
+
+.cr-timestamp {
+  font-size: 0.6rem;
+  color: #888;
+  margin-top: 2px;
+}
+
+.cr-badge-row {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.cr-court-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: #f0fdf4;
+  border: 1px solid #00E5A0;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #0D9668;
+  letter-spacing: 0.5px;
+}
+
+.cr-cert-content {
+  margin-bottom: 32px;
+}
+
+.cr-cert-content .cert-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.cr-cert-content .cert-shield-icon {
+  color: #00E5A0;
+}
+
+.cr-cert-content .cert-badge-courtready {
+  display: none;
+}
+
+.cr-cert-content .cert-field-label {
+  color: #666;
+  font-size: 0.65rem;
+}
+
+.cr-cert-content .cert-field-value {
+  color: #1a1a2e;
+  font-size: 0.8rem;
+}
+
+.cr-cert-content .cert-field-value.code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.cr-cert-content .cert-divider {
+  border-color: #e2e8f0;
+}
+
+.cr-cert-content .cert-residency svg {
+  stroke: #00E5A0;
+}
+
+.cr-signature-block {
+  border: 2px solid #1a1a2e;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.cr-sig-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.cr-sig-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+.cr-sig-row:last-child {
+  margin-bottom: 0;
+}
+
+.cr-sig-field {
+  flex: 1;
+}
+
+.cr-sig-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #888;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.cr-sig-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.cr-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+  text-align: center;
+}
+
+.cr-watermark {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: rgba(0, 229, 160, 0.3);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.cr-legal {
+  font-size: 0.55rem;
+  color: #888;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 8px;
+}
+
+.cr-page-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  color: #aaa;
+}
+
+/* ============================================ */
+/* @media print — Court Ready Export             */
+/* ============================================ */
+@media print {
+
+  /* Hide everything except the print view */
+  body>*:not(#courtReadyPrintView) {
+    display: none !important;
+  }
+
+  #courtReadyPrintView {
+    display: block !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1a1a2e !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  .court-ready-report {
+    padding: 20mm;
+    max-width: 100%;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}

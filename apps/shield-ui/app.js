@@ -1122,9 +1122,14 @@ async function openEvidence(id) {
 }
 window.openEvidence = openEvidence;
 
-function closeModal() { document.getElementById('evidenceModal').classList.remove('visible'); }
-document.getElementById('modalClose').addEventListener('click', closeModal);
-document.getElementById('evidenceModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+function closeModal() {
+  const modal = document.getElementById('evidenceModal');
+  if (modal) modal.classList.remove('visible');
+}
+const _modalCloseBtn = document.getElementById('modalClose');
+if (_modalCloseBtn) _modalCloseBtn.addEventListener('click', closeModal);
+const _evidenceModal = document.getElementById('evidenceModal');
+if (_evidenceModal) _evidenceModal.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeCertModal(); } });
 
 // Certificate modal close

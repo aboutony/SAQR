@@ -847,10 +847,12 @@ function setHeartbeatMode(mode) {
 // Executive Controls — Simulate Violation
 // -----------------------------------------------
 function simulateViolation() {
+  console.log(`[SimulateViolation] Called — currentDemoSector="${currentDemoSector}", demoPhase="${demoPhase}"`);
   if (!currentDemoSector || demoPhase !== 'green') return;
   demoPhase = 'violation';
 
   const data = DEMO_DATA[currentDemoSector];
+  console.log(`[SimulateViolation] Loading data for sector "${currentDemoSector}" — violations: ${data ? data.violations.length : 'N/A'}, kpis.intercepted: ${data ? data.kpis.totalViolationsIntercepted : 'N/A'}`);
   if (!data) return;
   const strings = i18n[currentLang] || i18n.en;
 
@@ -1102,6 +1104,7 @@ function updateExecControls() {
 // "intercepting" a penalty before it hits the client.
 // -----------------------------------------------
 function simulateInterception() {
+  console.log(`[SimulateInterception] Called — currentDemoSector="${currentDemoSector}", demoPhase="${demoPhase}"`);
   // Ensure we're on a sector with True Zero baseline — use session industry, not hardcoded banking
   if (!currentDemoSector) {
     let fallbackSector = 'banking';

@@ -188,3 +188,25 @@ CREATE TABLE shadow.camera_registry (
     last_frame_at   TIMESTAMP WITH TIME ZONE,
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- -----------------------------------------------
+-- Sentinel Engine: Regulatory Staging
+-- Sovereign Bridge ingestion target. Public Zone
+-- rules land here via ON CONFLICT DO NOTHING
+-- deduplication on content_hash (SHA-256).
+-- -----------------------------------------------
+CREATE TABLE IF NOT EXISTS shadow.regulatory_staging (
+    id              SERIAL PRIMARY KEY,
+    authority       VARCHAR(20) NOT NULL,
+    title           TEXT NOT NULL,
+    source_url      TEXT,
+    content_hash    VARCHAR(64) NOT NULL UNIQUE,
+    publish_date    VARCHAR(40),
+    category        VARCHAR(100),
+    detected_at     TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    analyzed        BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_staging_authority ON shadow.regulatory_staging(authority);
+CREATE INDEX IF NOT EXISTS idx_staging_detected ON shadow.regulatory_staging(detected_at);
+CREATE INDEX IF NOT EXISTS idx_staging_unanalyzed ON shadow.regulatory_staging(analyzed) WHERE analyzed = FALSE;

@@ -57,6 +57,8 @@ const i18n = {
     'exec.simulate': '⚡ Simulate Violation',
     'exec.resolve': '✓ Resolution Verified',
     'exec.resolved.label': 'RESOLVED',
+    'heartbeat.syncAgo': 'Last Sync: 2m ago',
+    'heartbeat.verified': 'Source Verified via STC Cloud (KSA)',
   },
   ar: {
     'nav.live': 'مراقبة مباشرة',
@@ -106,6 +108,8 @@ const i18n = {
     'exec.simulate': '⚡ محاكاة مخالفة',
     'exec.resolve': '✓ تم التحقق من الحل',
     'exec.resolved.label': 'تم الحل',
+    'heartbeat.syncAgo': 'آخر مزامنة: 2 دقيقة',
+    'heartbeat.verified': 'تم التحقق من المصدر عبر سحابة STC (المملكة)',
   },
 };
 
@@ -446,11 +450,26 @@ const DEMO_DATA = {
   banking: {
     kpis: { totalViolationsIntercepted: 47, criticalViolations: 3, projectedPenaltyExposure: 1450000 },
     violations: [
-      { id: 1, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-001', authority: 'SAMA', severity: 'critical', title: 'SME Fee Cap Breach — Old Rate Still Active', description: 'CDC detected core banking system charging 2.5% admin fee, exceeding new SAMA-mandated 1% cap for SME loans.', ntp_timestamp: '2026-02-28T09:45:12.000Z', sha256_hash: generateDemoHash('SAMA-CP-001-sme-fee-cap') },
-      { id: 2, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-002', authority: 'SAMA', severity: 'critical', title: 'Exceeded Approved Fee Cap — Personal Loan Admin Fee', description: 'Fee schedule shows SAR 1,500 admin fee; SAMA circular caps at SAR 1,000 effective 2026-01-01.', ntp_timestamp: '2026-02-28T09:32:05.000Z', sha256_hash: generateDemoHash('SAMA-CP-002-fee-cap') },
-      { id: 3, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-003', authority: 'SAMA', severity: 'high', title: 'Cooling-Off Period Violation', description: 'Customer cancellation request received during 10-day cooling-off period was not processed within 48 hours.', ntp_timestamp: '2026-02-28T08:15:30.000Z', sha256_hash: generateDemoHash('SAMA-CP-003-cooling') },
-      { id: 4, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-001', authority: 'SAMA', severity: 'high', title: 'Disclosure Font Size Below 14pt', description: 'Digital channel product disclosure rendered at 11pt; SAMA minimum is 14pt for Arabic text.', ntp_timestamp: '2026-02-28T07:50:18.000Z', sha256_hash: generateDemoHash('SAMA-CP-001-font') },
-      { id: 5, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-002', authority: 'SAMA', severity: 'medium', title: 'Cash Advance Fee Exceeds Schedule', description: 'Credit card cash advance fee of SAR 100 exceeds approved schedule maximum of SAR 75.', ntp_timestamp: '2026-02-27T16:22:44.000Z', sha256_hash: generateDemoHash('SAMA-CP-002-cash') },
+      {
+        id: 1, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-001', authority: 'SAMA', severity: 'critical', title: 'SME Fee Cap Breach — Old Rate Still Active', description: 'CDC detected core banking system charging 2.5% admin fee, exceeding new SAMA-mandated 1% cap for SME loans.', ntp_timestamp: '2026-02-28T09:45:12.000Z', sha256_hash: generateDemoHash('SAMA-CP-001-sme-fee-cap'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SAMA Circular No. 402/2026', constraint: 'Max admin fee: 1%', cdcValue: 'CDC stream: admin_fee_rate = 2.5%', verdict: 'OUT OF COMPLIANCE — 2.5× above cap', potentialFine: 'SAR 500,000', hashedLink: generateDemoHash('LINK-SAMA-402-sme') }
+      },
+      {
+        id: 2, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-002', authority: 'SAMA', severity: 'critical', title: 'Exceeded Approved Fee Cap — Personal Loan Admin Fee', description: 'Fee schedule shows SAR 1,500 admin fee; SAMA circular caps at SAR 1,000 effective 2026-01-01.', ntp_timestamp: '2026-02-28T09:32:05.000Z', sha256_hash: generateDemoHash('SAMA-CP-002-fee-cap'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SAMA Circular No. 402/2026, Article 4', constraint: 'Max admin fee: SAR 1,000', cdcValue: 'CDC stream: admin_fee_amount = SAR 1,500', verdict: 'OUT OF COMPLIANCE — SAR 500 above cap', potentialFine: 'SAR 500,000', hashedLink: generateDemoHash('LINK-SAMA-402-fee') }
+      },
+      {
+        id: 3, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-003', authority: 'SAMA', severity: 'high', title: 'Cooling-Off Period Violation', description: 'Customer cancellation request received during 10-day cooling-off period was not processed within 48 hours.', ntp_timestamp: '2026-02-28T08:15:30.000Z', sha256_hash: generateDemoHash('SAMA-CP-003-cooling'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SAMA Consumer Protection Principles 2026', constraint: 'Max processing time: 10 business days', cdcValue: 'CDC stream: processing_time = 14 days', verdict: 'OUT OF COMPLIANCE — 4 days overdue', potentialFine: 'SAR 250,000', hashedLink: generateDemoHash('LINK-SAMA-CP-cooling') }
+      },
+      {
+        id: 4, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-001', authority: 'SAMA', severity: 'high', title: 'Disclosure Font Size Below 14pt', description: 'Digital channel product disclosure rendered at 11pt; SAMA minimum is 14pt for Arabic text.', ntp_timestamp: '2026-02-28T07:50:18.000Z', sha256_hash: generateDemoHash('SAMA-CP-001-font'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SAMA Circular No. 402/2026, Article 2', constraint: 'Min font size: 14pt', cdcValue: 'CDC stream: font_size_pt = 11', verdict: 'OUT OF COMPLIANCE — 3pt below minimum', potentialFine: 'SAR 100,000', hashedLink: generateDemoHash('LINK-SAMA-402-font') }
+      },
+      {
+        id: 5, evidence_type: 'cdc_violation', violation_code: 'SAMA-CP-002', authority: 'SAMA', severity: 'medium', title: 'Cash Advance Fee Exceeds Schedule', description: 'Credit card cash advance fee of SAR 100 exceeds approved schedule maximum of SAR 75.', ntp_timestamp: '2026-02-27T16:22:44.000Z', sha256_hash: generateDemoHash('SAMA-CP-002-cash'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SAMA Circular No. 402/2026, Article 4', constraint: 'Max cash advance fee: SAR 75', cdcValue: 'CDC stream: cash_advance_fee = SAR 100', verdict: 'OUT OF COMPLIANCE — SAR 25 above cap', potentialFine: 'SAR 100,000', hashedLink: generateDemoHash('LINK-SAMA-402-cash') }
+      },
     ],
     driftAlerts: [
       { id: 1, alert_id: 'DRIFT-SAMA-001', drift_type: 'added', authority: 'SAMA', severity: 'critical', title: 'NEW: SME Fee Cap Circular (Feb 2026)', description: 'SAMA issued new circular mandating 1% maximum admin fee for SME products. Effective immediately. Previous cap was 2.5%.', detected_at: '2026-02-28T09:00:00.000Z' },
@@ -609,7 +628,7 @@ function setHeartbeatMode(mode) {
   const strings = i18n[currentLang] || i18n.en;
   const labelEl = document.querySelector('.heartbeat-label');
   const detailEl = document.querySelector('.heartbeat-detail');
-  const bar = document.getElementById('heartbeatBar');
+  const bar = document.getElementById('regulatoryHeartbeat');
   if (!labelEl || !detailEl || !bar) return;
 
   if (mode === 'stable') {
@@ -663,19 +682,39 @@ function simulateViolation() {
   pendingInterception = exp;
   animateROI(data.roiTarget);
 
-  // Populate violations table with staggered slide-in + NEW badge
+  // Populate violations table with staggered slide-in + NEW badge + Intelligence Reveal
   const tbody = document.getElementById('violationsTableBody');
   if (tbody) {
-    tbody.innerHTML = data.violations.map((v, i) => `
-      <tr class="violation-slide-in" style="animation-delay:${i * 120}ms" onclick="openDemoCertificate(${v.id}, '${currentDemoSector}')">
+    tbody.innerHTML = data.violations.map((v, i) => {
+      const hasReasoning = v.reasoning;
+      const reasoningRow = hasReasoning ? `
+      <tr class="intelligence-reveal" id="reveal-${v.id}" style="display:none">
+        <td colspan="6">
+          <div class="intelligence-panel">
+            <div class="intel-header">🧠 <span class="intel-title">${currentLang === 'ar' ? 'تحليل الذكاء' : 'Intelligence Reveal'}</span></div>
+            <div class="intel-grid">
+              <div class="intel-row"><span class="intel-label">Pipeline</span><span class="intel-value">${v.reasoning.pipeline}</span></div>
+              <div class="intel-row"><span class="intel-label">${currentLang === 'ar' ? 'المصدر' : 'Source Circular'}</span><span class="intel-value intel-source">${v.reasoning.source}</span></div>
+              <div class="intel-row"><span class="intel-label">${currentLang === 'ar' ? 'القيد' : 'Constraint'}</span><span class="intel-value">${v.reasoning.constraint}</span></div>
+              <div class="intel-row"><span class="intel-label">${currentLang === 'ar' ? 'البيانات الحية' : 'Live CDC Data'}</span><span class="intel-value intel-cdc">${v.reasoning.cdcValue}</span></div>
+              <div class="intel-row intel-verdict"><span class="intel-label">${currentLang === 'ar' ? 'الحكم' : 'Verdict'}</span><span class="intel-value intel-fail">❌ ${v.reasoning.verdict}</span></div>
+              <div class="intel-row"><span class="intel-label">${currentLang === 'ar' ? 'التعرض المالي' : 'Potential Fine'}</span><span class="intel-value intel-fine">${v.reasoning.potentialFine}</span></div>
+              <div class="intel-row"><span class="intel-label">${currentLang === 'ar' ? 'رابط الدليل' : 'Hashed Link'}</span><span class="intel-value hash-cell" title="${v.reasoning.hashedLink}">${v.reasoning.hashedLink.substring(0, 24)}…</span></div>
+            </div>
+          </div>
+        </td>
+      </tr>` : '';
+      return `
+      <tr class="violation-slide-in ${hasReasoning ? 'has-intel' : ''}" style="animation-delay:${i * 120}ms" onclick="${hasReasoning ? `toggleIntelReveal(${v.id})` : `openDemoCertificate(${v.id}, '${currentDemoSector}')`}">
         <td class="timestamp-cell">${fmtTs(v.ntp_timestamp)}</td>
         <td><code style="font-size:0.68rem;color:var(--text-secondary)">${v.violation_code}</code></td>
         <td><span class="authority-badge authority-${v.authority}">${v.authority}</span></td>
-        <td><span class="severity-badge severity-${v.severity}">${v.severity}</span>${i === 0 ? '<span class="new-badge">NEW</span>' : ''}</td>
+        <td><span class="severity-badge severity-${v.severity}">${v.severity}</span>${i === 0 ? '<span class="new-badge">NEW</span>' : ''}${hasReasoning ? '<span class="intel-badge">🧠</span>' : ''}</td>
         <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.title}</td>
         <td class="hash-cell" title="${v.sha256_hash}">${v.sha256_hash.substring(0, 14)}…</td>
       </tr>
-    `).join('');
+      ${reasoningRow}`;
+    }).join('');
   }
 
   // Drift alerts
@@ -863,8 +902,28 @@ function updateExecControls() {
   }
 }
 
+// -----------------------------------------------
+// simulateInterception() — The "Moment of Interception"
+// Clean named wrapper for sales demos. Same as
+// simulateViolation but semantically framed as
+// "intercepting" a penalty before it hits the client.
+// -----------------------------------------------
+function simulateInterception() {
+  // Ensure we're on a sector with True Zero baseline
+  if (!currentDemoSector) activateDemoSector('banking');
+  // If already in violation state, reset to green first
+  if (demoPhase !== 'green') {
+    activateDemoSector(currentDemoSector);
+    // Allow the green baseline to render, then trigger
+    setTimeout(() => simulateViolation(), 400);
+    return;
+  }
+  simulateViolation();
+}
+
 window.simulateViolation = simulateViolation;
 window.resolveViolation = resolveViolation;
+window.simulateInterception = simulateInterception;
 
 // -----------------------------------------------
 // Certificate Modal (Click-to-Verify)
@@ -1153,5 +1212,148 @@ setInterval(() => {
   if (!currentDemoSector) initDashboard();
 }, 10000);
 
-console.log('🦅 SAQR Shield UI v5 — Executive Demo Mode');
-console.log('🛡️  Baseline Green → Simulate → Resolve | 2s Smooth Shield Lerp');
+// -----------------------------------------------
+// Heartbeat "Last Sync" Ticker
+// -----------------------------------------------
+let heartbeatSyncMinutes = 2;
+setInterval(() => {
+  heartbeatSyncMinutes++;
+  const syncEl = document.getElementById('heartbeatSync');
+  if (syncEl) {
+    if (currentLang === 'ar') {
+      syncEl.textContent = `آخر مزامنة: ${heartbeatSyncMinutes} دقيقة`;
+    } else {
+      syncEl.textContent = `Last Sync: ${heartbeatSyncMinutes}m ago`;
+    }
+  }
+  // Reset after "simulated re-sync" every 5 minutes
+  if (heartbeatSyncMinutes >= 5) heartbeatSyncMinutes = 0;
+}, 60000);
+
+// -----------------------------------------------
+// Sentinel Detection: Toast Notification System
+// -----------------------------------------------
+function showToast(authority, title, subtitle) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const strings = i18n[currentLang] || i18n.en;
+  const toastTitle = currentLang === 'ar'
+    ? `تم رصد تعميم جديد من ${authority}`
+    : `New ${authority} Circular Detected`;
+  const toastSubtitle = subtitle || (currentLang === 'ar' ? 'جاري تحليل التأثير...' : 'Analyzing Impact...');
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.innerHTML = `
+    <div class="toast-icon">🔔</div>
+    <div class="toast-body">
+      <div class="toast-title">${toastTitle}</div>
+      <div class="toast-message">${title}</div>
+      <div class="toast-subtitle">${toastSubtitle}</div>
+    </div>
+    <button class="toast-close" onclick="this.closest('.toast-notification').classList.add('toast-dismiss'); setTimeout(() => this.closest('.toast-notification')?.remove(), 300);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto-dismiss after 8 seconds
+  setTimeout(() => {
+    toast.classList.add('toast-dismiss');
+    setTimeout(() => toast.remove(), 300);
+  }, 8000);
+}
+
+// -----------------------------------------------
+// Sentinel Detection: Authority Amber Pulse
+// -----------------------------------------------
+function setAuthorityAmber(authorityCode) {
+  const node = document.querySelector(`.authority-node[data-authority="${authorityCode}"]`);
+  if (!node) return;
+  node.classList.add('authority-amber');
+
+  // Auto-revert to green after 30 seconds
+  setTimeout(() => {
+    node.classList.remove('authority-amber');
+  }, 30000);
+}
+
+// -----------------------------------------------
+// Intelligence Reveal — Toggle Panel
+// -----------------------------------------------
+function toggleIntelReveal(violationId) {
+  const row = document.getElementById(`reveal-${violationId}`);
+  if (!row) return;
+  if (row.style.display === 'none') {
+    // Close all other reveals first
+    document.querySelectorAll('.intelligence-reveal').forEach(r => {
+      r.style.display = 'none';
+    });
+    row.style.display = 'table-row';
+    row.querySelector('.intelligence-panel')?.classList.add('intel-slide-in');
+  } else {
+    row.style.display = 'none';
+  }
+}
+
+window.toggleIntelReveal = toggleIntelReveal;
+
+// -----------------------------------------------
+// simulateSentinelDetection() — Demo Function
+// Callable from browser console to demonstrate
+// the Sentinel Engine detection flow live.
+// Usage: simulateSentinelDetection('SAMA', 'New SME Fee Cap Circular (Feb 2026)')
+// -----------------------------------------------
+function simulateSentinelDetection(authority, title) {
+  authority = authority || 'SAMA';
+  title = title || 'New SME Fee Cap Circular — 1% Maximum Admin Fee';
+
+  console.log(`[SENTINEL] 🔔 Detection: ${authority} — "${title}"`);
+
+  // 1. Flash the authority icon amber
+  setAuthorityAmber(authority);
+
+  // 2. Show toast notification
+  showToast(authority, title);
+
+  // 3. Reset the Last Sync to "just now"
+  heartbeatSyncMinutes = 0;
+  const syncEl = document.getElementById('heartbeatSync');
+  if (syncEl) {
+    syncEl.textContent = currentLang === 'ar' ? 'آخر مزامنة: الآن' : 'Last Sync: just now';
+  }
+}
+
+window.simulateSentinelDetection = simulateSentinelDetection;
+window.showToast = showToast;
+
+// -----------------------------------------------
+// Sentinel Heartbeat Poller — Checks staging API
+// every 30 seconds for new regulatory detections.
+// Falls back silently if API is unreachable.
+// -----------------------------------------------
+let lastSeenStagingId = 0;
+setInterval(async () => {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/sources/staging/recent?hours=1`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.entries || data.entries.length === 0) return;
+
+    // Check for new entries since last poll
+    data.entries.forEach(entry => {
+      if (entry.id > lastSeenStagingId) {
+        lastSeenStagingId = Math.max(lastSeenStagingId, entry.id);
+        setAuthorityAmber(entry.authority);
+        showToast(entry.authority, entry.title);
+      }
+    });
+  } catch {
+    // API unreachable — silent fallback (demo mode)
+  }
+}, 30000);
+
+console.log('🦅 SAQR Shield UI v7 — Sentinel Engine + Sovereign Bridge');
+console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelDetection()');

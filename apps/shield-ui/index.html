@@ -7,7 +7,7 @@
     <script>
         (function () {
             try {
-                var raw = sessionStorage.getItem('saqr_session_v1');
+                var raw = sessionStorage.getItem('saqr-gateway-session');
                 if (!raw) { window.location.replace('GatewaySelector.html'); return; }
                 var s = JSON.parse(raw);
                 if (!s || !s.active || !s.siloId) { window.location.replace('GatewaySelector.html'); return; }

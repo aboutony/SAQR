@@ -760,10 +760,8 @@
                 if (!langDropdown.contains(e.target)) { langListEl.classList.remove('visible'); langDropdown.classList.remove('open'); }
             });
 
-            // Default: KSA
-            selectedMarket = 'SA';
-            const ksa = COUNTRIES.find(c => c.c === 'SA');
-            marketSearch.value = `${ksa.f}  ${ksa.n}`;
+            // No hardcoded default — user must select from global list
+            selectedMarket = null;
 
             // --- Render Industries ---
             const pillsContainer = document.getElementById('industryPills');

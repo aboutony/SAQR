@@ -553,6 +553,13 @@ body {
   background: var(--accent-primary-15);
 }
 
+/* Logout — red accent on hover */
+.logout-btn:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  background: rgba(255, 82, 82, 0.1);
+}
+
 .theme-toggle .sun-icon {
   display: none;
 }

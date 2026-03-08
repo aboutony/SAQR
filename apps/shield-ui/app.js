@@ -1411,11 +1411,26 @@ setLanguage(currentLang);
 // Init 3D shield after DOM is ready
 setTimeout(initShield, 100);
 
-// Auto-activate Banking demo in Baseline Green on load
-setTimeout(() => activateDemoSector('banking'), 500);
+// Auto-activate demo in Baseline Green on load — SESSION-AWARE (not hardcoded banking)
+setTimeout(() => {
+  // Only activate if no sector was set by gateway session
+  if (!currentDemoSector) {
+    let sector = 'banking'; // Default only when no gateway
+    if (typeof SessionArchitect !== 'undefined') {
+      const s = SessionArchitect.getSession();
+      if (s && s.active && s.industry && s.industry.demoSector) {
+        sector = s.industry.demoSector;
+      }
+    }
+    console.log(`[AutoInit] No sector set by gateway — activating: "${sector}"`);
+    activateDemoSector(sector);
+  } else {
+    console.log(`[AutoInit] Sector already set by gateway: "${currentDemoSector}" — skipping`);
+  }
+}, 500);
 
-// Exec control buttons
-document.getElementById('execSimulateBtn')?.addEventListener('click', simulateViolation);
+// Exec control buttons — use simulateInterception (session-aware) not simulateViolation directly
+document.getElementById('execSimulateBtn')?.addEventListener('click', simulateInterception);
 document.getElementById('execResolveBtn')?.addEventListener('click', resolveViolation);
 
 // Live polling (only when NOT in demo mode)

@@ -428,58 +428,16 @@
             </aside>
         </section>
 
-        <!-- CV Watchman: Visual Evidence Gallery -->
-        <section class="cv-gallery-section" id="cvGallerySection">
-            <div class="panel panel-gallery">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="2" y="2" width="20" height="20" rx="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21 15 16 10 5 21" />
-                        </svg>
-                        <span data-i18n="panel.gallery">Visual Evidence Gallery</span>
-                    </h2>
-                    <div class="panel-filters">
-                        <select class="filter-select" id="filterCvCategory">
-                            <option value="">All Categories</option>
-                            <option value="signage">Signage</option>
-                            <option value="visual">Visual</option>
-                            <option value="structural">Structural</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="panel-body">
-                    <div class="gallery-grid" id="cvGalleryGrid">
-                        <div class="gallery-empty" data-i18n="gallery.empty">No visual detections yet — cameras scanning
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+
     </main>
 
-    <!-- Evidence Detail Modal (Legacy) -->
-    <div class="modal-overlay" id="evidenceModal">
-        <div class="modal" id="evidenceModalContent">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalTitle">Evidence Detail</h2>
-                <button class="modal-close" id="modalClose" aria-label="Close"><svg width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg></button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
-        </div>
-    </div>
+
 
     <!-- SHA-256 Hash Certificate Modal -->
     <div class="modal-overlay cert-modal-overlay" id="certModal">
         <div class="modal cert-modal" id="certModalContent">
             <div class="modal-header cert-modal-header">
-                <h2 class="modal-title" id="certModalTitle">Evidence Hash Certificate</h2>
+                <h2 class="modal-title" id="certModalTitle">Compliance Hash Certificate</h2>
                 <button class="modal-close" id="certModalClose" aria-label="Close"><svg width="20" height="20"
                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18" />
@@ -532,6 +490,7 @@
     <script src="TranslatorCore.js"></script>
     <script src="SessionArchitect.js"></script>
     <script src="AuthorityMapper.js"></script>
+    <script src="CDCPipeline.js"></script>
     <script src="WorkflowManager.js"></script>
     <script src="Dispatcher.js"></script>
     <script src="app.js"></script>

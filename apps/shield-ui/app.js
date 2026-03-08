@@ -545,6 +545,93 @@ const DEMO_DATA = {
       eta: '4 hours',
     },
   },
+
+  // ===============================================
+  // Manufacturing Vertical
+  // ===============================================
+  manufacturing: {
+    kpis: { totalViolationsIntercepted: 38, criticalViolations: 4, projectedPenaltyExposure: 920000 },
+    violations: [
+      {
+        id: 1, evidence_type: 'cdc_violation', violation_code: 'SASO-MF-001', authority: 'SASO', severity: 'critical', title: 'ISO 9001 Quality Drift — Batch Failure Rate 8.2%', description: 'Production line QC data shows 8.2% defect rate; SASO/ISO 9001 threshold is 2%. Immediate line halt required.', ntp_timestamp: '2026-02-28T10:15:00.000Z', sha256_hash: generateDemoHash('SASO-MF-001-quality'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'SASO Standard GSO ISO 9001:2015', constraint: 'Max defect rate: 2%', cdcValue: 'CDC stream: defect_rate = 8.2%', verdict: 'OUT OF COMPLIANCE — 4.1× above threshold', potentialFine: 'SAR 350,000', hashedLink: generateDemoHash('LINK-SASO-9001') }
+      },
+      {
+        id: 2, evidence_type: 'cdc_violation', violation_code: 'MODON-SF-001', authority: 'MODON', severity: 'critical', title: 'OSHA Safety Breach — Emergency Exit Blocked', description: 'Safety sensor detected obstruction at Emergency Exit B7. MODON mandates clear egress within 30 seconds.', ntp_timestamp: '2026-02-28T09:42:30.000Z', sha256_hash: generateDemoHash('MODON-SF-001-exit'),
+        reasoning: { pipeline: 'Phase B — IoT Correlation', source: 'MODON Industrial Safety Regulation Art. 14', constraint: 'Emergency exits: 100% clear at all times', cdcValue: 'Sensor B7: BLOCKED since 09:12 UTC', verdict: 'CRITICAL SAFETY VIOLATION', potentialFine: 'SAR 200,000 + Production Halt', hashedLink: generateDemoHash('LINK-MODON-14') }
+      },
+      {
+        id: 3, evidence_type: 'cdc_violation', violation_code: 'MHRSD-LB-001', authority: 'MHRSD', severity: 'high', title: 'Overtime Limit Exceeded — Line Workers', description: 'Payroll CDC stream shows 12 workers exceeding 48h/week limit. MHRSD Labor Law Article 98 caps at 48 hours.', ntp_timestamp: '2026-02-28T08:30:00.000Z', sha256_hash: generateDemoHash('MHRSD-LB-001-overtime'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'MHRSD Labor Law Art. 98', constraint: 'Max weekly hours: 48', cdcValue: 'CDC stream: avg_weekly_hours = 54.3', verdict: 'OUT OF COMPLIANCE — 6.3h excess', potentialFine: 'SAR 50,000 per worker', hashedLink: generateDemoHash('LINK-MHRSD-98') }
+      },
+      {
+        id: 4, evidence_type: 'cdc_violation', violation_code: 'ZATCA-TX-001', authority: 'ZATCA', severity: 'high', title: 'VAT Miscalculation — Raw Materials Import', description: 'Invoice batch ZTC-2026-440 applied 5% VAT to exempt industrial inputs. ZATCA Regulation: 0% for qualifying raw materials.', ntp_timestamp: '2026-02-28T07:55:15.000Z', sha256_hash: generateDemoHash('ZATCA-TX-001-vat'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'ZATCA VAT Implementing Regulations Art. 35', constraint: 'Qualifying raw materials: 0% VAT', cdcValue: 'Invoice batch: vat_rate = 5%', verdict: 'INCORRECT VAT APPLICATION', potentialFine: 'SAR 120,000 + Back Tax', hashedLink: generateDemoHash('LINK-ZATCA-35') }
+      },
+      {
+        id: 5, evidence_type: 'cdc_violation', violation_code: 'SDAIA-DP-001', authority: 'SDAIA', severity: 'medium', title: 'Worker Biometric Data Retention Exceeded', description: 'Facial recognition system retaining terminated employee biometrics beyond 90-day PDPL limit.', ntp_timestamp: '2026-02-27T15:10:00.000Z', sha256_hash: generateDemoHash('SDAIA-DP-001-biometric'),
+        reasoning: { pipeline: 'Phase C — NLP Semantic', source: 'SDAIA PDPL Art. 18', constraint: 'Terminated employee data: delete within 90 days', cdcValue: 'Records found: 43 profiles > 180 days post-termination', verdict: 'DATA RETENTION VIOLATION', potentialFine: 'SAR 200,000', hashedLink: generateDemoHash('LINK-SDAIA-18') }
+      },
+    ],
+    cvDetections: [],
+    breakdown: { SASO: 14, MODON: 8, MHRSD: 7, ZATCA: 5, SDAIA: 4 },
+    roiTarget: 920000,
+    shieldState: 'amber',
+  },
+
+  // ===============================================
+  // Hospitality Vertical
+  // ===============================================
+  hospitality: {
+    kpis: { totalViolationsIntercepted: 29, criticalViolations: 2, projectedPenaltyExposure: 540000 },
+    violations: [
+      {
+        id: 1, evidence_type: 'cdc_violation', violation_code: 'MOT-HS-001', authority: 'MOT', severity: 'critical', title: 'Unlicensed Tourist Accommodation — Unit B12', description: 'Booking platform CDC shows Unit B12 accepting reservations without valid MOT short-stay license.', ntp_timestamp: '2026-02-28T11:20:00.000Z', sha256_hash: generateDemoHash('MOT-HS-001-license'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'MOT Tourism Licensing Reg. Art. 7', constraint: 'All units require valid MOT license', cdcValue: 'Unit B12: license_status = EXPIRED (2025-12-31)', verdict: 'OPERATING WITHOUT LICENSE', potentialFine: 'SAR 200,000 + Closure Order', hashedLink: generateDemoHash('LINK-MOT-7') }
+      },
+      {
+        id: 2, evidence_type: 'cdc_violation', violation_code: 'MOMAH-FS-001', authority: 'MOMAH', severity: 'critical', title: 'Fire Safety System Offline — Building C', description: 'IoT sensor data shows fire suppression system in Building C offline for 72 hours. Civil Defense requires 99.9% uptime.', ntp_timestamp: '2026-02-28T10:05:00.000Z', sha256_hash: generateDemoHash('MOMAH-FS-001-fire'),
+        reasoning: { pipeline: 'Phase B — IoT Correlation', source: 'Civil Defense Regulation Art. 22', constraint: 'Fire systems: 99.9% uptime', cdcValue: 'System C: OFFLINE since 2026-02-25 14:00 UTC', verdict: 'CRITICAL SAFETY — IMMEDIATE ACTION', potentialFine: 'SAR 150,000 + Evacuation Order', hashedLink: generateDemoHash('LINK-CD-22') }
+      },
+      {
+        id: 3, evidence_type: 'cdc_violation', violation_code: 'MHRSD-LB-002', authority: 'MHRSD', severity: 'high', title: 'Saudization Ratio Below Threshold', description: 'HR system shows 18% Saudi nationals in hospitality staff; Nitaqat threshold requires 25% minimum.', ntp_timestamp: '2026-02-28T08:45:00.000Z', sha256_hash: generateDemoHash('MHRSD-LB-002-nitaqat'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'MHRSD Nitaqat Program — Hospitality Tier', constraint: 'Minimum Saudi ratio: 25%', cdcValue: 'HR CDC: saudi_ratio = 18%', verdict: 'BELOW NITAQAT THRESHOLD', potentialFine: 'SAR 100,000 + Work Permit Freeze', hashedLink: generateDemoHash('LINK-MHRSD-nitaqat') }
+      },
+      {
+        id: 4, evidence_type: 'cdc_violation', violation_code: 'ZATCA-TX-002', authority: 'ZATCA', severity: 'medium', title: 'Tourism Levy Not Applied — Online Bookings', description: 'PMS integration shows tourism levy not charged on 340 online bookings. ZATCA requires 5% municipal levy.', ntp_timestamp: '2026-02-27T14:30:00.000Z', sha256_hash: generateDemoHash('ZATCA-TX-002-levy'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'ZATCA Tourism Levy Regulation', constraint: 'Municipal levy: 5% on accommodation', cdcValue: 'PMS: 340 bookings, levy_applied = false', verdict: 'TAX COLLECTION FAILURE', potentialFine: 'SAR 90,000 + Back Levy', hashedLink: generateDemoHash('LINK-ZATCA-levy') }
+      },
+    ],
+    cvDetections: [],
+    breakdown: { MOT: 10, MOMAH: 8, MHRSD: 5, ZATCA: 4, SDAIA: 2 },
+    roiTarget: 540000,
+    shieldState: 'green',
+  },
+
+  // ===============================================
+  // Education Vertical
+  // ===============================================
+  education: {
+    kpis: { totalViolationsIntercepted: 22, criticalViolations: 1, projectedPenaltyExposure: 380000 },
+    violations: [
+      {
+        id: 1, evidence_type: 'cdc_violation', violation_code: 'MOE-ED-001', authority: 'MOE', severity: 'critical', title: 'Accreditation Lapse — Engineering Program', description: 'ETEC accreditation expired 2026-01-15 for BSc Engineering. MOE requires immediate enrollment freeze.', ntp_timestamp: '2026-02-28T09:00:00.000Z', sha256_hash: generateDemoHash('MOE-ED-001-accred'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'MOE Higher Education Regulation Art. 12', constraint: 'All programs require valid ETEC accreditation', cdcValue: 'SIS: accreditation_status = EXPIRED (2026-01-15)', verdict: 'PROGRAM OPERATING WITHOUT ACCREDITATION', potentialFine: 'SAR 200,000 + Enrollment Freeze', hashedLink: generateDemoHash('LINK-MOE-12') }
+      },
+      {
+        id: 2, evidence_type: 'cdc_violation', violation_code: 'ETEC-QA-001', authority: 'ETEC', severity: 'high', title: 'Student-Faculty Ratio Exceeded — 42:1', description: 'Business program shows 42:1 student-to-faculty ratio. ETEC quality standard caps at 25:1.', ntp_timestamp: '2026-02-28T08:15:00.000Z', sha256_hash: generateDemoHash('ETEC-QA-001-ratio'),
+        reasoning: { pipeline: 'Phase A — Rule Engine', source: 'ETEC Institutional Quality Standard 4.3', constraint: 'Max student-faculty ratio: 25:1', cdcValue: 'SIS: ratio = 42:1 (Business Faculty)', verdict: 'QUALITY STANDARD BREACH — 1.68× above cap', potentialFine: 'SAR 80,000', hashedLink: generateDemoHash('LINK-ETEC-4.3') }
+      },
+      {
+        id: 3, evidence_type: 'cdc_violation', violation_code: 'SDAIA-DP-002', authority: 'SDAIA', severity: 'high', title: 'Student Data Shared Without Consent', description: 'Analytics platform sending student performance data to 3rd-party vendor without PDPL-compliant consent forms.', ntp_timestamp: '2026-02-28T07:30:00.000Z', sha256_hash: generateDemoHash('SDAIA-DP-002-consent'),
+        reasoning: { pipeline: 'Phase C — NLP Semantic', source: 'SDAIA PDPL Art. 5 (Consent)', constraint: 'Student data sharing requires explicit consent', cdcValue: 'Data pipeline: vendor_share = true, consent_flag = false', verdict: 'UNAUTHORIZED DATA SHARING', potentialFine: 'SAR 100,000', hashedLink: generateDemoHash('LINK-SDAIA-5') }
+      },
+    ],
+    cvDetections: [],
+    breakdown: { MOE: 8, ETEC: 6, SDAIA: 4, MHRSD: 3, MoC: 1 },
+    roiTarget: 380000,
+    shieldState: 'green',
+  },
 };
 
 // -----------------------------------------------
@@ -1437,11 +1524,20 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
 
   // 4. Auto-select the matching demo sector from session industry
   if (session.industry.demoSector) {
-    const sectorMap = { banking: 'banking', healthcare: 'healthcare', fnb: 'fnb' };
+    const sectorMap = {
+      banking: 'banking', healthcare: 'healthcare', fnb: 'fnb',
+      manufacturing: 'manufacturing', hospitality: 'hospitality', education: 'education',
+    };
     const sector = sectorMap[session.industry.demoSector];
     if (sector && DEMO_DATA[sector]) {
       activateDemoSector(sector);
     }
+  }
+
+  // 4b. Initialize CDC Pipeline with industry context
+  if (typeof CDCPipeline !== 'undefined') {
+    CDCPipeline.setIndustry(session.industry.key);
+    console.log(`[CDCPipeline] Industry set: ${session.industry.key}`);
   }
 
   // 5. Initialize Neural Translation Matrix

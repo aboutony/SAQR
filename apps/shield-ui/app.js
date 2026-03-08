@@ -1102,8 +1102,18 @@ function updateExecControls() {
 // "intercepting" a penalty before it hits the client.
 // -----------------------------------------------
 function simulateInterception() {
-  // Ensure we're on a sector with True Zero baseline
-  if (!currentDemoSector) activateDemoSector('banking');
+  // Ensure we're on a sector with True Zero baseline — use session industry, not hardcoded banking
+  if (!currentDemoSector) {
+    let fallbackSector = 'banking';
+    // Read from gateway session to determine correct industry sector
+    if (typeof SessionArchitect !== 'undefined') {
+      const s = SessionArchitect.getSession();
+      if (s && s.active && s.industry && s.industry.demoSector) {
+        fallbackSector = s.industry.demoSector;
+      }
+    }
+    activateDemoSector(fallbackSector);
+  }
   // If already in violation state, reset to green first
   if (demoPhase !== 'green') {
     activateDemoSector(currentDemoSector);
@@ -1600,27 +1610,7 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
       badge.style.display = 'flex';
     }
 
-    // 3. Dynamic Authority Grid (AuthorityMapper)
-    if (typeof AuthorityMapper !== 'undefined') {
-      const grid = document.getElementById('authorityGrid');
-      if (grid) {
-        grid.innerHTML = AuthorityMapper.renderGrid(session.market.isoCode, session.industry.key);
-        console.log(`[AuthorityMapper] Grid populated: ${session.market.isoCode} × ${session.industry.key}`);
-      }
-
-      // Update regulation counter
-      const regInfo = AuthorityMapper.getRegCount(session.industry.key);
-      const detailEl = document.getElementById('heartbeatDetail');
-      if (detailEl) {
-        detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
-      }
-
-      // Update heartbeat label
-      const labelEl = document.getElementById('heartbeatLabel');
-      if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
-    }
-
-    // 4. Auto-select the matching demo sector from session industry
+    // 3. CRITICAL — Activate demo sector FIRST (before any dependent modules that might crash)
     if (session.industry.demoSector) {
       const sectorMap = {
         banking: 'banking', healthcare: 'healthcare', fnb: 'fnb',
@@ -1628,14 +1618,48 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
       };
       const sector = sectorMap[session.industry.demoSector];
       if (sector && DEMO_DATA[sector]) {
+        console.log(`[Gateway] ✅ Activating demo sector: "${sector}" (from session.industry.demoSector: "${session.industry.demoSector}")`);
         activateDemoSector(sector);
+        console.log(`[Gateway] ✅ currentDemoSector is now: "${currentDemoSector}"`);
+      } else {
+        console.warn(`[Gateway] ⚠️ Demo sector "${session.industry.demoSector}" not found in sectorMap or DEMO_DATA`);
       }
+    } else {
+      console.warn('[Gateway] ⚠️ No demoSector in session.industry');
+    }
+
+    // 4. Dynamic Authority Grid (AuthorityMapper) — runs AFTER demo sector is locked
+    try {
+      if (typeof AuthorityMapper !== 'undefined') {
+        const grid = document.getElementById('authorityGrid');
+        if (grid) {
+          grid.innerHTML = AuthorityMapper.renderGrid(session.market.isoCode, session.industry.key);
+          console.log(`[AuthorityMapper] Grid populated: ${session.market.isoCode} × ${session.industry.key}`);
+        }
+
+        // Update regulation counter
+        const regInfo = AuthorityMapper.getRegCount(session.industry.key);
+        const detailEl = document.getElementById('heartbeatDetail');
+        if (detailEl) {
+          detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
+        }
+
+        // Update heartbeat label
+        const labelEl = document.getElementById('heartbeatLabel');
+        if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
+      }
+    } catch (mapperErr) {
+      console.error('[Gateway] AuthorityMapper error (non-fatal):', mapperErr);
     }
 
     // 4b. Initialize CDC Pipeline with industry context
-    if (typeof CDCPipeline !== 'undefined') {
-      CDCPipeline.setIndustry(session.industry.key);
-      console.log(`[CDCPipeline] Industry set: ${session.industry.key}`);
+    try {
+      if (typeof CDCPipeline !== 'undefined') {
+        CDCPipeline.setIndustry(session.industry.key);
+        console.log(`[CDCPipeline] Industry set: ${session.industry.key}`);
+      }
+    } catch (cdcErr) {
+      console.error('[Gateway] CDCPipeline error (non-fatal):', cdcErr);
     }
 
     // 5. Initialize Neural Translation Matrix

@@ -1463,86 +1463,90 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
 // Gateway Session Context — Apply on Load
 // -----------------------------------------------
 (function applyGatewaySession() {
-  if (typeof SessionArchitect === 'undefined') return;
-  const session = SessionArchitect.getSession();
-  if (!session || !session.active) return;
+  try {
+    if (typeof SessionArchitect === 'undefined') return;
+    const session = SessionArchitect.getSession();
+    if (!session || !session.active) return;
 
-  console.log(`[Gateway] Session active — Silo: ${session.siloId}`);
-  console.log(`[Gateway] Industry: ${session.industry.key} → ${session.industry.schema}`);
-  console.log(`[Gateway] Market: ${session.market.isoCode} (${session.market.residency})`);
-  console.log(`[Gateway] Sentinels: ${session.market.scrapers.join(', ')}`);
-  console.log(`[Gateway] Language: ${session.language.code} → ${session.language.locale}`);
+    console.log(`[Gateway] Session active — Silo: ${session.siloId}`);
+    console.log(`[Gateway] Industry: ${session.industry.key} → ${session.industry.schema}`);
+    console.log(`[Gateway] Market: ${session.market.isoCode} (${session.market.residency})`);
+    console.log(`[Gateway] Sentinels: ${(session.market.scrapers || []).join(', ')}`);
+    console.log(`[Gateway] Language: ${session.language.code} → ${session.language.locale}`);
 
-  // 1. Apply language from session
-  if (session.language.code === 'ar') {
-    setLanguage('ar');
-  } else {
-    setLanguage('en');
-  }
-
-  // 2. Dynamic Session Header
-  const FLAGS = { SA: '🇸🇦', AE: '🇦🇪', BH: '🇧🇭', QA: '🇶🇦', KW: '🇰🇼', OM: '🇴🇲', EG: '🇪🇬', JO: '🇯🇴', GB: '🇬🇧', US: '🇺🇸', DE: '🇩🇪', FR: '🇫🇷', SG: '🇸🇬', IN: '🇮🇳', MY: '🇲🇾' };
-  const COUNTRY_NAMES = { SA: 'KSA', AE: 'UAE', BH: 'BHR', QA: 'QAT', KW: 'KWT', OM: 'OMN', EG: 'EGY', JO: 'JOR', GB: 'GBR', US: 'USA', DE: 'DEU', FR: 'FRA', SG: 'SGP', IN: 'IND', MY: 'MYS' };
-
-  const sessionFlag = document.getElementById('sessionFlag');
-  const sessionMarket = document.getElementById('sessionMarket');
-  const sessionIndustry = document.getElementById('sessionIndustry');
-
-  if (sessionFlag) sessionFlag.textContent = FLAGS[session.market.isoCode] || '🌐';
-  if (sessionMarket) sessionMarket.textContent = COUNTRY_NAMES[session.market.isoCode] || session.market.isoCode;
-  if (sessionIndustry) sessionIndustry.textContent = `${session.industry.key} Regulatory Shield`;
-
-  // Also update the legacy market badge if it exists
-  const badge = document.getElementById('gatewayMarketBadge');
-  const flagEl = document.getElementById('marketFlag');
-  const codeEl = document.getElementById('marketCode');
-  if (badge && flagEl && codeEl) {
-    flagEl.textContent = FLAGS[session.market.isoCode] || '🌐';
-    codeEl.textContent = session.market.isoCode;
-    badge.style.display = 'flex';
-  }
-
-  // 3. Dynamic Authority Grid (AuthorityMapper)
-  if (typeof AuthorityMapper !== 'undefined') {
-    const grid = document.getElementById('authorityGrid');
-    if (grid) {
-      grid.innerHTML = AuthorityMapper.renderGrid(session.market.isoCode, session.industry.key);
-      console.log(`[AuthorityMapper] Grid populated: ${session.market.isoCode} × ${session.industry.key}`);
+    // 1. Apply language from session
+    if (session.language && session.language.code === 'ar') {
+      setLanguage('ar');
+    } else {
+      setLanguage('en');
     }
 
-    // Update regulation counter
-    const regInfo = AuthorityMapper.getRegCount(session.industry.key);
-    const detailEl = document.getElementById('heartbeatDetail');
-    if (detailEl) {
-      detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
+    // 2. Dynamic Session Header
+    const FLAGS = { SA: '🇸🇦', AE: '🇦🇪', BH: '🇧🇭', QA: '🇶🇦', KW: '🇰🇼', OM: '🇴🇲', EG: '🇪🇬', JO: '🇯🇴', GB: '🇬🇧', US: '🇺🇸', DE: '🇩🇪', FR: '🇫🇷', SG: '🇸🇬', IN: '🇮🇳', MY: '🇲🇾' };
+    const COUNTRY_NAMES = { SA: 'KSA', AE: 'UAE', BH: 'BHR', QA: 'QAT', KW: 'KWT', OM: 'OMN', EG: 'EGY', JO: 'JOR', GB: 'GBR', US: 'USA', DE: 'DEU', FR: 'FRA', SG: 'SGP', IN: 'IND', MY: 'MYS' };
+
+    const sessionFlag = document.getElementById('sessionFlag');
+    const sessionMarket = document.getElementById('sessionMarket');
+    const sessionIndustry = document.getElementById('sessionIndustry');
+
+    if (sessionFlag) sessionFlag.textContent = FLAGS[session.market.isoCode] || '🇸🇦';
+    if (sessionMarket) sessionMarket.textContent = COUNTRY_NAMES[session.market.isoCode] || session.market.isoCode;
+    if (sessionIndustry) sessionIndustry.textContent = `${session.industry.key} Regulatory Shield`;
+
+    // Also update the legacy market badge if it exists
+    const badge = document.getElementById('gatewayMarketBadge');
+    const flagEl = document.getElementById('marketFlag');
+    const codeEl = document.getElementById('marketCode');
+    if (badge && flagEl && codeEl) {
+      flagEl.textContent = FLAGS[session.market.isoCode] || '🇸🇦';
+      codeEl.textContent = session.market.isoCode;
+      badge.style.display = 'flex';
     }
 
-    // Update heartbeat label
-    const labelEl = document.getElementById('heartbeatLabel');
-    if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
-  }
+    // 3. Dynamic Authority Grid (AuthorityMapper)
+    if (typeof AuthorityMapper !== 'undefined') {
+      const grid = document.getElementById('authorityGrid');
+      if (grid) {
+        grid.innerHTML = AuthorityMapper.renderGrid(session.market.isoCode, session.industry.key);
+        console.log(`[AuthorityMapper] Grid populated: ${session.market.isoCode} × ${session.industry.key}`);
+      }
 
-  // 4. Auto-select the matching demo sector from session industry
-  if (session.industry.demoSector) {
-    const sectorMap = {
-      banking: 'banking', healthcare: 'healthcare', fnb: 'fnb',
-      manufacturing: 'manufacturing', hospitality: 'hospitality', education: 'education',
-    };
-    const sector = sectorMap[session.industry.demoSector];
-    if (sector && DEMO_DATA[sector]) {
-      activateDemoSector(sector);
+      // Update regulation counter
+      const regInfo = AuthorityMapper.getRegCount(session.industry.key);
+      const detailEl = document.getElementById('heartbeatDetail');
+      if (detailEl) {
+        detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
+      }
+
+      // Update heartbeat label
+      const labelEl = document.getElementById('heartbeatLabel');
+      if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
     }
-  }
 
-  // 4b. Initialize CDC Pipeline with industry context
-  if (typeof CDCPipeline !== 'undefined') {
-    CDCPipeline.setIndustry(session.industry.key);
-    console.log(`[CDCPipeline] Industry set: ${session.industry.key}`);
-  }
+    // 4. Auto-select the matching demo sector from session industry
+    if (session.industry.demoSector) {
+      const sectorMap = {
+        banking: 'banking', healthcare: 'healthcare', fnb: 'fnb',
+        manufacturing: 'manufacturing', hospitality: 'hospitality', education: 'education',
+      };
+      const sector = sectorMap[session.industry.demoSector];
+      if (sector && DEMO_DATA[sector]) {
+        activateDemoSector(sector);
+      }
+    }
 
-  // 5. Initialize Neural Translation Matrix
-  if (typeof TranslatorCore !== 'undefined') {
-    TranslatorCore.init();
+    // 4b. Initialize CDC Pipeline with industry context
+    if (typeof CDCPipeline !== 'undefined') {
+      CDCPipeline.setIndustry(session.industry.key);
+      console.log(`[CDCPipeline] Industry set: ${session.industry.key}`);
+    }
+
+    // 5. Initialize Neural Translation Matrix
+    if (typeof TranslatorCore !== 'undefined') {
+      TranslatorCore.init();
+    }
+  } catch (err) {
+    console.error('[Gateway] Error applying session context, falling back to defaults:', err);
   }
 })();
 

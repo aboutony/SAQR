@@ -1547,6 +1547,59 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
 })();
 
 // -----------------------------------------------
+// Default Fallback — Auto-Activate if No Gateway
+// -----------------------------------------------
+(function applyDefaults() {
+  // Check if session was already applied
+  const sessionIndustry = document.getElementById('sessionIndustry');
+  if (sessionIndustry && sessionIndustry.textContent !== 'Regulatory Shield') return;
+
+  // No gateway session — apply KSA + BFSI defaults
+  console.log('[Defaults] No gateway session — applying KSA + BFSI defaults');
+
+  // Dynamic Header
+  const flagEl = document.getElementById('sessionFlag');
+  const marketEl = document.getElementById('sessionMarket');
+  const industryEl = document.getElementById('sessionIndustry');
+  if (flagEl) flagEl.textContent = '🇸🇦';
+  if (marketEl) marketEl.textContent = 'KSA';
+  if (industryEl) industryEl.textContent = 'BFSI Regulatory Shield';
+
+  // Legacy badge
+  const badge = document.getElementById('gatewayMarketBadge');
+  const mFlag = document.getElementById('marketFlag');
+  const mCode = document.getElementById('marketCode');
+  if (badge && mFlag && mCode) {
+    mFlag.textContent = '🇸🇦';
+    mCode.textContent = 'SA';
+    badge.style.display = 'flex';
+  }
+
+  // Authority Grid
+  if (typeof AuthorityMapper !== 'undefined') {
+    const grid = document.getElementById('authorityGrid');
+    if (grid) {
+      grid.innerHTML = AuthorityMapper.renderGrid('SA', 'BFSI');
+    }
+    const regInfo = AuthorityMapper.getRegCount('BFSI');
+    const detailEl = document.getElementById('heartbeatDetail');
+    if (detailEl) detailEl.textContent = `Monitoring ${regInfo.count} Active Regulations`;
+    const labelEl = document.getElementById('heartbeatLabel');
+    if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
+  }
+
+  // CDC Pipeline
+  if (typeof CDCPipeline !== 'undefined') {
+    CDCPipeline.setIndustry('BFSI');
+  }
+
+  // Auto-activate banking demo sector
+  if (typeof activateDemoSector === 'function' && DEMO_DATA.banking) {
+    activateDemoSector('banking');
+  }
+})();
+
+// -----------------------------------------------
 // Neural Translation Matrix — Toggle & Integration
 // -----------------------------------------------
 (function initNTM() {

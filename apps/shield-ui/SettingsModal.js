@@ -1,20 +1,85 @@
 // ============================================
-// SAQR — SettingsModal
-// Profile / Integrations / Sovereignty
+// SAQR — SettingsModal v2.0
+// Profile / Vertical-Locked Integrations / Sovereignty
 // ============================================
 const SettingsModal = (() => {
     'use strict';
 
     let _overlay = null;
     let _activeTab = 'profile';
-    let _integrations = {
-        'sap-b1': { label: 'SAP Business One', icon: '🔷', desc: 'ERP Connector for HANA', active: false },
-        'oracle': { label: 'Oracle EBS', icon: '🔴', desc: 'Cloud ERP Integration', active: false },
-        'temenos': { label: 'Temenos T24', icon: '🟣', desc: 'Core Banking Engine', active: false },
-        'sama-naqel': { label: 'SAMA Naqel API', icon: '🏛️', desc: 'Regulatory Data Feed', active: false },
-    };
+    let _deployMode = 'enterprise'; // 'enterprise' | 'smb'
     let _sovereignty = { mode: 'cloud' }; // 'cloud' | 'onprem'
 
+    // --- Connector state: tracks active status per key ---
+    const _connectorState = {};
+
+    // =============================================
+    // VERTICAL_CONNECTOR_MAP — Industry-Specific
+    // =============================================
+    const VERTICAL_CONNECTOR_MAP = {
+        BFSI: [
+            { key: 'sama-naqel', icon: '🏛️', label: 'SAMA Naqel API', desc: 'Regulatory Bridge — real-time violation feed from the Saudi Central Bank.' },
+            { key: 'swift-20022', icon: '💸', label: 'Swift ISO 20022', desc: 'Payment Stream — cross-border CBPR+ message ingestion.' },
+            { key: 'oracle-flex', icon: '🔴', label: 'Oracle FLEXCUBE', desc: 'Core Banking — GL & transaction ledger connector.' },
+            { key: 'temenos-t24', icon: '🟣', label: 'Temenos T24', desc: 'Core Banking Engine — Transact module integration.' },
+        ],
+        Healthcare: [
+            { key: 'moh-seha', icon: '🏥', label: 'MOH Seha Network', desc: 'National Health Information Exchange — patient registry sync.' },
+            { key: 'hl7-fhir', icon: '🩺', label: 'HL7 / FHIR Gateway', desc: 'Patient Records — R4-compliant clinical data bridge.' },
+            { key: 'sfda-track', icon: '💊', label: 'SFDA Track & Trace', desc: 'Pharmacy & Cold Chain — GS1 serialization compliance.' },
+        ],
+        Manufacturing: [
+            { key: 'modon-iot', icon: '🏭', label: 'MODON IoT Edge', desc: 'Factory Sensors — OPC-UA & MQTT telemetry ingestion.' },
+            { key: 'mim-portal', icon: '🔧', label: 'MIM Industrial Portal', desc: 'National Compliance — industrial license & audit sync.' },
+            { key: 'erp-webhook', icon: '🔗', label: 'Universal ERP Webhook', desc: 'General Ingestion — REST/GraphQL adapter for any ERP.' },
+        ],
+        Hospitality: [
+            { key: 'pms-bridge', icon: '🏨', label: 'PMS Bridge', desc: 'Property Management — Opera/Mews reservation sync.' },
+            { key: 'pos-stream', icon: '🧾', label: 'POS Stream', desc: 'Point of Sale — Micros/Lightspeed transaction feed.' },
+            { key: 'erp-webhook', icon: '🔗', label: 'Universal ERP Webhook', desc: 'General Ingestion — REST/GraphQL adapter for any ERP.' },
+        ],
+        Education: [
+            { key: 'sis-bridge', icon: '🎓', label: 'SIS Bridge', desc: 'Student Information System — enrollment & transcript sync.' },
+            { key: 'lms-stream', icon: '📚', label: 'LMS Data Stream', desc: 'Learning Management — Blackboard/Moodle integration.' },
+            { key: 'erp-webhook', icon: '🔗', label: 'Universal ERP Webhook', desc: 'General Ingestion — REST/GraphQL adapter for any ERP.' },
+        ],
+        'F&B': [
+            { key: 'pos-stream', icon: '🧾', label: 'POS Stream', desc: 'Point of Sale — Foodics/iiko transaction feed.' },
+            { key: 'sfda-track', icon: '🍽️', label: 'SFDA Food Safety', desc: 'Track & Trace — food safety & HACCP compliance.' },
+            { key: 'erp-webhook', icon: '🔗', label: 'Universal ERP Webhook', desc: 'General Ingestion — REST/GraphQL adapter for any ERP.' },
+        ],
+    };
+
+    // Fallback connectors if industry not found
+    const FALLBACK_CONNECTORS = [
+        { key: 'erp-webhook', icon: '🔗', label: 'Universal ERP Webhook', desc: 'General Ingestion — REST/GraphQL adapter for any ERP.' },
+        { key: 'sap-b1', icon: '🔷', label: 'SAP Business One', desc: 'ERP Connector for HANA — DI API bridge.' },
+    ];
+
+    // =============================================
+    // Helpers
+    // =============================================
+    function _getActiveIndustry() {
+        const session = (typeof SessionArchitect !== 'undefined') ? SessionArchitect.getSession() : null;
+        return session?.industry?.key || sessionStorage.getItem('saqr_domain_locked') || null;
+    }
+
+    function _getConnectors() {
+        const industry = _getActiveIndustry();
+        return VERTICAL_CONNECTOR_MAP[industry] || FALLBACK_CONNECTORS;
+    }
+
+    function _isConnectorActive(key) {
+        return !!_connectorState[key];
+    }
+
+    function _setConnectorActive(key, active) {
+        _connectorState[key] = active;
+    }
+
+    // =============================================
+    // Public API
+    // =============================================
     function open() {
         if (_overlay) { _overlay.remove(); }
         _overlay = _buildModal();
@@ -120,41 +185,136 @@ const SettingsModal = (() => {
         });
     }
 
+    // -----------------------------------------------
+    // Integrations Tab — Vertical-Locked
+    // -----------------------------------------------
     function _renderIntegrations(body) {
-        const cards = Object.entries(_integrations).map(([key, int]) => `
-        <div class="integration-card ${int.active ? 'integration-active' : ''}" data-key="${key}">
-            <div class="integration-header">
-                <span class="integration-icon">${int.icon}</span>
-                <span class="integration-label">${int.label}</span>
-            </div>
-            <div class="integration-desc">${int.desc}</div>
-            <div class="integration-footer">
-                <span class="integration-status">${int.active ? '● LIVE' : '○ OFFLINE'}</span>
-                <label class="integration-toggle">
-                    <input type="checkbox" ${int.active ? 'checked' : ''} data-key="${key}">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-            ${int.active ? '<div class="handshake-pulse"></div>' : ''}
-        </div>`).join('');
+        const industry = _getActiveIndustry() || 'GENERAL';
+        const connectors = _getConnectors();
 
-        body.innerHTML = `<div class="integrations-grid">${cards}</div>`;
+        // Deployment Mode Toggle
+        const modeToggle = `
+        <div class="deploy-mode-bar">
+            <div class="deploy-mode-label">🔧 DEPLOYMENT MODE</div>
+            <div class="deploy-mode-options">
+                <button class="deploy-mode-btn ${_deployMode === 'enterprise' ? 'deploy-active' : ''}" data-mode="enterprise">
+                    <span class="dm-icon">🏢</span> Sovereign Agent
+                </button>
+                <button class="deploy-mode-btn ${_deployMode === 'smb' ? 'deploy-active' : ''}" data-mode="smb">
+                    <span class="dm-icon">☁️</span> Cloud API Bridge
+                </button>
+            </div>
+            <div class="deploy-mode-desc">${_deployMode === 'enterprise'
+                ? '⛓️ On-Premise agent for large enterprises. Full data sovereignty, air-gapped deployment.'
+                : '🚀 Cloud-to-cloud rapid sync. Ideal for SMBs — zero-infra, instant activation.'}</div>
+        </div>`;
 
+        // Vertical badge
+        const vertBadge = `
+        <div class="vert-connector-badge">
+            <span class="vcb-icon">🔒</span>
+            <span class="vcb-text">${industry} CONNECTOR HUB</span>
+            <span class="vcb-count">${connectors.length} AVAILABLE</span>
+        </div>`;
+
+        // Connector cards
+        const cards = connectors.map(c => {
+            const active = _isConnectorActive(c.key);
+            return `
+            <div class="integration-card ${active ? 'integration-active' : ''}" data-key="${c.key}">
+                <div class="integration-header">
+                    <span class="integration-icon">${c.icon}</span>
+                    <span class="integration-label">${c.label}</span>
+                </div>
+                <div class="integration-desc">${c.desc}</div>
+                <div class="integration-footer">
+                    <span class="integration-status">${active ? '● LIVE' : '○ OFFLINE'}</span>
+                    <label class="integration-toggle">
+                        <input type="checkbox" ${active ? 'checked' : ''} data-key="${c.key}">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                ${active ? '<div class="handshake-pulse"></div>' : ''}
+            </div>`;
+        }).join('');
+
+        body.innerHTML = `${modeToggle}${vertBadge}<div class="integrations-grid">${cards}</div>`;
+
+        // Wire deployment mode toggle
+        body.querySelectorAll('.deploy-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                _deployMode = btn.dataset.mode;
+                _renderIntegrations(body);
+            });
+        });
+
+        // Wire connector toggles with handshake animation
         body.querySelectorAll('.integration-toggle input').forEach(input => {
             input.addEventListener('change', (e) => {
                 const key = e.target.dataset.key;
-                _integrations[key].active = e.target.checked;
-                _renderIntegrations(body);
-                // Dispatch event for audit stream
                 if (e.target.checked) {
-                    document.dispatchEvent(new CustomEvent('saqr:integration-live', {
-                        detail: { integration: _integrations[key].label, key }
-                    }));
+                    _triggerHandshake(key, body);
+                } else {
+                    _setConnectorActive(key, false);
+                    _renderIntegrations(body);
                 }
             });
         });
     }
 
+    // -----------------------------------------------
+    // CDC Handshake Animation
+    // -----------------------------------------------
+    function _triggerHandshake(key, body) {
+        const connector = _getConnectors().find(c => c.key === key);
+        if (!connector) return;
+
+        // Find the card and inject handshake overlay
+        const card = body.querySelector(`.integration-card[data-key="${key}"]`);
+        if (!card) return;
+
+        card.classList.add('integration-handshaking');
+        const hsOverlay = document.createElement('div');
+        hsOverlay.className = 'int-handshake-overlay';
+        hsOverlay.innerHTML = `
+            <div class="int-hs-spinner"></div>
+            <div class="int-hs-status" id="hsStatus_${key}">Establishing Secure Bridge...</div>
+            <div class="int-hs-progress">
+                <div class="int-hs-bar" id="hsBar_${key}"></div>
+            </div>`;
+        card.appendChild(hsOverlay);
+
+        // Animate: 3 stages over 2.4 seconds
+        const stages = [
+            { delay: 0, text: 'Establishing Secure Bridge...', pct: 20 },
+            { delay: 800, text: 'Validating Schema...', pct: 60 },
+            { delay: 1600, text: 'Schema Synced ✓', pct: 100 },
+        ];
+        stages.forEach(s => {
+            setTimeout(() => {
+                const status = card.querySelector(`#hsStatus_${key}`);
+                const bar = card.querySelector(`#hsBar_${key}`);
+                if (status) status.textContent = s.text;
+                if (bar) bar.style.width = s.pct + '%';
+            }, s.delay);
+        });
+
+        // Complete
+        setTimeout(() => {
+            _setConnectorActive(key, true);
+            card.classList.remove('integration-handshaking');
+            hsOverlay.remove();
+            _renderIntegrations(body);
+            // Dispatch event for audit stream
+            document.dispatchEvent(new CustomEvent('saqr:integration-live', {
+                detail: { integration: connector.label, key, mode: _deployMode }
+            }));
+        }, 2400);
+    }
+
+    // -----------------------------------------------
+    // Sovereignty Tab
+    // -----------------------------------------------
     function _renderSovereignty(body) {
         body.innerHTML = `
         <div class="sovereignty-section">

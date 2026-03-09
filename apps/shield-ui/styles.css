@@ -4006,3 +4006,181 @@ body {
 .sovereignty-status .detail-row:last-child {
   border-bottom: none;
 }
+
+/* ============================================ */
+/* Batch 18: Vertical Integration Hub           */
+/* ============================================ */
+
+/* Deployment Mode Bar */
+.deploy-mode-bar {
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.deploy-mode-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.deploy-mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.deploy-mode-btn {
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.deploy-mode-btn:hover {
+  border-color: var(--accent-primary-30);
+  color: var(--text-primary);
+}
+
+.deploy-mode-btn.deploy-active {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-15);
+  box-shadow: 0 0 12px rgba(0, 229, 160, 0.08);
+}
+
+.dm-icon {
+  font-size: 0.9rem;
+}
+
+.deploy-mode-desc {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  padding: 6px 0 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Vertical Connector Badge */
+.vert-connector-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 229, 160, 0.04);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  margin-bottom: 14px;
+}
+
+.vcb-icon {
+  font-size: 0.9rem;
+}
+
+.vcb-text {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-primary);
+  flex: 1;
+}
+
+.vcb-count {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+}
+
+/* Handshake Overlay on Card */
+.integration-card.integration-handshaking {
+  pointer-events: none;
+  position: relative;
+}
+
+.int-handshake-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(6, 11, 20, 0.92);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  animation: hsOverlayIn 300ms ease-out;
+}
+
+@keyframes hsOverlayIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.int-hs-spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--accent-primary);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.int-hs-status {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--accent-primary);
+  text-align: center;
+}
+
+.int-hs-progress {
+  width: 80%;
+  height: 3px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.int-hs-bar {
+  height: 100%;
+  width: 0;
+  background: var(--roi-gradient);
+  border-radius: 2px;
+  transition: width 600ms ease-out;
+}

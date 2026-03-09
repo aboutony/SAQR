@@ -1930,6 +1930,17 @@ body {
   color: var(--accent-primary);
 }
 
+.exec-btn-export:not(.exec-btn-disabled) {
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #3B82F6;
+}
+
+.exec-btn-export:not(.exec-btn-disabled):hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3B82F6;
+  color: #60A5FA;
+}
+
 .exec-btn-disabled {
   opacity: 0.3;
   cursor: not-allowed;

@@ -10,7 +10,14 @@ const CourtReadyReport = (() => {
   // Generate the full print document from the current certificate modal
   function generatePrintView() {
     const certBody = document.getElementById('certModalBody');
-    if (!certBody) return;
+
+    // Build certificate content: use cert modal if open, else build a standalone violations summary
+    let certContentHTML = '';
+    if (certBody && certBody.innerHTML.trim()) {
+      certContentHTML = certBody.innerHTML;
+    } else {
+      certContentHTML = _buildStandaloneViolationsSummary();
+    }
 
     // Gather session context for the watermark and header
     let authSignature = 'SAMA — Saudi Central Bank';
@@ -132,9 +139,9 @@ const CourtReadyReport = (() => {
         <!-- Financial Defense Summary -->
         ${financialSummaryHTML}
 
-        <!-- Certificate Content (cloned from modal) -->
+        <!-- Certificate Content -->
         <div class="cr-cert-content">
-          ${certBody.innerHTML}
+          ${certContentHTML}
         </div>
 
         <!-- Authority Digital Signature Block -->
@@ -177,6 +184,44 @@ const CourtReadyReport = (() => {
 
     // Trigger browser print
     window.print();
+  }
+
+  // -----------------------------------------------
+  // Standalone Violations Summary (when cert modal not open)
+  // -----------------------------------------------
+  function _buildStandaloneViolationsSummary() {
+    if (typeof DEMO_DATA === 'undefined' || typeof currentDemoSector === 'undefined' || !currentDemoSector) {
+      return '<div style="text-align:center;padding:20px;color:#64748b;font-style:italic;">No active violations — simulate a violation first.</div>';
+    }
+    const data = DEMO_DATA[currentDemoSector];
+    if (!data || !data.violations || data.violations.length === 0) {
+      return '<div style="text-align:center;padding:20px;color:#64748b;font-style:italic;">No violations to display.</div>';
+    }
+
+    const rows = data.violations.map(v => `
+      <tr>
+        <td style="padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#475569;">${v.violation_code}</td>
+        <td style="padding:6px 8px;font-size:0.75rem;font-weight:600;color:#1a1a2e;">${v.authority}</td>
+        <td style="padding:6px 8px;"><span style="padding:2px 8px;border-radius:4px;font-size:0.6rem;font-weight:700;text-transform:uppercase;background:${v.severity === 'critical' ? '#FEE2E2' : v.severity === 'high' ? '#FEF3C7' : '#E0E7FF'};color:${v.severity === 'critical' ? '#DC2626' : v.severity === 'high' ? '#D97706' : '#4F46E5'}">${v.severity}</span></td>
+        <td style="padding:6px 8px;font-size:0.75rem;color:#1e293b;">${v.title}</td>
+      </tr>
+    `).join('');
+
+    return `
+      <div style="margin-top:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;font-weight:700;letter-spacing:1.5px;color:#1a1a2e;margin-bottom:10px;">INTERCEPTED VIOLATIONS — SESSION AUDIT LOG</div>
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th style="padding:6px 8px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;color:#64748b;letter-spacing:0.5px;">CODE</th>
+              <th style="padding:6px 8px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;color:#64748b;">AUTHORITY</th>
+              <th style="padding:6px 8px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;color:#64748b;">SEVERITY</th>
+              <th style="padding:6px 8px;text-align:left;font-family:'JetBrains Mono',monospace;font-size:0.55rem;font-weight:700;color:#64748b;">VIOLATION</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
   }
 
   // -----------------------------------------------

@@ -1097,22 +1097,29 @@ function updateExecControls() {
   simulateBtn.querySelector('.exec-btn-text').textContent = simLabel;
   resolveBtn.querySelector('.exec-btn-text').textContent = strings['exec.resolve'];
 
+  // Export button
+  const exportBtn = document.getElementById('execExportBtn');
+
   if (demoPhase === 'green') {
     simulateBtn.disabled = false;
     simulateBtn.classList.remove('exec-btn-disabled');
     resolveBtn.disabled = true;
     resolveBtn.classList.add('exec-btn-disabled');
+    if (exportBtn) { exportBtn.disabled = true; exportBtn.classList.add('exec-btn-disabled'); }
   } else if (demoPhase === 'violation') {
     simulateBtn.disabled = true;
     simulateBtn.classList.add('exec-btn-disabled');
     resolveBtn.disabled = false;
     resolveBtn.classList.remove('exec-btn-disabled');
+    // Enable export during active violation
+    if (exportBtn) { exportBtn.disabled = false; exportBtn.classList.remove('exec-btn-disabled'); }
   } else {
-    // resolved — allow re-simulate
+    // resolved — allow re-simulate + export
     simulateBtn.disabled = false;
     simulateBtn.classList.remove('exec-btn-disabled');
     resolveBtn.disabled = true;
     resolveBtn.classList.add('exec-btn-disabled');
+    if (exportBtn) { exportBtn.disabled = false; exportBtn.classList.remove('exec-btn-disabled'); }
   }
 }
 

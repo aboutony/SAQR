@@ -450,6 +450,7 @@
     <script src="WorkflowManager.js"></script>
     <script src="Dispatcher.js"></script>
     <script src="CourtReadyReport.js"></script>
+    <script src="VerticalPruner.js"></script>
     <script src="SettingsModal.js"></script>
     <script src="app.js"></script>
     <script>
@@ -468,25 +469,8 @@
             }
         })();
 
-        // --- Hard Prune: Domain-Locked Industry Silo ---
-        // If the session was domain-locked, strip all non-relevant industry DOM elements
-        (function hardPrune() {
-            const locked = sessionStorage.getItem('saqr_domain_locked');
-            if (!locked) return;
-            console.log(`[Hard Prune] Enforcing silo: ${locked} — removing non-relevant industry assets`);
-            // Prune any element with data-industry that doesn't match
-            document.querySelectorAll('[data-industry]').forEach(el => {
-                if (el.dataset.industry.toUpperCase() !== locked.toUpperCase()) {
-                    el.remove();
-                }
-            });
-            // Prune any <style> or <link> with data-industry
-            document.querySelectorAll('style[data-industry], link[data-industry]').forEach(el => {
-                if (el.dataset.industry.toUpperCase() !== locked.toUpperCase()) {
-                    el.remove();
-                }
-            });
-        })();
+        // --- Hard Purge: VerticalPruner enforcement ---
+        if (typeof VerticalPruner !== 'undefined') VerticalPruner.init();
     </script>
 </body>
 

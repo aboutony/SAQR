@@ -1060,8 +1060,21 @@ function updateExecControls() {
   const resolveBtn = document.getElementById('execResolveBtn');
   if (!simulateBtn || !resolveBtn) return;
 
+  // Industry-aware simulation labels
+  const VERTICAL_SIM_LABELS = {
+    banking: { en: '⚡ Simulate SAMA Violation', ar: '⚡ محاكاة مخالفة ساما' },
+    healthcare: { en: '⚡ Simulate MOH Protocol Breach', ar: '⚡ محاكاة خرق بروتوكول وزارة الصحة' },
+    fnb: { en: '⚡ Simulate SFDA Cold-Chain Deviation', ar: '⚡ محاكاة انحراف سلسلة التبريد' },
+    manufacturing: { en: '⚡ Simulate SASO Quality Drift', ar: '⚡ محاكاة انحراف الجودة SASO' },
+    hospitality: { en: '⚡ Simulate Civil Defense License Drift', ar: '⚡ محاكاة انحراف ترخيص الدفاع المدني' },
+    education: { en: '⚡ Simulate PDPL Data Breach', ar: '⚡ محاكاة خرق بيانات PDPL' },
+  };
+  const simLabel = (currentDemoSector && VERTICAL_SIM_LABELS[currentDemoSector])
+    ? VERTICAL_SIM_LABELS[currentDemoSector][currentLang] || VERTICAL_SIM_LABELS[currentDemoSector].en
+    : strings['exec.simulate'];
+
   // Update button labels
-  simulateBtn.querySelector('.exec-btn-text').textContent = strings['exec.simulate'];
+  simulateBtn.querySelector('.exec-btn-text').textContent = simLabel;
   resolveBtn.querySelector('.exec-btn-text').textContent = strings['exec.resolve'];
 
   if (demoPhase === 'green') {

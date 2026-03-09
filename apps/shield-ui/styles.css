@@ -3433,6 +3433,82 @@ body {
   stroke: #00E5A0;
 }
 
+/* Financial Defense Summary (Court Ready PDF) */
+.cr-financial-summary {
+  border: 2px solid #00E5A0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+  background: #f0fdf8;
+}
+
+.cr-fin-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cr-fin-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #0d4f3c;
+}
+
+.cr-fin-narrative {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #1e293b;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #c6f6d5;
+}
+
+.cr-fin-narrative strong {
+  color: #00805a;
+}
+
+.cr-fin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.cr-fin-metric {
+  text-align: center;
+  padding: 10px;
+  border: 1px solid #c6f6d5;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.cr-fin-metric-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.cr-fin-metric-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.cr-fin-amount {
+  color: #00805a;
+  font-size: 1rem;
+}
+
+.cr-fin-critical {
+  color: #dc2626;
+}
+
 .cr-signature-block {
   border: 2px solid #1a1a2e;
   border-radius: 8px;

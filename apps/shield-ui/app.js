@@ -671,6 +671,12 @@ function renderDynamicBreakdown(breakdown) {
   }).join('');
 }
 
+// Map demo sector key → CDCPipeline industry key
+const SECTOR_TO_CDC_KEY = {
+  banking: 'BFSI', healthcare: 'Healthcare', fnb: 'F&B',
+  manufacturing: 'Manufacturing', hospitality: 'Hospitality', education: 'Education',
+};
+
 function renderDynamicPipeline() {
   const container = document.getElementById('pipelineStages');
   if (!container) return;
@@ -682,9 +688,23 @@ function renderDynamicPipeline() {
     { name: 'Evidence Vault', status: 'Sealing', icon: '🔐' },
   ];
 
-  // Add industry-specific source from CDCPipeline if available
+  // Resolve industry key: demo sector → session → domain lock → fallback
   if (typeof CDCPipeline !== 'undefined') {
-    const industryKey = sessionStorage.getItem('industry') || 'BFSI';
+    let industryKey = null;
+    // 1. From active demo sector
+    if (currentDemoSector && SECTOR_TO_CDC_KEY[currentDemoSector]) {
+      industryKey = SECTOR_TO_CDC_KEY[currentDemoSector];
+    }
+    // 2. From SessionArchitect
+    if (!industryKey && typeof SessionArchitect !== 'undefined') {
+      const s = SessionArchitect.getSession();
+      if (s && s.active && s.industry) industryKey = s.industry.key;
+    }
+    // 3. From domain lock
+    if (!industryKey) industryKey = sessionStorage.getItem('saqr_domain_locked');
+    // 4. Fallback
+    if (!industryKey) industryKey = 'BFSI';
+
     const sources = CDCPipeline.getSources ? CDCPipeline.getSources(industryKey) : null;
     if (sources && sources.primary && sources.primary.length > 0) {
       stages = [
@@ -1809,14 +1829,40 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
     if (labelEl) labelEl.textContent = 'SYSTEM STABLE';
   }
 
-  // CDC Pipeline
+  // CDC Pipeline — session-aware industry
   if (typeof CDCPipeline !== 'undefined') {
-    CDCPipeline.setIndustry('BFSI');
+    let initIndustry = 'BFSI';
+    if (typeof SessionArchitect !== 'undefined') {
+      const s = SessionArchitect.getSession();
+      if (s && s.active && s.industry) initIndustry = s.industry.key;
+    }
+    if (!initIndustry || initIndustry === '—') {
+      initIndustry = sessionStorage.getItem('saqr_domain_locked') || 'BFSI';
+    }
+    CDCPipeline.setIndustry(initIndustry);
   }
 
-  // Auto-activate banking demo sector
-  if (typeof activateDemoSector === 'function' && DEMO_DATA.banking) {
-    activateDemoSector('banking');
+  // Auto-activate demo sector — session-aware
+  if (typeof activateDemoSector === 'function') {
+    // Reverse map: industry key → demo sector
+    const INDUSTRY_TO_SECTOR = {
+      BFSI: 'banking', Healthcare: 'healthcare', 'F&B': 'fnb',
+      Manufacturing: 'manufacturing', Hospitality: 'hospitality', Education: 'education',
+    };
+    let sector = 'banking';
+    if (typeof SessionArchitect !== 'undefined') {
+      const s = SessionArchitect.getSession();
+      if (s && s.active && s.industry && s.industry.demoSector) {
+        sector = s.industry.demoSector;
+      } else if (s && s.active && s.industry && INDUSTRY_TO_SECTOR[s.industry.key]) {
+        sector = INDUSTRY_TO_SECTOR[s.industry.key];
+      }
+    }
+    if (!sector || sector === '—') {
+      const locked = sessionStorage.getItem('saqr_domain_locked');
+      if (locked && INDUSTRY_TO_SECTOR[locked]) sector = INDUSTRY_TO_SECTOR[locked];
+    }
+    if (DEMO_DATA[sector]) activateDemoSector(sector);
   }
 })();
 

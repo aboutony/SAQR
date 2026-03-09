@@ -608,76 +608,287 @@
             opacity: 0.5;
             z-index: 1;
         }
+
+        /* ---- Corporate Login Phase ---- */
+        .gateway-phases {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gateway-phase {
+            transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gateway-phase.phase-hidden-left {
+            transform: translateX(-110%);
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .gateway-phase.phase-hidden-right {
+            transform: translateX(110%);
+            opacity: 0;
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .gateway-phase.phase-active {
+            transform: translateX(0);
+            opacity: 1;
+            position: relative;
+        }
+
+        .corp-input-group {
+            margin-bottom: 20px;
+        }
+
+        .corp-input-wrapper {
+            position: relative;
+        }
+
+        .corp-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-latin);
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+            transition: all var(--transition-fast);
+        }
+
+        .corp-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .corp-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-primary-15);
+        }
+
+        .corp-input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .corp-input:focus~.corp-input-icon {
+            color: var(--accent-primary);
+        }
+
+        .corp-secure-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--accent-primary);
+            opacity: 0.7;
+        }
+
+        /* Domain Lock Badge */
+        .domain-lock-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(0, 229, 160, 0.06);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            letter-spacing: 0.5px;
+            animation: fadeIn 400ms ease-out;
+        }
+
+        .domain-lock-badge .lock-icon {
+            font-size: 0.9rem;
+        }
+
+        /* Language Auto-Sync Flash */
+        .lang-sync-flash {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            letter-spacing: 0.5px;
+            animation: syncFlash 2s ease-out forwards;
+        }
+
+        @keyframes syncFlash {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            70% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <div class="gateway-container">
-        <div class="gateway-card" id="gatewayCard">
+        <div class="gateway-phases">
 
-            <!-- Logo -->
-            <div class="gw-logo">
-                <div class="gw-logo-icon">
-                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 2L37 12V28L20 38L3 28V12L20 2Z" stroke="url(#gwGrad)" stroke-width="2"
-                            fill="none" />
-                        <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="url(#gwGrad)" opacity="0.3" />
-                        <path d="M20 14L25 17.5V24.5L20 28L15 24.5V17.5L20 14Z" fill="url(#gwGrad)" />
-                        <defs>
-                            <linearGradient id="gwGrad" x1="3" y1="2" x2="37" y2="38">
-                                <stop stop-color="#00E5A0" />
-                                <stop offset="1" stop-color="#3B82F6" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </div>
-                <div class="gw-logo-text">
-                    <span class="gw-logo-main">SAQR</span>
-                    <span class="gw-logo-sub">صقر</span>
+            <!-- Phase 1: Corporate Login -->
+            <div class="gateway-phase phase-active" id="phaseLogin">
+                <div class="gateway-card">
+                    <div class="gw-logo">
+                        <div class="gw-logo-icon">
+                            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2L37 12V28L20 38L3 28V12L20 2Z" stroke="url(#gwGrad2)" stroke-width="2"
+                                    fill="none" />
+                                <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="url(#gwGrad2)" opacity="0.3" />
+                                <path d="M20 14L25 17.5V24.5L20 28L15 24.5V17.5L20 14Z" fill="url(#gwGrad2)" />
+                                <defs>
+                                    <linearGradient id="gwGrad2" x1="3" y1="2" x2="37" y2="38">
+                                        <stop stop-color="#00E5A0" />
+                                        <stop offset="1" stop-color="#3B82F6" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="gw-logo-text">
+                            <span class="gw-logo-main">SAQR</span>
+                            <span class="gw-logo-sub">صقر</span>
+                        </div>
+                    </div>
+                    <div class="gw-subtitle">CORPORATE ACCESS — IDENTITY VERIFICATION</div>
+
+                    <div class="corp-input-group">
+                        <div class="selector-label"><span class="label-icon">👤</span> CORPORATE EMAIL</div>
+                        <div class="corp-input-wrapper">
+                            <input type="email" class="corp-input" id="corpEmail" placeholder="name@organization.com"
+                                value="adonis@saqr.io" autocomplete="off">
+                            <svg class="corp-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                <polyline points="22,6 12,13 2,6" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="corp-input-group">
+                        <div class="selector-label"><span class="label-icon">🏢</span> ORGANIZATION ID</div>
+                        <div class="corp-input-wrapper">
+                            <input type="text" class="corp-input" id="corpOrgId" placeholder="ORG-XXXX-XXX"
+                                value="SAQR-HQ-001" autocomplete="off">
+                            <svg class="corp-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                                <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="corp-secure-badge">🔐 TLS 1.3 ENCRYPTED · ZERO-TRUST VERIFICATION</div>
+
+                    <div class="gw-cta-wrapper">
+                        <button class="gw-cta" id="corpLoginBtn">INITIALIZE SESSION →</button>
+                    </div>
                 </div>
             </div>
-            <div class="gw-subtitle">GLOBAL GATEWAY — SESSION INITIALIZATION</div>
 
-            <!-- Dropdown A: Market Context -->
-            <div class="selector-group">
-                <div class="selector-label"><span class="label-icon">🌍</span> MARKET CONTEXT</div>
-                <div class="search-dropdown" id="marketDropdown">
-                    <input type="text" class="search-input" id="marketSearch" placeholder="Search country..."
-                        autocomplete="off">
-                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                    <div class="dropdown-list" id="marketList"></div>
+            <!-- Phase 2: Gateway Selector -->
+            <div class="gateway-phase phase-hidden-right" id="phaseGateway">
+                <div class="gateway-card" id="gatewayCard">
+
+                    <!-- Logo -->
+                    <div class="gw-logo">
+                        <div class="gw-logo-icon">
+                            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 2L37 12V28L20 38L3 28V12L20 2Z" stroke="url(#gwGrad)" stroke-width="2"
+                                    fill="none" />
+                                <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="url(#gwGrad)" opacity="0.3" />
+                                <path d="M20 14L25 17.5V24.5L20 28L15 24.5V17.5L20 14Z" fill="url(#gwGrad)" />
+                                <defs>
+                                    <linearGradient id="gwGrad" x1="3" y1="2" x2="37" y2="38">
+                                        <stop stop-color="#00E5A0" />
+                                        <stop offset="1" stop-color="#3B82F6" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="gw-logo-text">
+                            <span class="gw-logo-main">SAQR</span>
+                            <span class="gw-logo-sub">صقر</span>
+                        </div>
+                    </div>
+                    <div class="gw-subtitle">GLOBAL GATEWAY — SESSION INITIALIZATION</div>
+
+                    <!-- Domain Lock Badge (hidden by default) -->
+                    <div class="domain-lock-badge" id="domainLockBadge" style="display:none">
+                        <span class="lock-icon">🔒</span>
+                        <span id="domainLockText">DOMAIN-LOCKED: —</span>
+                    </div>
+
+                    <!-- Dropdown A: Market Context -->
+                    <div class="selector-group">
+                        <div class="selector-label"><span class="label-icon">🌍</span> MARKET CONTEXT</div>
+                        <div class="search-dropdown" id="marketDropdown">
+                            <input type="text" class="search-input" id="marketSearch" placeholder="Search country..."
+                                autocomplete="off">
+                            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="M21 21l-4.35-4.35" />
+                            </svg>
+                            <div class="dropdown-list" id="marketList"></div>
+                        </div>
+                    </div>
+
+                    <!-- Dropdown B: Industry Vertical -->
+                    <div class="selector-group" id="industryGroup">
+                        <div class="selector-label"><span class="label-icon">🏗️</span> INDUSTRY VERTICAL</div>
+                        <div class="industry-pills" id="industryPills"></div>
+                    </div>
+
+                    <!-- Dropdown C: Language -->
+                    <div class="selector-group">
+                        <div class="selector-label"><span class="label-icon">🗣️</span> USER LANGUAGE <span
+                                id="langSyncIndicator"></span></div>
+                        <div class="search-dropdown" id="langDropdown">
+                            <input type="text" class="search-input" id="langSearch" placeholder="Search language..."
+                                autocomplete="off">
+                            <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="M21 21l-4.35-4.35" />
+                            </svg>
+                            <div class="dropdown-list" id="langList"></div>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="gw-cta-wrapper">
+                        <button class="gw-cta" id="enterBtn" disabled>ENTER THE SHIELD →</button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Dropdown B: Industry Vertical -->
-            <div class="selector-group">
-                <div class="selector-label"><span class="label-icon">🏗️</span> INDUSTRY VERTICAL</div>
-                <div class="industry-pills" id="industryPills"></div>
-            </div>
-
-            <!-- Dropdown C: Language -->
-            <div class="selector-group">
-                <div class="selector-label"><span class="label-icon">🗣️</span> USER LANGUAGE</div>
-                <div class="search-dropdown" id="langDropdown">
-                    <input type="text" class="search-input" id="langSearch" placeholder="Search language..."
-                        autocomplete="off">
-                    <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="M21 21l-4.35-4.35" />
-                    </svg>
-                    <div class="dropdown-list" id="langList"></div>
-                </div>
-            </div>
-
-            <!-- CTA -->
-            <div class="gw-cta-wrapper">
-                <button class="gw-cta" id="enterBtn" disabled>ENTER THE SHIELD →</button>
             </div>
         </div>
     </div>
@@ -708,7 +919,8 @@
 
     <script>
         // ============================================
-        // SAQR Gateway — Controller
+        // SAQR Gateway — Controller v2.0
+        // Corporate Login + Domain Isolation + Language Sync
         // ============================================
         (function () {
             'use strict';
@@ -718,10 +930,101 @@
 
             const INDUSTRY_ICONS = { BFSI: '🏦', Healthcare: '🏥', 'F&B': '🍽️', Hospitality: '🏨', Education: '🎓', Manufacturing: '🏭' };
 
-            // State
+            // --- Domain → Industry Lock Map ---
+            const DOMAIN_INDUSTRY_MAP = {
+                'snb.com': 'BFSI', 'alrajhi.com': 'BFSI', 'saqr.io': 'BFSI', 'samba.com': 'BFSI', 'anb.com.sa': 'BFSI',
+                'moh.gov.sa': 'Healthcare', 'health.com': 'Healthcare', 'nupco.com': 'Healthcare', 'sfda.gov.sa': 'Healthcare',
+                'nesma.com': 'Manufacturing', 'factory.com': 'Manufacturing', 'sabic.com': 'Manufacturing', 'maaden.com.sa': 'Manufacturing',
+                'hilton.com': 'Hospitality', 'marriott.com': 'Hospitality', 'elaf.com': 'Hospitality',
+                'moe.gov.sa': 'Education', 'ksu.edu.sa': 'Education', 'kau.edu.sa': 'Education',
+                'albaik.com': 'F&B', 'kudu.com.sa': 'F&B', 'herfy.com': 'F&B',
+            };
+
+            // --- Country → Primary Language Map (ISO 249) ---
+            const MARKET_LANGUAGE_MAP = {
+                AF: 'fa', AL: 'en', DZ: 'ar', AD: 'es', AO: 'pt', AG: 'en', AR: 'es', AM: 'en', AU: 'en', AT: 'de',
+                AZ: 'en', BS: 'en', BH: 'ar', BD: 'bn', BB: 'en', BY: 'ru', BE: 'nl', BZ: 'en', BJ: 'fr', BT: 'en',
+                BO: 'es', BA: 'en', BW: 'en', BR: 'pt', BN: 'ms', BG: 'en', BF: 'fr', BI: 'fr', KH: 'en', CM: 'fr',
+                CA: 'en', CV: 'pt', CF: 'fr', TD: 'fr', CL: 'es', CN: 'zh', CO: 'es', KM: 'ar', CG: 'fr', CR: 'es',
+                HR: 'en', CU: 'es', CY: 'en', CZ: 'en', DK: 'en', DJ: 'fr', DM: 'en', DO: 'es', EC: 'es', EG: 'ar',
+                SV: 'es', GQ: 'es', ER: 'en', EE: 'en', SZ: 'en', ET: 'en', FJ: 'en', FI: 'en', FR: 'fr', GA: 'fr',
+                GM: 'en', GE: 'en', DE: 'de', GH: 'en', GR: 'en', GD: 'en', GT: 'es', GN: 'fr', GW: 'pt', GY: 'en',
+                HT: 'fr', HN: 'es', HU: 'en', IS: 'en', IN: 'hi', ID: 'id', IR: 'fa', IQ: 'ar', IE: 'en', IL: 'he',
+                IT: 'it', JM: 'en', JP: 'ja', JO: 'ar', KZ: 'ru', KE: 'sw', KI: 'en', KW: 'ar', KG: 'ru', LA: 'en',
+                LV: 'en', LB: 'ar', LS: 'en', LR: 'en', LY: 'ar', LI: 'de', LT: 'en', LU: 'fr', MG: 'fr', MW: 'en',
+                MY: 'ms', MV: 'en', ML: 'fr', MT: 'en', MH: 'en', MR: 'ar', MU: 'en', MX: 'es', FM: 'en', MD: 'en',
+                MC: 'fr', MN: 'en', ME: 'en', MA: 'ar', MZ: 'pt', MM: 'en', NA: 'en', NR: 'en', NP: 'en', NL: 'nl',
+                NZ: 'en', NI: 'es', NE: 'fr', NG: 'en', KP: 'ko', MK: 'en', NO: 'en', OM: 'ar', PK: 'ur', PW: 'en',
+                PS: 'ar', PA: 'es', PG: 'en', PY: 'es', PE: 'es', PH: 'tl', PL: 'pl', PT: 'pt', QA: 'ar', RO: 'en',
+                RU: 'ru', RW: 'en', KN: 'en', LC: 'en', VC: 'en', WS: 'en', SM: 'it', ST: 'pt', SA: 'ar', SN: 'fr',
+                RS: 'en', SC: 'en', SL: 'en', SG: 'en', SK: 'en', SI: 'en', SB: 'en', SO: 'ar', ZA: 'en', KR: 'ko',
+                SS: 'en', ES: 'es', LK: 'en', SD: 'ar', SR: 'nl', SE: 'sv', CH: 'de', SY: 'ar', TW: 'zh', TJ: 'ru',
+                TZ: 'sw', TH: 'th', TL: 'pt', TG: 'fr', TO: 'en', TT: 'en', TN: 'ar', TR: 'tr', TM: 'ru', TV: 'en',
+                UG: 'en', UA: 'ru', AE: 'ar', GB: 'en', US: 'en', UY: 'es', UZ: 'ru', VU: 'en', VA: 'it', VE: 'es',
+                VN: 'vi', YE: 'ar', ZM: 'en', ZW: 'en'
+            };
+
+            // --- Demo identity derivation ---
+            const DEMO_ROLES = {
+                'saqr.io': { name: 'Adonis', role: 'Chief Compliance Officer' },
+                'snb.com': { name: 'Khalid', role: 'Head of Risk & Compliance' },
+                'alrajhi.com': { name: 'Mohammed', role: 'VP Regulatory Affairs' },
+                'moh.gov.sa': { name: 'Noura', role: 'Director of Compliance' },
+                'health.com': { name: 'Sarah', role: 'Quality Assurance Lead' },
+                'nesma.com': { name: 'Tariq', role: 'Plant Compliance Manager' },
+                'factory.com': { name: 'Omar', role: 'Industrial Safety Officer' },
+            };
+
+            // ====================== STATE ======================
             let selectedMarket = null;
             let selectedIndustry = null;
             let selectedLanguage = null;
+            let lockedIndustry = null;
+            let corporateIdentity = null;
+
+            // ====================== PHASE 1: CORPORATE LOGIN ======================
+            const corpLoginBtn = document.getElementById('corpLoginBtn');
+            const corpEmail = document.getElementById('corpEmail');
+            const corpOrgId = document.getElementById('corpOrgId');
+
+            corpLoginBtn.addEventListener('click', () => {
+                const email = corpEmail.value.trim();
+                const orgId = corpOrgId.value.trim();
+                if (!email || !orgId) return;
+
+                // Extract domain
+                const domain = email.split('@')[1]?.toLowerCase();
+                if (!domain) return;
+
+                // Build identity
+                const demoProfile = DEMO_ROLES[domain] || { name: email.split('@')[0], role: 'Compliance Analyst' };
+                corporateIdentity = { name: demoProfile.name, email, orgId, role: demoProfile.role };
+                SessionArchitect.setIdentity(corporateIdentity);
+
+                // Check domain lock
+                lockedIndustry = DOMAIN_INDUSTRY_MAP[domain] || null;
+                if (lockedIndustry) {
+                    applyDomainLock(lockedIndustry);
+                }
+
+                // Slide to Phase 2
+                document.getElementById('phaseLogin').classList.remove('phase-active');
+                document.getElementById('phaseLogin').classList.add('phase-hidden-left');
+                document.getElementById('phaseGateway').classList.remove('phase-hidden-right');
+                document.getElementById('phaseGateway').classList.add('phase-active');
+            });
+
+            function applyDomainLock(industry) {
+                selectedIndustry = industry;
+                // Show lock badge
+                document.getElementById('domainLockBadge').style.display = 'flex';
+                document.getElementById('domainLockText').textContent = `DOMAIN-LOCKED: ${industry} VERTICAL`;
+                // Hide industry pills
+                document.getElementById('industryGroup').style.display = 'none';
+                updateCTA();
+            }
+
+            // ====================== PHASE 2: GATEWAY SELECTOR ======================
 
             // --- Render Markets ---
             const marketList = document.getElementById('marketList');
@@ -753,6 +1056,20 @@
                 marketSearch.value = `${country.f}  ${country.n}`;
                 marketList.classList.remove('visible');
                 marketDropdown.classList.remove('open');
+
+                // --- Country → Language Auto-Sync ---
+                const mappedLang = MARKET_LANGUAGE_MAP[code];
+                if (mappedLang) {
+                    const lang = languages.find(l => l.code === mappedLang);
+                    if (lang) {
+                        selectedLanguage = mappedLang;
+                        langSearch.value = lang.label;
+                        // Flash sync indicator
+                        const indicator = document.getElementById('langSyncIndicator');
+                        indicator.innerHTML = '<span class="lang-sync-flash">🔗 SYNCED</span>';
+                        setTimeout(() => { indicator.innerHTML = ''; }, 2200);
+                    }
+                }
                 updateCTA();
             });
             document.addEventListener('click', (e) => {
@@ -760,7 +1077,6 @@
                 if (!langDropdown.contains(e.target)) { langListEl.classList.remove('visible'); langDropdown.classList.remove('open'); }
             });
 
-            // No hardcoded default — user must select from global list
             selectedMarket = null;
 
             // --- Render Industries ---
@@ -837,12 +1153,10 @@
                 const fill = document.getElementById('hsProgressFill');
                 const stages = document.querySelectorAll('.hs-stage');
 
-                // Set mapping display
                 document.getElementById('hsIndustry').textContent = selectedIndustry;
                 const mc = COUNTRIES.find(c => c.c === selectedMarket);
                 document.getElementById('hsMarket').textContent = mc ? `${mc.f} ${mc.c}` : selectedMarket;
 
-                // Update stage labels with dynamic values
                 stages[1].innerHTML = `<span class="stage-dot"></span>Loading ${selectedIndustry} Schema…`;
                 stages[2].innerHTML = `<span class="stage-dot"></span>Activating ${selectedMarket} Sentinels…`;
                 const lang = languages.find(l => l.code === selectedLanguage);
@@ -857,7 +1171,6 @@
 
                 stageDelays.forEach((delay, i) => {
                     setTimeout(() => {
-                        // Mark previous as done
                         if (i > 0) stages[i - 1].classList.remove('active');
                         if (i > 0) stages[i - 1].classList.add('done');
                         stages[i].classList.add('active');
@@ -865,24 +1178,20 @@
                     }, delay);
                 });
 
-                // Initialize session and redirect
                 setTimeout(() => {
                     try {
                         SessionArchitect.initialize({
                             market: selectedMarket,
                             industry: selectedIndustry,
                             language: selectedLanguage,
+                            identity: corporateIdentity,
                         });
                     } catch (err) {
                         console.error('[Gateway] Session init failed:', err);
                     }
-
                     stages[4].classList.remove('active');
                     stages[4].classList.add('done');
-
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 500);
+                    setTimeout(() => { window.location.href = 'index.html'; }, 500);
                 }, 3000);
             }
 

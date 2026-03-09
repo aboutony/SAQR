@@ -8,7 +8,8 @@ const SessionArchitect = (() => {
     'use strict';
 
     const SILO_KEY = 'saqr-gateway-session';
-    const VERSION = '1.0.0';
+    const IDENTITY_KEY = 'saqr-corporate-identity';
+    const VERSION = '1.1.0';
 
     // -----------------------------------------------
     // Industry → Schema Mapping
@@ -80,7 +81,7 @@ const SessionArchitect = (() => {
     // -----------------------------------------------
     // Core: Initialize Session
     // -----------------------------------------------
-    function initialize({ market, industry, language }) {
+    function initialize({ market, industry, language, identity }) {
         // Validate inputs
         if (!INDUSTRY_SCHEMA_MAP[industry]) {
             throw new Error(`[SessionArchitect] Unknown industry: ${industry}`);
@@ -91,10 +92,18 @@ const SessionArchitect = (() => {
         const marketConfig = MARKET_SENTINEL_MAP[market] || MARKET_SENTINEL_MAP._default;
         const nmtConfig = NMT_LOCALE_MAP[language] || NMT_LOCALE_MAP.en;
 
+        // Store corporate identity if provided
+        if (identity) {
+            sessionStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
+        }
+
         const session = {
             version: VERSION,
             siloId,
             createdAt: new Date().toISOString(),
+
+            // Corporate Identity
+            identity: identity || _getStoredIdentity() || null,
 
             // Market Context
             market: {
@@ -165,7 +174,8 @@ const SessionArchitect = (() => {
             sessionStorage.removeItem(`${SILO_KEY}:${session.siloId}`);
         }
         sessionStorage.removeItem(SILO_KEY);
-        console.log('[SessionArchitect] Session destroyed — silo purged');
+        sessionStorage.removeItem(IDENTITY_KEY);
+        console.log('[SessionArchitect] Session destroyed — silo + identity purged');
     }
 
     // -----------------------------------------------
@@ -203,6 +213,27 @@ const SessionArchitect = (() => {
         }));
     }
 
+    // -----------------------------------------------
+    // Public: Get / Set Corporate Identity
+    // -----------------------------------------------
+    function getIdentity() {
+        // Try session first, then stored identity
+        const session = getSession();
+        if (session?.identity) return session.identity;
+        return _getStoredIdentity();
+    }
+
+    function setIdentity(identity) {
+        sessionStorage.setItem(IDENTITY_KEY, JSON.stringify(identity));
+    }
+
+    function _getStoredIdentity() {
+        try {
+            const raw = sessionStorage.getItem(IDENTITY_KEY);
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    }
+
     function getLanguages() {
         return Object.entries(NMT_LOCALE_MAP).map(([code, val]) => ({
             code,
@@ -222,6 +253,8 @@ const SessionArchitect = (() => {
         validateSilo,
         getIndustries,
         getLanguages,
+        getIdentity,
+        setIdentity,
         VERSION,
     };
 })();

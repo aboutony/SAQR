@@ -3,20 +3,6 @@
 // Three.js 3D Shield + Demo Mode + BiDi + All Engines
 // ============================================
 
-// -----------------------------------------------
-// Gateway Session Enforcement
-// Redirect to GatewaySelector if no active session
-// -----------------------------------------------
-(function enforceGateway() {
-  if (typeof SessionArchitect !== 'undefined') {
-    const session = SessionArchitect.getSession();
-    if (!session || !session.active) {
-      window.location.href = 'GatewaySelector.html';
-      return;
-    }
-  }
-})();
-
 const API_BASE = 'http://localhost:3001';
 
 // -----------------------------------------------

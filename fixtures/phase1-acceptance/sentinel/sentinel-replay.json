@@ -1,0 +1,52 @@
+{
+  "fixtureId": "sentinel-replay-001",
+  "mode": "live",
+  "sources": [
+    {
+      "authority": "SAMA",
+      "entries": [
+        {
+          "authority": "SAMA",
+          "title": "Circular: Maximum Admin Fee Cap for SME Products",
+          "sourceUrl": "https://www.sama.gov.sa/en-US/Circulars/Pages/BankCirculars.aspx",
+          "category": "Consumer Protection",
+          "publishDate": "2026-04-01",
+          "contentHash": "a8f8d1c6c3c2d98aab52cb6af312088f717f0e214e4e2cf3d21c5f31661fa8dd",
+          "detectedAt": "2026-04-07T09:20:00.000Z"
+        }
+      ]
+    },
+    {
+      "authority": "SDAIA",
+      "entries": [
+        {
+          "authority": "SDAIA",
+          "title": "PDPL Implementation Guidelines for Financial Sector",
+          "sourceUrl": "https://sdaia.gov.sa/en/MediaCenter/News/",
+          "category": "PDPL Enforcement",
+          "publishDate": "2026-04-02",
+          "contentHash": "b40df473f6db0da9e0f90ef55e22ad0a657c88f51858061e12fa341a445708b1",
+          "detectedAt": "2026-04-07T09:22:00.000Z"
+        },
+        {
+          "authority": "SDAIA",
+          "title": "PDPL Implementation Guidelines for Financial Sector",
+          "sourceUrl": "https://sdaia.gov.sa/en/MediaCenter/News/",
+          "category": "PDPL Enforcement",
+          "publishDate": "2026-04-02",
+          "contentHash": "b40df473f6db0da9e0f90ef55e22ad0a657c88f51858061e12fa341a445708b1",
+          "detectedAt": "2026-04-07T09:23:00.000Z"
+        }
+      ]
+    }
+  ],
+  "expected": {
+    "authorities": [
+      "SAMA",
+      "SDAIA"
+    ],
+    "totalEntries": 3,
+    "ingested": 2,
+    "duplicates": 1
+  }
+}

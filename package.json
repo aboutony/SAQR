@@ -1,0 +1,14 @@
+{
+  "name": "saqr-phase1-toolchain",
+  "private": true,
+  "scripts": {
+    "phase1:bootstrap": "node tools/ci/bootstrap-workspace.js",
+    "phase1:handoff:verify": "node tools/ci/verify-phase1-handoff-package.js",
+    "phase1:quality": "node tools/ci/run-phase1-quality-gates.js",
+    "phase1:quality:ci": "node tools/ci/run-phase1-quality-gates.js --ci",
+    "phase1:release:verify": "node tools/ci/run-phase1-release-readiness.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

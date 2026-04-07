@@ -6,47 +6,157 @@
 
 const Fastify = require('fastify');
 const cors = require('@fastify/cors');
+const { randomUUID } = require('crypto');
 const { Pool } = require('pg');
+const { buildPlatformConfig, resolveSourceAuthorities } = require('./platform-config');
+const { registerAuth } = require('./auth');
+const { createServiceLogger, installProcessHandlers } = require('../../../shared/observability');
+const { createPostgresAdapter } = require('../../../shared/postgres-adapter');
 
-const fastify = Fastify({ logger: true });
+const config = buildPlatformConfig(process.env);
+const logger = createServiceLogger({ service: 'saqr-api', runtime: config.runtime });
+const fastify = Fastify({
+    logger: false,
+    genReqId: () => randomUUID(),
+});
 
 // -----------------------------------------------
 // Database
 // -----------------------------------------------
-const pool = new Pool({
-    host: process.env.SHADOW_DB_HOST || 'localhost',
-    port: parseInt(process.env.SHADOW_DB_PORT || '5432', 10),
-    database: process.env.SHADOW_DB_NAME || 'saqr_shadow',
-    user: process.env.SHADOW_DB_USER || 'saqr',
-    password: process.env.SHADOW_DB_PASSWORD || 'saqr_dev_password',
+const pool = new Pool(config.db);
+const db = createPostgresAdapter(pool, {
+    name: 'saqr-api-db',
+    logger,
 });
+
+function toPositiveInt(value, fallback, { min = 1, max = Number.MAX_SAFE_INTEGER } = {}) {
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+}
+
+function routeOptions(preHandler) {
+    return preHandler ? { preHandler } : {};
+}
+
+function requestPath(request) {
+    return request.routeOptions?.url || request.url;
+}
 
 // -----------------------------------------------
 // Plugins
 // -----------------------------------------------
-fastify.register(cors, { origin: true });
+fastify.register(cors, {
+    origin: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+});
+registerAuth(fastify, config.auth);
+fastify.decorateRequest('requestStartedAt', 0);
+fastify.decorateRequest('audit', null);
+
+fastify.addHook('onRequest', async (request) => {
+    request.requestStartedAt = Date.now();
+    request.audit = (action, fields = {}) => logger.audit(action, {
+        requestId: request.id,
+        method: request.method,
+        path: requestPath(request),
+        actor: request.authContext?.subject || null,
+        clientIp: request.ip,
+        ...fields,
+    });
+
+    logger.debug('http.request.started', {
+        requestId: request.id,
+        method: request.method,
+        path: requestPath(request),
+        clientIp: request.ip,
+    });
+});
+
+fastify.addHook('onResponse', async (request, reply) => {
+    logger.info('http.request.completed', {
+        requestId: request.id,
+        method: request.method,
+        path: requestPath(request),
+        statusCode: reply.statusCode,
+        durationMs: Date.now() - request.requestStartedAt,
+        actor: request.authContext?.subject || null,
+    });
+});
+
+fastify.setErrorHandler((error, request, reply) => {
+    const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    logger.error('http.request.failed', error, {
+        requestId: request.id,
+        method: request.method,
+        path: requestPath(request),
+        statusCode,
+        actor: request.authContext?.subject || null,
+    });
+
+    if (reply.sent) return;
+
+    if (statusCode >= 500) {
+        return reply.code(statusCode).send({
+            error: 'INTERNAL_ERROR',
+            message: 'Internal server error',
+        });
+    }
+
+    return reply.code(statusCode).send({
+        error: error.code || 'REQUEST_ERROR',
+        message: error.message,
+    });
+});
 
 // -----------------------------------------------
 // Health Check
 // -----------------------------------------------
 fastify.get('/health', async () => {
-    const db = await pool.query('SELECT NOW() as time');
-    return { status: 'ok', service: 'saqr-api', time: db.rows[0].time };
+    const result = await db.query('SELECT NOW() as time');
+    return {
+        status: 'ok',
+        service: 'saqr-api',
+        runtimeMode: config.runtime.mode,
+        time: result.rows[0].time,
+    };
+});
+
+// -----------------------------------------------
+// Platform Runtime
+// -----------------------------------------------
+fastify.get('/api/platform/runtime', {
+    preHandler: fastify.requireAuth({ permissions: ['saqr.read'] }),
+}, async () => {
+    return {
+        runtime: config.runtime,
+        auth: {
+            enabled: config.auth.enabled,
+            issuer: config.auth.issuer,
+            audience: config.auth.audience,
+        },
+        sources: {
+            heartbeatPublic: config.sources.heartbeatPublic,
+            authorities: config.sources.authorities,
+        },
+    };
 });
 
 // -----------------------------------------------
 // Dashboard KPIs
 // -----------------------------------------------
-fastify.get('/api/dashboard/kpis', async () => {
+fastify.get('/api/dashboard/kpis', {
+    preHandler: fastify.requireAuth({ permissions: ['dashboard.read'] }),
+}, async () => {
     const [totalViolations, criticalCount, penaltyExposure, todayCount] = await Promise.all([
-        pool.query('SELECT COUNT(*) as count FROM vault.evidence'),
-        pool.query("SELECT COUNT(*) as count FROM vault.evidence WHERE severity = 'critical'"),
-        pool.query(`
+        db.query('SELECT COUNT(*) as count FROM vault.evidence'),
+        db.query("SELECT COUNT(*) as count FROM vault.evidence WHERE severity = 'critical'"),
+        db.query(`
       SELECT COALESCE(SUM(ps.max_penalty_sar), 0) as total
       FROM vault.evidence e
       JOIN vault.penalty_schedule ps ON e.violation_code = ps.violation_code
     `),
-        pool.query("SELECT COUNT(*) as count FROM vault.evidence WHERE DATE(ntp_timestamp) = CURRENT_DATE"),
+        db.query("SELECT COUNT(*) as count FROM vault.evidence WHERE DATE(ntp_timestamp) = CURRENT_DATE"),
     ]);
 
     return {
@@ -60,8 +170,12 @@ fastify.get('/api/dashboard/kpis', async () => {
 // -----------------------------------------------
 // Recent Violations (paginated)
 // -----------------------------------------------
-fastify.get('/api/violations', async (request) => {
-    const { page = 1, limit = 20, authority, severity } = request.query;
+fastify.get('/api/violations', {
+    preHandler: fastify.requireAuth({ permissions: ['violations.read'] }),
+}, async (request) => {
+    const page = toPositiveInt(request.query.page, 1);
+    const limit = toPositiveInt(request.query.limit, 20, { min: 1, max: 100 });
+    const { authority, severity } = request.query;
     const offset = (page - 1) * limit;
 
     let where = 'WHERE 1=1';
@@ -80,7 +194,7 @@ fastify.get('/api/violations', async (request) => {
     params.push(limit, offset);
 
     const [violations, total] = await Promise.all([
-        pool.query(
+        db.query(
             `SELECT id, evidence_type, violation_code, authority, severity, title, description,
               sha256_hash, ntp_timestamp, created_at
        FROM vault.evidence
@@ -89,14 +203,14 @@ fastify.get('/api/violations', async (request) => {
        LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
             params
         ),
-        pool.query(`SELECT COUNT(*) as count FROM vault.evidence ${where}`, params.slice(0, -2)),
+        db.query(`SELECT COUNT(*) as count FROM vault.evidence ${where}`, params.slice(0, -2)),
     ]);
 
     return {
         data: violations.rows,
         pagination: {
-            page: parseInt(page, 10),
-            limit: parseInt(limit, 10),
+            page,
+            limit,
             total: parseInt(total.rows[0].count, 10),
         },
     };
@@ -105,9 +219,11 @@ fastify.get('/api/violations', async (request) => {
 // -----------------------------------------------
 // Single Evidence Record (with full payload)
 // -----------------------------------------------
-fastify.get('/api/evidence/:id', async (request) => {
+fastify.get('/api/evidence/:id', {
+    preHandler: fastify.requireAuth({ permissions: ['evidence.read'] }),
+}, async (request, reply) => {
     const { id } = request.params;
-    const result = await pool.query(
+    const result = await db.query(
         `SELECT e.*, ps.description_ar, ps.description_en, ps.min_penalty_sar, ps.max_penalty_sar, ps.source_document
      FROM vault.evidence e
      LEFT JOIN vault.penalty_schedule ps ON e.violation_code = ps.violation_code
@@ -116,8 +232,18 @@ fastify.get('/api/evidence/:id', async (request) => {
     );
 
     if (result.rows.length === 0) {
-        return fastify.httpErrors.notFound('Evidence record not found');
+        return reply.code(404).send({
+            error: 'NOT_FOUND',
+            message: 'Evidence record not found',
+        });
     }
+
+    request.audit('data.evidence_read', {
+        resourceType: 'evidence',
+        resourceId: id,
+        authority: result.rows[0].authority,
+        violationCode: result.rows[0].violation_code,
+    });
 
     return result.rows[0];
 });
@@ -125,8 +251,10 @@ fastify.get('/api/evidence/:id', async (request) => {
 // -----------------------------------------------
 // Penalty Schedule Reference
 // -----------------------------------------------
-fastify.get('/api/penalty-schedule', async () => {
-    const result = await pool.query(
+fastify.get('/api/penalty-schedule', {
+    preHandler: fastify.requireAuth({ permissions: ['references.read'] }),
+}, async () => {
+    const result = await db.query(
         'SELECT * FROM vault.penalty_schedule ORDER BY authority, violation_code'
     );
     return result.rows;
@@ -135,8 +263,10 @@ fastify.get('/api/penalty-schedule', async () => {
 // -----------------------------------------------
 // Merkle Log
 // -----------------------------------------------
-fastify.get('/api/merkle-log', async () => {
-    const result = await pool.query(
+fastify.get('/api/merkle-log', {
+    preHandler: fastify.requireAuth({ permissions: ['evidence.read'] }),
+}, async () => {
+    const result = await db.query(
         'SELECT id, batch_date, evidence_count, merkle_root, computed_at FROM vault.merkle_log ORDER BY batch_date DESC LIMIT 30'
     );
     return result.rows;
@@ -145,9 +275,11 @@ fastify.get('/api/merkle-log', async () => {
 // -----------------------------------------------
 // CDC Event Stream (recent)
 // -----------------------------------------------
-fastify.get('/api/cdc-events', async (request) => {
-    const { limit = 50 } = request.query;
-    const result = await pool.query(
+fastify.get('/api/cdc-events', {
+    preHandler: fastify.requireAuth({ permissions: ['cdc.read'] }),
+}, async (request) => {
+    const limit = toPositiveInt(request.query.limit, 50, { min: 1, max: 500 });
+    const result = await db.query(
         `SELECT id, source_system, source_table, operation, event_timestamp, ingested_at, sha256_hash
      FROM shadow.cdc_events
      ORDER BY ingested_at DESC
@@ -160,8 +292,10 @@ fastify.get('/api/cdc-events', async (request) => {
 // -----------------------------------------------
 // Violation Breakdown by Authority
 // -----------------------------------------------
-fastify.get('/api/dashboard/breakdown', async () => {
-    const result = await pool.query(`
+fastify.get('/api/dashboard/breakdown', {
+    preHandler: fastify.requireAuth({ permissions: ['dashboard.read'] }),
+}, async () => {
+    const result = await db.query(`
     SELECT authority,
            severity,
            COUNT(*) as count,
@@ -177,7 +311,9 @@ fastify.get('/api/dashboard/breakdown', async () => {
 // -----------------------------------------------
 // NLP: Obligations
 // -----------------------------------------------
-fastify.get('/api/obligations', async (request) => {
+fastify.get('/api/obligations', {
+    preHandler: fastify.requireAuth({ permissions: ['nlp.read'] }),
+}, async (request) => {
     const { authority, type } = request.query;
     let where = 'WHERE 1=1';
     const params = [];
@@ -185,7 +321,7 @@ fastify.get('/api/obligations', async (request) => {
     if (authority) { where += ` AND authority = $${idx++}`; params.push(authority); }
     if (type) { where += ` AND obligation_type = $${idx++}`; params.push(type); }
 
-    const result = await pool.query(
+    const result = await db.query(
         `SELECT * FROM shadow.obligations ${where} ORDER BY created_at DESC LIMIT 100`,
         params
     );
@@ -195,7 +331,9 @@ fastify.get('/api/obligations', async (request) => {
 // -----------------------------------------------
 // NLP: Instruction Drift Alerts
 // -----------------------------------------------
-fastify.get('/api/drift-alerts', async (request) => {
+fastify.get('/api/drift-alerts', {
+    preHandler: fastify.requireAuth({ permissions: ['nlp.read'] }),
+}, async (request) => {
     const { acknowledged } = request.query;
     let where = '';
     const params = [];
@@ -203,7 +341,7 @@ fastify.get('/api/drift-alerts', async (request) => {
         where = 'WHERE acknowledged = $1';
         params.push(acknowledged === 'true');
     }
-    const result = await pool.query(
+    const result = await db.query(
         `SELECT * FROM shadow.instruction_drift ${where} ORDER BY detected_at DESC LIMIT 50`,
         params
     );
@@ -213,11 +351,13 @@ fastify.get('/api/drift-alerts', async (request) => {
 // -----------------------------------------------
 // Dashboard KPIs (extended with NLP data)
 // -----------------------------------------------
-fastify.get('/api/dashboard/nlp-kpis', async () => {
+fastify.get('/api/dashboard/nlp-kpis', {
+    preHandler: fastify.requireAuth({ permissions: ['dashboard.read', 'nlp.read'] }),
+}, async () => {
     const [obligations, drifts, unacknowledged] = await Promise.all([
-        pool.query('SELECT COUNT(*) as count FROM shadow.obligations'),
-        pool.query('SELECT COUNT(*) as count FROM shadow.instruction_drift'),
-        pool.query("SELECT COUNT(*) as count FROM shadow.instruction_drift WHERE acknowledged = false"),
+        db.query('SELECT COUNT(*) as count FROM shadow.obligations'),
+        db.query('SELECT COUNT(*) as count FROM shadow.instruction_drift'),
+        db.query("SELECT COUNT(*) as count FROM shadow.instruction_drift WHERE acknowledged = false"),
     ]);
     return {
         totalObligations: parseInt(obligations.rows[0].count, 10),
@@ -229,8 +369,11 @@ fastify.get('/api/dashboard/nlp-kpis', async () => {
 // -----------------------------------------------
 // CV Watchman: Detections Gallery
 // -----------------------------------------------
-fastify.get('/api/cv/detections', async (request) => {
-    const { category, severity, camera, limit = 30 } = request.query;
+fastify.get('/api/cv/detections', {
+    preHandler: fastify.requireAuth({ permissions: ['cv.read'] }),
+}, async (request) => {
+    const { category, severity, camera } = request.query;
+    const limit = toPositiveInt(request.query.limit, 30, { min: 1, max: 100 });
     let where = 'WHERE 1=1';
     const params = [];
     let idx = 1;
@@ -239,7 +382,7 @@ fastify.get('/api/cv/detections', async (request) => {
     if (camera) { where += ` AND camera_id = $${idx++}`; params.push(camera); }
     params.push(limit);
 
-    const result = await pool.query(
+    const result = await db.query(
         `SELECT * FROM shadow.cv_detections ${where} ORDER BY ntp_timestamp DESC LIMIT $${idx}`,
         params
     );
@@ -249,8 +392,10 @@ fastify.get('/api/cv/detections', async (request) => {
 // -----------------------------------------------
 // CV Watchman: Camera List
 // -----------------------------------------------
-fastify.get('/api/cv/cameras', async () => {
-    const result = await pool.query(
+fastify.get('/api/cv/cameras', {
+    preHandler: fastify.requireAuth({ permissions: ['cv.read'] }),
+}, async () => {
+    const result = await db.query(
         'SELECT * FROM shadow.camera_registry ORDER BY camera_id'
     );
     return result.rows;
@@ -259,13 +404,15 @@ fastify.get('/api/cv/cameras', async () => {
 // -----------------------------------------------
 // CV Watchman: Dashboard KPIs
 // -----------------------------------------------
-fastify.get('/api/cv/kpis', async () => {
+fastify.get('/api/cv/kpis', {
+    preHandler: fastify.requireAuth({ permissions: ['dashboard.read', 'cv.read'] }),
+}, async () => {
     const [total, critical, signage, visual, structural] = await Promise.all([
-        pool.query('SELECT COUNT(*) as count FROM shadow.cv_detections'),
-        pool.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE severity = 'critical'"),
-        pool.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'signage'"),
-        pool.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'visual'"),
-        pool.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'structural'"),
+        db.query('SELECT COUNT(*) as count FROM shadow.cv_detections'),
+        db.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE severity = 'critical'"),
+        db.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'signage'"),
+        db.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'visual'"),
+        db.query("SELECT COUNT(*) as count FROM shadow.cv_detections WHERE category = 'structural'"),
     ]);
     return {
         totalDetections: parseInt(total.rows[0].count, 10),
@@ -278,26 +425,20 @@ fastify.get('/api/cv/kpis', async () => {
 
 // -----------------------------------------------
 // Sovereign Bridge: Public Rule Ingestion Heartbeat
-// Security: One-way encrypted stream — Public Zone → Private Zone
-// This endpoint proves to the bank that SAQR is
-// actively monitoring all 7 regulatory authorities.
 // -----------------------------------------------
-fastify.get('/api/v1/sources/heartbeat', async (request, reply) => {
+const heartbeatPreHandler = config.sources.heartbeatPublic
+    ? null
+    : fastify.requireAuth({ permissions: ['sources.read'] });
+
+fastify.get('/api/v1/sources/heartbeat', routeOptions(heartbeatPreHandler), async (request, reply) => {
     reply.header('X-SAQR-Zone', 'public-ingestion');
     reply.header('X-SAQR-Direction', 'inbound-only');
     reply.header('X-SAQR-Sovereignty', 'KSA-STC-Cloud');
     return {
         status: 'operational',
         timestamp: new Date().toISOString(),
-        authorities: [
-            { code: 'SAMA', name: 'Saudi Central Bank', name_ar: 'البنك المركزي السعودي', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'SDAIA', name: 'Saudi Data & AI Authority', name_ar: 'هيئة البيانات والذكاء الاصطناعي', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'ZATCA', name: 'Zakat, Tax & Customs Authority', name_ar: 'هيئة الزكاة والضريبة والجمارك', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'SFDA', name: 'Saudi Food & Drug Authority', name_ar: 'الهيئة العامة للغذاء والدواء', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'MOH', name: 'Ministry of Health', name_ar: 'وزارة الصحة', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'MOMAH', name: 'Ministry of Municipal & Rural Affairs', name_ar: 'وزارة الشؤون البلدية والقروية', status: 'active', lastSync: new Date().toISOString() },
-            { code: 'MHRSD', name: 'Ministry of Human Resources & Social Development', name_ar: 'وزارة الموارد البشرية والتنمية الاجتماعية', status: 'active', lastSync: new Date().toISOString() },
-        ],
+        runtimeMode: config.runtime.mode,
+        authorities: resolveSourceAuthorities(config.sources.authorities),
         sovereignty: {
             zone: 'KSA',
             cloud: 'STC',
@@ -308,24 +449,29 @@ fastify.get('/api/v1/sources/heartbeat', async (request, reply) => {
         security: {
             direction: 'inbound-only',
             description: 'Public Rule Ingestion is a one-way encrypted stream into the Private Zone. No client data exits.',
+            authRequired: !config.sources.heartbeatPublic,
         },
     };
 });
 
 // -----------------------------------------------
 // Sentinel Engine: Recent Staging Entries
-// Returns new regulatory entries from the last hour
-// for UI heartbeat polling and amber alerts.
 // -----------------------------------------------
-fastify.get('/api/v1/sources/staging/recent', async (request) => {
-    const { hours = 1 } = request.query;
+fastify.get('/api/v1/sources/staging/recent', {
+    preHandler: fastify.requireAuth({ permissions: ['sources.read'] }),
+}, async (request) => {
+    const hours = toPositiveInt(request.query.hours, 1, { min: 1, max: 24 });
+    request.audit('sources.staging_read', {
+        hours,
+    });
     try {
-        const result = await pool.query(
+        const result = await db.query(
             `SELECT id, authority, title, source_url, content_hash, category, detected_at
              FROM shadow.regulatory_staging
-             WHERE detected_at >= NOW() - INTERVAL '${parseInt(hours, 10)} hours'
+             WHERE detected_at >= NOW() - ($1 * INTERVAL '1 hour')
              ORDER BY detected_at DESC
-             LIMIT 50`
+             LIMIT 50`,
+            [hours]
         );
         return {
             count: result.rows.length,
@@ -333,7 +479,6 @@ fastify.get('/api/v1/sources/staging/recent', async (request) => {
             queriedAt: new Date().toISOString(),
         };
     } catch (err) {
-        // Table may not exist yet in dev — return empty
         return { count: 0, entries: [], queriedAt: new Date().toISOString() };
     }
 });
@@ -343,19 +488,28 @@ fastify.get('/api/v1/sources/staging/recent', async (request) => {
 // -----------------------------------------------
 const start = async () => {
     try {
-        const port = parseInt(process.env.API_PORT || '3001', 10);
-        await fastify.listen({ port, host: '0.0.0.0' });
-        console.log('');
-        console.log('🦅 ============================================');
-        console.log(`🦅  SAQR API — Listening on port ${port}`);
-        console.log('🦅  Endpoints: /api/dashboard/kpis, /api/violations');
-        console.log('🦅  Sentinel:  /api/v1/sources/heartbeat, /api/v1/sources/staging/recent');
-        console.log('🦅  Golden Rule: READ-ONLY queries only');
-        console.log('🦅 ============================================');
+        await fastify.listen({ port: config.api.port, host: config.api.host });
+        (config.warnings || []).forEach((warning) => logger.warn('startup.configuration_warning', { warning }));
+        logger.info('service.startup.completed', {
+            host: config.api.host,
+            port: config.api.port,
+            authEnabled: config.auth.enabled,
+            sourceAuthorities: config.sources.authorities,
+            readOnly: true,
+        });
     } catch (err) {
-        fastify.log.error(err);
+        logger.fatal('service.startup.failed', err);
         process.exit(1);
     }
 };
+
+installProcessHandlers({
+    logger,
+    onShutdown: async (signal) => {
+        logger.info('service.shutdown.releasing_resources', { signal });
+        await fastify.close().catch(() => { });
+        await db.close().catch(() => { });
+    },
+});
 
 start();

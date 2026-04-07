@@ -1,0 +1,8 @@
+{
+  "name": "saqr-shield-ui",
+  "private": true,
+  "scripts": {
+    "ui:baseline:check": "node tools/ui-regression-check.js",
+    "ui:baseline:write": "node tools/ui-regression-check.js --write-baseline"
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "phase": "Phase 1",
+  "audience": "Internal delivery engineering team",
+  "packageType": "repo-handoff",
+  "readinessVerdict": {
+    "status": "delivery-handoff-ready",
+    "statement": "SAQR is ready for delivery-team implementation handoff, not for direct client production cutover.",
+    "directClientGoLiveReady": false
+  },
+  "entrypoints": [
+    {
+      "name": "handoff-package",
+      "path": "docs/handoff/README.md",
+      "purpose": "Primary final Phase 1 handoff entrypoint"
+    },
+    {
+      "name": "handoff-summary",
+      "path": "docs/handoff/SAQR_Phase1_Handoff_Summary.md",
+      "purpose": "Blunt readiness summary"
+    },
+    {
+      "name": "delivery-worklist",
+      "path": "docs/handoff/SAQR_Phase1_Delivery_Worklist.md",
+      "purpose": "Delivery-owned work after repo handoff"
+    },
+    {
+      "name": "validation-guide",
+      "path": "docs/handoff/SAQR_Phase1_Validation_Guide.md",
+      "purpose": "Command sequence and signoff flow"
+    }
+  ],
+  "repoBackedArtifacts": [
+    {
+      "category": "handoff",
+      "paths": [
+        "docs/handoff/README.md",
+        "docs/handoff/SAQR_Phase1_Handoff_Summary.md",
+        "docs/handoff/SAQR_Phase1_Delivery_Worklist.md",
+        "docs/handoff/SAQR_Phase1_Validation_Guide.md",
+        "docs/handoff/saqr-phase1-handoff-manifest.yaml"
+      ]
+    },
+    {
+      "category": "documentation",
+      "paths": [
+        "docs/README.md",
+        "docs/architecture/SAQR_Phase1_Architecture_Overview.md",
+        "docs/architecture/SAQR_Phase1_Component_and_Dependency_Matrix.md",
+        "docs/guides/SAQR_Phase1_Configuration_Guide.md",
+        "docs/runbooks/SAQR_Phase1_Operations_Runbook.md",
+        "docs/runbooks/SAQR_Phase1_Dependency_Incident_Runbook.md"
+      ]
+    },
+    {
+      "category": "contracts-and-packaging",
+      "paths": [
+        "docs/contracts/saqr-service-contracts.md",
+        "docs/contracts/saqr-api.openapi.yaml",
+        "docs/contracts/saqr-integration-adapters.md",
+        "docs/contracts/saqr-execution-sequences.yaml",
+        "docs/contracts/saqr-data-dictionary.md",
+        "docs/contracts/saqr-schema-versioning.yaml",
+        "docs/contracts/saqr-deployment-blueprint.yaml",
+        "docs/contracts/saqr-delivery-pipeline.yaml",
+        "infra/docker-compose.production.yml",
+        "infra/k8s/base/kustomization.yaml"
+      ]
+    },
+    {
+      "category": "validation-tooling",
+      "paths": [
+        "package.json",
+        "tools/ci/verify-phase1-handoff-package.js",
+        "tools/ci/run-phase1-quality-gates.js",
+        "tools/ci/run-phase1-release-readiness.js",
+        "docs/checklists/SAQR_Phase1_Release_Checklist.md",
+        "apps/shield-ui/ui-baseline.manifest.json"
+      ]
+    }
+  ],
+  "deliveryOwnedItems": [
+    {
+      "area": "Identity and API access",
+      "items": [
+        "Wire a real token issuer or IdP to the Phase 1 JWT contract.",
+        "Validate protected API access from the frozen UI without demo fallback."
+      ]
+    },
+    {
+      "area": "Shadow database and schema",
+      "items": [
+        "Provision the target shadow PostgreSQL environment.",
+        "Apply the documented schema and migration sequence in the target environment."
+      ]
+    },
+    {
+      "area": "CDC and messaging",
+      "items": [
+        "Provision Kafka and Kafka Connect / Debezium.",
+        "Register and validate the CDC connector artifacts and downstream Evidence Vault flow."
+      ]
+    },
+    {
+      "area": "Regulatory sources",
+      "items": [
+        "Validate live SAMA and SDAIA scraping in the target environment.",
+        "Add further authorities only if client scope requires them."
+      ]
+    },
+    {
+      "area": "CV and VMS",
+      "items": [
+        "Connect the target VMS provider and validate scan-cycle behavior.",
+        "Perform pilot calibration before any production claim."
+      ]
+    },
+    {
+      "area": "Platform deployment",
+      "items": [
+        "Replace placeholder secrets and tailor compose or Kubernetes packaging to client topology.",
+        "Configure ingress, DNS, TLS, network policy, registry, and cluster controls."
+      ]
+    }
+  ],
+  "externalPrerequisites": [
+    {
+      "name": "Shadow PostgreSQL",
+      "owner": "client or delivery team",
+      "requiredFor": [
+        "saqr-api",
+        "saqr-evidence-vault",
+        "saqr-nlp-interpreter",
+        "saqr-cv-watchman",
+        "saqr-sentinel-scrapers"
+      ]
+    },
+    {
+      "name": "Kafka and Kafka Connect / Debezium",
+      "owner": "client or delivery team",
+      "requiredFor": [
+        "services/cdc-connector",
+        "saqr-evidence-vault"
+      ]
+    },
+    {
+      "name": "Identity provider or token issuer",
+      "owner": "delivery team",
+      "requiredFor": [
+        "saqr-api",
+        "apps/shield-ui"
+      ]
+    },
+    {
+      "name": "VMS endpoint and credentials",
+      "owner": "client or delivery team",
+      "requiredFor": [
+        "saqr-cv-watchman"
+      ]
+    },
+    {
+      "name": "Ingress, DNS, TLS, storage, and cluster controls",
+      "owner": "delivery team",
+      "requiredFor": [
+        "deployment packaging"
+      ]
+    }
+  ],
+  "validationCommands": [
+    {
+      "command": "npm run phase1:bootstrap",
+      "expectedSignal": "workspace bootstrap complete"
+    },
+    {
+      "command": "npm run phase1:handoff:verify",
+      "expectedSignal": "PASS handoff package verification"
+    },
+    {
+      "command": "npm run phase1:quality",
+      "expectedSignal": "all quality gates PASSED"
+    },
+    {
+      "command": "npm run phase1:release:verify",
+      "expectedSignal": "release-readiness verification complete"
+    },
+    {
+      "command": "npm run phase1:release:verify -- --build-containers",
+      "expectedSignal": "container image build smoke test passes"
+    }
+  ],
+  "knownLimitations": [
+    "This repo does not provision real client infrastructure prerequisites.",
+    "Live regulatory source implementation is currently centered on SAMA and SDAIA.",
+    "NLP and CV are interface-ready and test-backed, but still require target-environment validation and pilot signoff.",
+    "Phase 2 workflow and multi-entity capabilities are excluded from this handoff package."
+  ]
+}
+

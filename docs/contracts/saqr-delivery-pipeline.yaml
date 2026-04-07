@@ -1,0 +1,51 @@
+version: 1
+phase: "Phase 1"
+date: "2026-04-07"
+scope: "P1-602"
+bootstrap:
+  command: "npm run phase1:bootstrap"
+  script: "tools/ci/bootstrap-workspace.js"
+  note: "Installs per-package dependencies with PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 unless node_modules already exists."
+handoffPackage:
+  command: "npm run phase1:handoff:verify"
+  script: "tools/ci/verify-phase1-handoff-package.js"
+  manifest: "docs/handoff/saqr-phase1-handoff-manifest.yaml"
+  note: "Verifies the final Phase 1 handoff package structure and referenced repo artifacts."
+qualityGates:
+  command: "npm run phase1:quality"
+  ciCommand: "npm run phase1:quality:ci"
+  script: "tools/ci/run-phase1-quality-gates.js"
+  gates:
+    - "Node syntax validation across runtime and tooling JS files"
+    - "Package test suites for API, Evidence Vault, NLP Interpreter, CV Watchman, and Sentinel"
+    - "UI baseline regression check"
+    - "Acceptance replay CLI and harness tests"
+    - "Phase 1 handoff package verification"
+    - "Production compose configuration validation"
+releaseReadiness:
+  command: "npm run phase1:release:verify -- --build-containers"
+  script: "tools/ci/run-phase1-release-readiness.js"
+  workflow: ".github/workflows/phase1-release-readiness.yml"
+  includes:
+    - "Phase 1 quality gates"
+    - "handoff package verification"
+    - "docker compose config validation"
+    - "container image build smoke test"
+ciWorkflows:
+  qualityGates:
+    file: ".github/workflows/phase1-quality-gates.yml"
+    triggers:
+      - "push"
+      - "pull_request"
+      - "workflow_dispatch"
+  releaseReadiness:
+    file: ".github/workflows/phase1-release-readiness.yml"
+    triggers:
+      - "workflow_dispatch"
+freeToolchain:
+  - "Node.js 22"
+  - "npm"
+  - "GitHub Actions"
+  - "Docker Compose"
+  - "Node built-in test runner"
+releaseChecklistDoc: "docs/checklists/SAQR_Phase1_Release_Checklist.md"

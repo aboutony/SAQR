@@ -1,5 +1,5 @@
 // ============================================
-// SAQR Evidence Vault — NTP Timestamp Service
+// SAQR Evidence Vault - NTP Timestamp Service
 // Provides authoritative timestamps for evidence records
 // ============================================
 
@@ -13,9 +13,13 @@ const NTP_EPOCH_OFFSET = 2208988800n; // seconds between 1900 and 1970
  *
  * @param {string} [server='pool.ntp.org'] - NTP server address
  * @param {number} [timeoutMs=3000] - Timeout in milliseconds
+ * @param {{ allowSystemClockFallback?: boolean, logger?: object }} [options]
  * @returns {Promise<{ timestamp: string, source: string, epochMs: number }>}
  */
-async function getNtpTimestamp(server = 'pool.ntp.org', timeoutMs = 3000) {
+async function getNtpTimestamp(server = 'pool.ntp.org', timeoutMs = 3000, options = {}) {
+    const allowSystemClockFallback = options.allowSystemClockFallback !== false;
+    const logger = options.logger || null;
+
     try {
         const ntpTime = await queryNtp(server, timeoutMs);
         return {
@@ -24,7 +28,17 @@ async function getNtpTimestamp(server = 'pool.ntp.org', timeoutMs = 3000) {
             epochMs: ntpTime.getTime(),
         };
     } catch (err) {
-        console.warn(`⚠️  NTP query failed (${server}): ${err.message}. Falling back to system clock.`);
+        if (!allowSystemClockFallback) {
+            throw err;
+        }
+
+        if (logger) {
+            logger.warn('dependency.ntp.system_clock_fallback', {
+                server,
+                reason: err.message,
+            });
+        }
+
         const now = new Date();
         return {
             timestamp: now.toISOString(),

@@ -1,0 +1,23 @@
+{
+  "phase": "Phase 1",
+  "scope": "P1-503",
+  "date": "2026-04-07",
+  "scenarios": {
+    "cdc": {
+      "fixture": "fixtures/phase1-acceptance/cdc/cdc-replay.json",
+      "description": "Replay Debezium-style CDC events through the compliance and evidence pipeline."
+    },
+    "nlp": {
+      "fixture": "fixtures/phase1-acceptance/nlp/nlp-replay.json",
+      "description": "Replay a regulatory circular with a seeded baseline through the NLP ingestion and drift pipeline."
+    },
+    "sentinel": {
+      "fixture": "fixtures/phase1-acceptance/sentinel/sentinel-replay.json",
+      "description": "Replay regulatory-source batches through the source orchestrator and staging ingestion flow."
+    },
+    "cv": {
+      "fixture": "fixtures/phase1-acceptance/cv/cv-replay.json",
+      "description": "Replay a custom VMS provider batch through the CV scan and evidence path."
+    }
+  }
+}

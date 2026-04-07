@@ -1,257 +1,147 @@
 // ============================================
-// SAQR Evidence Vault — Main Service
-// Kafka consumer → Compliance Engine → Evidence Store
+// SAQR Evidence Vault - Main Service
+// Kafka consumer -> compliance engine -> evidence store
 // ============================================
 
 const { Kafka } = require('kafkajs');
 const { Pool } = require('pg');
-const { computeHash, hashCdcEvent, computeMerkleRoot } = require('./hasher');
 const { getNtpTimestamp } = require('./ntp');
-const { detectViolations } = require('./compliance-engine');
+const { buildEvidenceVaultConfig } = require('./config');
+const {
+    createCdcMessageProcessor,
+    createComplianceEvaluator,
+    createDebeziumMessageDecoder,
+    createMerkleBatchProcessor,
+    createNtpTimestampAuthority,
+    createPostgresEvidenceRepository,
+} = require('./cdc-flow');
+const { createServiceLogger, installProcessHandlers } = require('../../../shared/observability');
+const { createPostgresAdapter } = require('../../../shared/postgres-adapter');
 
-// -----------------------------------------------
-// Configuration
-// -----------------------------------------------
-const config = {
-    kafka: {
-        brokers: (process.env.KAFKA_BOOTSTRAP_SERVERS || 'localhost:9092').split(','),
-        clientId: 'saqr-evidence-vault',
-        groupId: 'saqr-vault-consumer',
-    },
-    db: {
-        host: process.env.SHADOW_DB_HOST || 'localhost',
-        port: parseInt(process.env.SHADOW_DB_PORT || '5432', 10),
-        database: process.env.SHADOW_DB_NAME || 'saqr_shadow',
-        user: process.env.SHADOW_DB_USER || 'saqr',
-        password: process.env.SHADOW_DB_PASSWORD || 'saqr_dev_password',
-    },
-    ntp: {
-        server: process.env.NTP_SERVER || 'pool.ntp.org',
-    },
-    topics: [
-        'saqr.cdc.client_banking.public.consumer_disclosures',
-        'saqr.cdc.client_banking.public.fee_schedule',
-        'saqr.cdc.client_banking.public.cooling_off_periods',
-        'saqr.cdc.client_banking.public.branch_compliance',
-    ],
-};
+const config = buildEvidenceVaultConfig(process.env);
+const logger = createServiceLogger({ service: 'saqr-evidence-vault', runtime: config.runtime });
+let consumer;
 
-// -----------------------------------------------
-// Database Pool
-// -----------------------------------------------
 const pool = new Pool(config.db);
+const db = createPostgresAdapter(pool, {
+    name: 'saqr-evidence-vault-db',
+    logger,
+});
+const repository = createPostgresEvidenceRepository(db);
+const processMessage = createCdcMessageProcessor({
+    messageDecoder: createDebeziumMessageDecoder(),
+    timestampAuthority: createNtpTimestampAuthority(config.ntp, logger),
+    complianceEvaluator: createComplianceEvaluator(),
+    repository,
+    logger,
+});
+const computeDailyMerkle = createMerkleBatchProcessor({
+    repository,
+    logger,
+});
 
-// -----------------------------------------------
-// Store CDC event in shadow DB
-// -----------------------------------------------
-async function storeCdcEvent(event, ntpTs, hash) {
-    const query = `
-    INSERT INTO shadow.cdc_events
-      (source_system, source_table, operation, before_state, after_state, event_timestamp, sha256_hash)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING id
-  `;
-    const values = [
-        event.source?.db || 'unknown',
-        event.source?.table || 'unknown',
-        event.op === 'c' ? 'INSERT' : event.op === 'u' ? 'UPDATE' : event.op === 'd' ? 'DELETE' : event.op === 'r' ? 'INSERT' : 'UNKNOWN',
-        event.before ? JSON.stringify(event.before) : null,
-        event.after ? JSON.stringify(event.after) : null,
-        ntpTs.timestamp,
-        hash,
-    ];
-    const result = await pool.query(query, values);
-    return result.rows[0].id;
-}
-
-// -----------------------------------------------
-// Store violation evidence
-// -----------------------------------------------
-async function storeEvidence(violation, ntpTs) {
-    const payload = {
-        ...violation,
-        ntp_timestamp: ntpTs.timestamp,
-        ntp_source: ntpTs.source,
-    };
-    const hash = computeHash(payload);
-
-    const query = `
-    INSERT INTO vault.evidence
-      (evidence_type, source_module, violation_code, authority, severity, title, description, raw_payload, sha256_hash, ntp_timestamp)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (sha256_hash) DO NOTHING
-    RETURNING id
-  `;
-    const values = [
-        'cdc_violation',
-        'compliance-engine',
-        violation.violationCode,
-        violation.authority,
-        violation.severity,
-        violation.title,
-        violation.description,
-        JSON.stringify(payload),
-        hash,
-        ntpTs.timestamp,
-    ];
-
-    const result = await pool.query(query, values);
-    if (result.rows.length > 0) {
-        console.log(`🛡️  EVIDENCE SEALED — ID: ${result.rows[0].id} | ${violation.violationCode} | ${violation.title}`);
-        return result.rows[0].id;
-    }
-    console.log(`ℹ️  Duplicate evidence skipped: ${hash.substring(0, 12)}...`);
-    return null;
-}
-
-// -----------------------------------------------
-// Process a single CDC message
-// -----------------------------------------------
-async function processMessage(message) {
-    let event;
-    try {
-        const parsed = JSON.parse(message.value.toString());
-        event = parsed.payload || parsed; // Debezium envelope
-    } catch (err) {
-        console.error('❌ Failed to parse CDC message:', err.message);
-        return;
-    }
-
-    const table = event.source?.table;
-    const operation = event.op;
-
-    if (!table || !operation) {
-        console.warn('⚠️  Skipping message with missing table/operation metadata');
-        return;
-    }
-
-    // Get authoritative NTP timestamp
-    const ntpTs = await getNtpTimestamp(config.ntp.server);
-
-    // Hash the event
-    const eventHash = hashCdcEvent(event, ntpTs.timestamp);
-
-    // Store in shadow DB
-    const cdcId = await storeCdcEvent(event, ntpTs, eventHash);
-    console.log(`📥 CDC Event #${cdcId} | ${table} | ${operation} | hash: ${eventHash.substring(0, 12)}...`);
-
-    // Run compliance checks
-    const opMap = { c: 'INSERT', u: 'UPDATE', d: 'DELETE', r: 'INSERT' };
-    const violations = detectViolations(table, opMap[operation] || operation, event.after);
-
-    // Seal each violation into the Evidence Vault
-    for (const v of violations) {
-        await storeEvidence(v, ntpTs);
-    }
-}
-
-// -----------------------------------------------
-// Merkle batch job (daily)
-// -----------------------------------------------
-async function computeDailyMerkle() {
-    const today = new Date().toISOString().split('T')[0];
-
-    const result = await pool.query(
-        `SELECT sha256_hash FROM vault.evidence
-     WHERE DATE(ntp_timestamp) = $1
-     ORDER BY id`,
-        [today]
-    );
-
-    if (result.rows.length === 0) {
-        console.log('📋 No evidence records for today — skipping Merkle computation.');
-        return;
-    }
-
-    const hashes = result.rows.map(r => r.sha256_hash);
-    const root = computeMerkleRoot(hashes);
-
-    try {
-        await pool.query(
-            `INSERT INTO vault.merkle_log (batch_date, evidence_count, merkle_root, leaf_hashes)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (batch_date) DO NOTHING`,
-            [today, hashes.length, root, hashes]
-        );
-        console.log(`🌳 Merkle root for ${today}: ${root} (${hashes.length} leaves)`);
-    } catch (err) {
-        // The immutability trigger will block updates — that's by design
-        console.log(`ℹ️  Merkle log for ${today} already sealed.`);
-    }
-}
-
-// -----------------------------------------------
-// Main
-// -----------------------------------------------
 async function main() {
-    console.log('');
-    console.log('🦅 ============================================');
-    console.log('🦅  SAQR EVIDENCE VAULT — Starting');
-    console.log('🦅  Mode: Non-Intrusive CDC Consumer');
-    console.log('🦅  Hash: SHA-256 | Timestamp: NTP');
-    console.log('🦅  Saudi Law of Evidence (M/43, 2022)');
-    console.log('🦅 ============================================');
-    console.log('');
+    config.warnings.forEach((warning) => logger.warn('startup.configuration_warning', { warning }));
+    logger.info('service.startup.completed', {
+        kafkaBrokers: config.kafka.brokers,
+        topicCount: config.topics.length,
+        ntpServer: config.ntp.server,
+        ntpFallbackEnabled: config.ntp.allowSystemClockFallback,
+    });
 
-    // Test DB connection
     try {
-        await pool.query('SELECT 1');
-        console.log('✅ Shadow DB connected');
-    } catch (err) {
-        console.error('❌ Shadow DB connection failed:', err.message);
-        process.exit(1);
+        await db.healthcheck();
+        logger.info('dependency.shadow_db.connected');
+    } catch (error) {
+        logger.error('dependency.shadow_db.failed', error, {
+            startupValidationRequired: config.startup.validateDbOnStartup,
+        });
+        if (config.startup.validateDbOnStartup) {
+            process.exit(1);
+        }
+        logger.warn('dependency.shadow_db.deferred_validation', {
+            message: 'Continuing without DB startup validation; persistence calls will fail until DB connectivity is restored.',
+        });
     }
 
-    // Set up Kafka consumer
+    if (config.startup.validateNtpOnStartup) {
+        try {
+            const ntp = await getNtpTimestamp(config.ntp.server, config.ntp.timeoutMs, {
+                allowSystemClockFallback: config.ntp.allowSystemClockFallback,
+                logger,
+            });
+            logger.info('dependency.ntp.validated', {
+                source: ntp.source,
+            });
+        } catch (error) {
+            logger.fatal('dependency.ntp.failed', error);
+            process.exit(1);
+        }
+    }
+
     const kafka = new Kafka({
         clientId: config.kafka.clientId,
         brokers: config.kafka.brokers,
     });
 
-    const consumer = kafka.consumer({ groupId: config.kafka.groupId });
+    consumer = kafka.consumer({ groupId: config.kafka.groupId });
 
     await consumer.connect();
-    console.log('✅ Kafka consumer connected');
+    logger.info('dependency.kafka.connected', {
+        groupId: config.kafka.groupId,
+    });
 
     for (const topic of config.topics) {
         await consumer.subscribe({ topic, fromBeginning: true });
-        console.log(`📡 Subscribed: ${topic}`);
+        logger.info('dependency.kafka.topic_subscribed', { topic });
     }
 
-    // Process messages
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
             try {
                 await processMessage(message);
-            } catch (err) {
-                console.error(`❌ Error processing message from ${topic}:${partition}:`, err.message);
+            } catch (error) {
+                logger.error('cdc.message_processing_failed', error, {
+                    topic,
+                    partition,
+                });
             }
         },
     });
 
-    // Schedule daily Merkle computation (midnight)
     setInterval(async () => {
         try {
             await computeDailyMerkle();
-        } catch (err) {
-            console.error('❌ Merkle computation failed:', err.message);
+        } catch (error) {
+            logger.error('merkle.batch.failed', error);
         }
-    }, 60 * 60 * 1000); // every hour, checks if batch needed
+    }, 60 * 60 * 1000);
 
-    console.log('');
-    console.log('🦅 SAQR Evidence Vault is LIVE. Awaiting CDC events...');
-    console.log('🛡️  Golden Rule: READ-ONLY. Zero writes to client systems.');
-    console.log('');
+    logger.info('service.ready', {
+        readOnly: true,
+        awaiting: 'cdc_events',
+    });
 }
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-    console.log('🦅 Shutting down Evidence Vault...');
-    await pool.end();
-    process.exit(0);
-});
+module.exports = {
+    computeDailyMerkle,
+    main,
+    processMessage,
+};
 
-main().catch((err) => {
-    console.error('💥 Fatal error:', err);
-    process.exit(1);
-});
+if (require.main === module) {
+    installProcessHandlers({
+        logger,
+        onShutdown: async () => {
+            if (consumer) {
+                await consumer.disconnect().catch(() => { });
+            }
+            await db.close().catch(() => { });
+        },
+    });
+
+    main().catch((error) => {
+        logger.fatal('service.startup.failed', error);
+        process.exit(1);
+    });
+}

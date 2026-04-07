@@ -1,5 +1,5 @@
 // ============================================
-// SAQR CV Watchman — Milestone XProtect Client
+// SAQR CV Watchman - Milestone XProtect Client
 // REST API integration for frame grabbing
 // ============================================
 
@@ -19,6 +19,7 @@ class MilestoneClient {
      * @param {string} config.password
      * @param {boolean} config.useTLS - Use HTTPS
      * @param {number} config.maxFps - Max frames per second per camera
+     * @param {object} [config.logger]
      */
     constructor(config = {}) {
         this.host = config.host || 'localhost';
@@ -27,9 +28,10 @@ class MilestoneClient {
         this.password = config.password || '';
         this.useTLS = config.useTLS !== false;
         this.maxFps = config.maxFps || 1;
+        this.logger = config.logger || null;
         this.baseUrl = `${this.useTLS ? 'https' : 'http'}://${this.host}:${this.port}`;
         this.token = null;
-        this.lastGrabTime = new Map(); // cameraId → timestamp
+        this.lastGrabTime = new Map();
         this.type = 'milestone';
     }
 
@@ -39,8 +41,6 @@ class MilestoneClient {
      */
     async authenticate() {
         try {
-            // Milestone uses Windows Authentication or Basic Auth
-            // POST /API/IDP/connect/token for modern versions
             const response = await fetch(`${this.baseUrl}/API/IDP/connect/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -52,13 +52,22 @@ class MilestoneClient {
                 }),
             });
 
-            if (!response.ok) throw new Error(`Auth failed: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Auth failed: ${response.status}`);
+            }
+
             const data = await response.json();
             this.token = data.access_token;
-            console.log('✅ Milestone XProtect authenticated');
+            this.logger?.info('dependency.vms.provider_authenticated', {
+                provider: this.type,
+            });
             return true;
         } catch (err) {
-            console.error('❌ Milestone auth failed:', err.message);
+            this.logger?.error('dependency.vms.provider_auth_failed', err, {
+                provider: this.type,
+                host: this.host,
+                port: this.port,
+            });
             return false;
         }
     }
@@ -72,16 +81,21 @@ class MilestoneClient {
             const response = await fetch(`${this.baseUrl}/API/rest/v1/cameras`, {
                 headers: this._authHeaders(),
             });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
             const data = await response.json();
-            return (data.array || data).map(cam => ({
-                id: cam.id || cam.Id,
-                name: cam.name || cam.Name || 'Unknown',
-                enabled: cam.enabled !== false,
+            return (data.array || data).map((camera) => ({
+                id: camera.id || camera.Id,
+                name: camera.name || camera.Name || 'Unknown',
+                enabled: camera.enabled !== false,
                 type: 'milestone',
             }));
         } catch (err) {
-            console.warn('Milestone getCameras:', err.message);
+            this.logger?.warn('dependency.vms.camera_discovery_failed', {
+                provider: this.type,
+                reason: err.message,
+            });
             return [];
         }
     }
@@ -93,23 +107,24 @@ class MilestoneClient {
      * @returns {Promise<{buffer: Buffer, timestamp: string, cameraId: string}|null>}
      */
     async grabFrame(cameraId) {
-        // Rate limiting
         const now = Date.now();
         const lastGrab = this.lastGrabTime.get(cameraId) || 0;
         const minInterval = 1000 / this.maxFps;
         if (now - lastGrab < minInterval) {
-            return null; // Throttled
+            return null;
         }
         this.lastGrabTime.set(cameraId, now);
 
         try {
-            // Milestone Image Server API: /API/rest/v1/cameras/{id}/media
             const response = await fetch(
                 `${this.baseUrl}/API/rest/v1/cameras/${cameraId}/media?width=1920&height=1080`,
                 { headers: this._authHeaders() }
             );
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const buffer = Buffer.from(await response.arrayBuffer());
 
             return {
@@ -121,7 +136,11 @@ class MilestoneClient {
                 height: 1080,
             };
         } catch (err) {
-            console.warn(`Milestone grabFrame(${cameraId}):`, err.message);
+            this.logger?.warn('cv.frame_grab_failed', {
+                provider: this.type,
+                cameraId,
+                reason: err.message,
+            });
             return null;
         }
     }
@@ -142,8 +161,8 @@ class MilestoneClient {
 
     _authHeaders() {
         return {
-            'Authorization': `Bearer ${this.token}`,
-            'Accept': 'application/json',
+            Authorization: `Bearer ${this.token}`,
+            Accept: 'application/json',
         };
     }
 }

@@ -1,0 +1,662 @@
+openapi: 3.1.0
+info:
+  title: "SAQR Workflow API Contract"
+  version: "1.0.0"
+  description: >
+    Canonical Phase 2 workflow API contract for delivery-team implementation.
+    This artifact defines the intended HTTP surface for workflow definitions,
+    runtime execution, governance, and audit retrieval. It is a delivery
+    contract and seam package, not a statement that all routes are wired into
+    the current Fastify runtime yet.
+servers:
+  - url: "https://saqr.example.com"
+    description: "Delivery-owned target environment placeholder"
+security:
+  - bearerAuth: []
+tags:
+  - name: "Workflow Definitions"
+  - name: "Workflow Runtime"
+  - name: "Workflow Governance"
+  - name: "Workflow Audit"
+paths:
+  /api/workflows/definitions:
+    get:
+      tags: ["Workflow Definitions"]
+      summary: "List workflow definitions available to the workflow delivery seam."
+      parameters:
+        - in: query
+          name: workflowKey
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: ["draft", "published", "deprecated", "retired"]
+      responses:
+        "200":
+          description: "Workflow definitions list"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinitionsListResponse"
+  /api/workflows/definitions/validate:
+    post:
+      tags: ["Workflow Definitions"]
+      summary: "Validate a workflow definition document against the Phase 2 DSL."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowDefinitionValidationRequest"
+      responses:
+        "200":
+          description: "Validation result"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinitionValidationResponse"
+  /api/workflows/events/match:
+    post:
+      tags: ["Workflow Runtime"]
+      summary: "Match a normalized event to published workflow definitions."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowEventEnvelopeRequest"
+      responses:
+        "200":
+          description: "Matching workflow definitions"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowEventMatchResponse"
+  /api/workflows/events/start:
+    post:
+      tags: ["Workflow Runtime"]
+      summary: "Start workflow instances from a normalized event."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkflowEventEnvelopeRequest"
+      responses:
+        "200":
+          description: "Workflow start results"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowStartResponse"
+  /api/workflows/instances:
+    get:
+      tags: ["Workflow Runtime"]
+      summary: "List workflow instances currently held by the runtime seam."
+      parameters:
+        - in: query
+          name: workflowKey
+          schema:
+            type: string
+        - in: query
+          name: state
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Workflow instances list"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowInstancesListResponse"
+  /api/workflows/instances/{instanceId}:
+    get:
+      tags: ["Workflow Runtime"]
+      summary: "Retrieve one workflow instance."
+      parameters:
+        - in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Workflow instance"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowInstance"
+        "404":
+          description: "Workflow instance not found"
+  /api/workflows/instances/{instanceId}/audit:
+    get:
+      tags: ["Workflow Audit"]
+      summary: "Retrieve the combined workflow audit view for one instance."
+      parameters:
+        - in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Workflow audit view"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowInstanceAuditView"
+        "404":
+          description: "Workflow instance not found"
+  /api/workflows/instances/{instanceId}/decisions:
+    get:
+      tags: ["Workflow Audit"]
+      summary: "Retrieve evidence-linked decision history for one instance."
+      parameters:
+        - in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Decision history"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: ["data", "total"]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkflowDecisionHistoryEntry"
+                  total:
+                    type: integer
+        "404":
+          description: "Workflow instance not found"
+  /api/workflows/instances/{instanceId}/evidence-links:
+    get:
+      tags: ["Workflow Audit"]
+      summary: "Retrieve evidence-link projections for one instance."
+      parameters:
+        - in: path
+          name: instanceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Evidence links"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: ["data", "total"]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WorkflowEvidenceLink"
+                  total:
+                    type: integer
+        "404":
+          description: "Workflow instance not found"
+  /api/workflows/governance/{workflowKey}/drafts:
+    post:
+      tags: ["Workflow Governance"]
+      summary: "Create a new draft workflow version from an existing source version."
+      parameters:
+        - in: path
+          name: workflowKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDraftVersionRequest"
+      responses:
+        "200":
+          description: "Draft workflow version created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+  /api/workflows/governance/{workflowKey}/versions/{version}/publish:
+    post:
+      tags: ["Workflow Governance"]
+      summary: "Publish a workflow version through the governance seam."
+      parameters:
+        - in: path
+          name: workflowKey
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: version
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishWorkflowVersionRequest"
+      responses:
+        "200":
+          description: "Published workflow version"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+  /api/workflows/governance/{workflowKey}/rollback:
+    post:
+      tags: ["Workflow Governance"]
+      summary: "Create and publish a rollback workflow version from a target version."
+      parameters:
+        - in: path
+          name: workflowKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackWorkflowVersionRequest"
+      responses:
+        "200":
+          description: "Published rollback workflow version"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowDefinition"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ActorRef:
+      type: object
+      required: ["actorType", "actorId"]
+      properties:
+        actorType: { type: string }
+        actorId: { type: string }
+        displayName: { type: string }
+        roleKey: { type: string, nullable: true }
+        sourceSystem: { type: string, nullable: true }
+    EvidenceRef:
+      type: object
+      required: ["refType", "refId"]
+      properties:
+        refType: { type: string }
+        refId: { type: string }
+        refHash: { type: string, nullable: true }
+    WorkflowDefinition:
+      type: object
+      required: ["workflowKey", "version", "status", "name", "entryStepKey", "triggers", "steps", "publishControls"]
+      properties:
+        schemaVersion: { type: integer }
+        workflowKey: { type: string }
+        version: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        status:
+          type: string
+          enum: ["draft", "published", "deprecated", "retired"]
+        owningAuthority: { type: string, nullable: true }
+        defaultSeverity: { type: string, nullable: true }
+        entryStepKey: { type: string }
+        triggers:
+          type: array
+          items: { type: object }
+        steps:
+          type: array
+          items: { type: object }
+        approvalPolicies:
+          type: array
+          items: { type: object }
+        slaPolicies:
+          type: array
+          items: { type: object }
+        escalationPolicies:
+          type: array
+          items: { type: object }
+        publishControls: { type: object }
+    WorkflowDefinitionSummary:
+      type: object
+      required: ["workflowKey", "version", "status", "name", "entryStepKey"]
+      properties:
+        workflowKey: { type: string }
+        version: { type: integer }
+        status:
+          type: string
+          enum: ["draft", "published", "deprecated", "retired"]
+        name: { type: string }
+        description: { type: string }
+        owningAuthority: { type: string, nullable: true }
+        defaultSeverity: { type: string, nullable: true }
+        entryStepKey: { type: string }
+        publishControls: { type: object }
+    WorkflowDefinitionsListResponse:
+      type: object
+      required: ["data", "total"]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowDefinitionSummary"
+        total: { type: integer }
+    WorkflowDefinitionValidationRequest:
+      type: object
+      required: ["definition"]
+      properties:
+        sourceName: { type: string }
+        definition:
+          $ref: "#/components/schemas/WorkflowDefinition"
+    WorkflowDefinitionValidationResponse:
+      type: object
+      required: ["valid", "errors"]
+      properties:
+        valid: { type: boolean }
+        errors:
+          type: array
+          items: { type: string }
+    WorkflowEvent:
+      type: object
+      required:
+        - eventId
+        - idempotencyKey
+        - eventType
+        - sourceFamily
+        - occurredAt
+        - ingestedAt
+        - severity
+        - entityScope
+        - payload
+      properties:
+        eventId: { type: string }
+        idempotencyKey: { type: string }
+        eventType: { type: string }
+        sourceFamily: { type: string }
+        occurredAt: { type: string, format: date-time }
+        ingestedAt: { type: string, format: date-time }
+        severity: { type: string }
+        authority: { type: string, nullable: true }
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        entityScope: { type: object }
+        correlation: { type: object }
+        evidenceRefs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceRef"
+        payload: { type: object }
+    WorkflowEventEnvelopeRequest:
+      type: object
+      required: ["event"]
+      properties:
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        event:
+          $ref: "#/components/schemas/WorkflowEvent"
+    WorkflowEventMatch:
+      type: object
+      required: ["workflowKey", "version", "triggerKey"]
+      properties:
+        workflowKey: { type: string }
+        version: { type: integer }
+        triggerKey: { type: string }
+    WorkflowEventMatchResponse:
+      type: object
+      required: ["matches", "total"]
+      properties:
+        matches:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEventMatch"
+        total: { type: integer }
+    WorkflowInstance:
+      type: object
+      required: ["instanceId", "workflowKey", "workflowVersion", "state", "openedAt", "stepRuns", "auditEntries"]
+      properties:
+        instanceId: { type: string }
+        workflowKey: { type: string }
+        workflowVersion: { type: integer }
+        state: { type: string }
+        currentStepKey: { type: string, nullable: true }
+        currentStepRunId: { type: string, nullable: true }
+        openedAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time, nullable: true }
+        triggerEventId: { type: string }
+        idempotencyKey: { type: string }
+        sourceFamily: { type: string }
+        eventType: { type: string }
+        authority: { type: string, nullable: true }
+        severity: { type: string }
+        entityScope: { type: object }
+        correlation: { type: object }
+        evidenceRefs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceRef"
+        stepRuns:
+          type: array
+          items: { type: object }
+        auditEntries:
+          type: array
+          items: { type: object }
+    WorkflowStartResult:
+      type: object
+      required: ["status", "workflowKey", "instanceId", "instance"]
+      properties:
+        status: { type: string }
+        workflowKey: { type: string }
+        instanceId: { type: string }
+        instance:
+          $ref: "#/components/schemas/WorkflowInstance"
+    WorkflowStartResponse:
+      type: object
+      required: ["results", "total"]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowStartResult"
+        total: { type: integer }
+    WorkflowInstancesListResponse:
+      type: object
+      required: ["data", "total"]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowInstance"
+        total: { type: integer }
+    WorkflowAuditLedgerEntry:
+      type: object
+      required:
+        - ledgerEntryId
+        - sourceType
+        - sourceEntryId
+        - workflowKey
+        - entryType
+        - recordedAt
+        - recordedBy
+      properties:
+        ledgerEntryId: { type: string }
+        sourceType:
+          type: string
+          enum: ["runtime", "governance"]
+        sourceEntryId: { type: string }
+        workflowKey: { type: string }
+        workflowVersion: { type: integer, nullable: true }
+        instanceId: { type: string, nullable: true }
+        stepKey: { type: string, nullable: true }
+        entryType: { type: string }
+        recordedAt: { type: string, format: date-time }
+        recordedBy:
+          $ref: "#/components/schemas/ActorRef"
+        summary: { type: string }
+        payload: { type: object }
+        evidenceRefs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceRef"
+    WorkflowDecisionHistoryEntry:
+      type: object
+      required:
+        - decisionRecordId
+        - instanceId
+        - workflowKey
+        - stepKey
+        - approvalSessionId
+        - roundId
+        - actor
+        - decision
+        - decidedAt
+      properties:
+        decisionRecordId: { type: string }
+        instanceId: { type: string }
+        workflowKey: { type: string }
+        workflowVersion: { type: integer }
+        stepKey: { type: string }
+        stepRunId: { type: string }
+        approvalSessionId: { type: string }
+        approvalPolicyKey: { type: string }
+        approvalMode: { type: string }
+        roundId: { type: string }
+        roundNumber: { type: integer }
+        roundType: { type: string }
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        decision:
+          type: string
+          enum: ["approve", "reject"]
+        decidedAt: { type: string, format: date-time }
+        notes: { type: string }
+        payload: { type: object }
+        evidenceRefs:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvidenceRef"
+        linkedAuditEntryIds:
+          type: array
+          items: { type: string }
+        linkedLedgerEntryIds:
+          type: array
+          items: { type: string }
+    WorkflowEvidenceLink:
+      type: object
+      required:
+        - refType
+        - refId
+        - firstSeenAt
+        - lastSeenAt
+        - linkedSourceTypes
+      properties:
+        refType: { type: string }
+        refId: { type: string }
+        refHash: { type: string, nullable: true }
+        firstSeenAt: { type: string, format: date-time }
+        lastSeenAt: { type: string, format: date-time }
+        linkedSourceTypes:
+          type: array
+          items:
+            type: string
+            enum: ["instance", "audit", "decision"]
+        linkedAuditEntryIds:
+          type: array
+          items: { type: string }
+        linkedLedgerEntryIds:
+          type: array
+          items: { type: string }
+        linkedDecisionRecordIds:
+          type: array
+          items: { type: string }
+        linkedStepKeys:
+          type: array
+          items: { type: string }
+    WorkflowInstanceAuditView:
+      type: object
+      required:
+        - instanceId
+        - workflowKey
+        - workflowVersion
+        - runtimeAuditLedger
+        - governanceAuditLedger
+        - combinedAuditLedger
+        - decisionHistory
+        - evidenceLinks
+      properties:
+        instanceId: { type: string }
+        workflowKey: { type: string }
+        workflowVersion: { type: integer }
+        runtimeAuditLedger:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowAuditLedgerEntry"
+        governanceAuditLedger:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowAuditLedgerEntry"
+        combinedAuditLedger:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowAuditLedgerEntry"
+        decisionHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowDecisionHistoryEntry"
+        evidenceLinks:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowEvidenceLink"
+    CreateDraftVersionRequest:
+      type: object
+      required: ["sourceVersion", "actor", "changeSummary"]
+      properties:
+        sourceVersion: { type: integer }
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        changeSummary: { type: string }
+        approvalRecordRequired: { type: boolean }
+        definitionPatch: { type: object }
+    PublishWorkflowVersionRequest:
+      type: object
+      required: ["actor", "approvalRecord"]
+      properties:
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        approvalRecord:
+          type: object
+          required: ["approvalRecordId"]
+          properties:
+            approvalRecordId: { type: string }
+            approvedBy: { type: string }
+            approvedAt: { type: string, format: date-time }
+            notes: { type: string }
+    RollbackWorkflowVersionRequest:
+      type: object
+      required: ["targetVersion", "actor", "approvalRecord"]
+      properties:
+        targetVersion: { type: integer }
+        actor:
+          $ref: "#/components/schemas/ActorRef"
+        changeSummary: { type: string }
+        approvalRecord:
+          type: object
+          required: ["approvalRecordId"]
+          properties:
+            approvalRecordId: { type: string }
+            approvedBy: { type: string }
+            approvedAt: { type: string, format: date-time }
+            notes: { type: string }

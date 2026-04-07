@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "workflowKey": "cross-authority-committee-review",
+  "version": 1,
+  "name": "Cross Authority Committee Review",
+  "description": "Escalate high-severity cross-authority findings to a fixed-quorum review committee before remediation dispatch.",
+  "status": "draft",
+  "defaultSeverity": "critical",
+  "entryStepKey": "assign-risk-triage",
+  "triggers": [
+    {
+      "triggerKey": "manual-cross-authority-trigger",
+      "sourceFamilies": ["manual"],
+      "eventTypes": ["workflow.manual.triggered"],
+      "matchRules": [
+        {
+          "field": "payload.launchCategory",
+          "operator": "equals",
+          "value": "cross-authority-committee-review"
+        }
+      ],
+      "manualLaunchAllowed": true,
+      "idempotencyStrategy": "event.idempotencyKey"
+    },
+    {
+      "triggerKey": "sentinel-critical-trigger",
+      "sourceFamilies": ["sentinel"],
+      "eventTypes": ["sentinel.regulatory_update.detected"],
+      "matchRules": [
+        {
+          "field": "severity",
+          "operator": "in",
+          "value": ["critical", "high"]
+        }
+      ],
+      "idempotencyStrategy": "event.idempotencyKey"
+    }
+  ],
+  "approvalPolicies": [
+    {
+      "approvalPolicyKey": "cross-authority-committee",
+      "mode": "parallel_committee",
+      "minimumApprovals": 2,
+      "quorumMode": "fixed",
+      "approverSelectors": [
+        {
+          "type": "role",
+          "value": "board"
+        }
+      ],
+      "committeeSelectors": [
+        {
+          "type": "role",
+          "value": "board"
+        },
+        {
+          "type": "role",
+          "value": "admin"
+        }
+      ],
+      "rejectionMode": "quorum_impossible"
+    }
+  ],
+  "steps": [
+    {
+      "stepKey": "assign-risk-triage",
+      "order": 1,
+      "name": "Assign risk triage",
+      "stepType": "assign",
+      "actionType": "route_to_queue",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "queue",
+            "value": "risk-triage"
+          }
+        ]
+      },
+      "transitions": {
+        "onSuccess": "committee-approval"
+      }
+    },
+    {
+      "stepKey": "committee-approval",
+      "order": 2,
+      "name": "Committee approval",
+      "stepType": "approve",
+      "actionType": "request_approval",
+      "approvalPolicyRef": "cross-authority-committee",
+      "transitions": {
+        "onApprove": "dispatch-remediation",
+        "onReject": "notify-oversight"
+      }
+    },
+    {
+      "stepKey": "dispatch-remediation",
+      "order": 3,
+      "name": "Dispatch remediation",
+      "stepType": "create_task",
+      "actionType": "create_external_task",
+      "transitions": {
+        "onSuccess": null
+      }
+    },
+    {
+      "stepKey": "notify-oversight",
+      "order": 4,
+      "name": "Notify oversight",
+      "stepType": "notify",
+      "actionType": "emit_notification",
+      "transitions": {
+        "onSuccess": null
+      }
+    }
+  ],
+  "publishControls": {
+    "changeSummary": "Committee-based Phase 2 workflow example",
+    "approvalRecordRequired": true
+  }
+}

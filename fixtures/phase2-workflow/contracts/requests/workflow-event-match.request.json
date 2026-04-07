@@ -1,0 +1,32 @@
+{
+  "event": {
+    "eventId": "evt-contract-match-001",
+    "idempotencyKey": "dedupe-contract-match-001",
+    "eventType": "nlp.drift.detected",
+    "sourceFamily": "nlp",
+    "occurredAt": "2026-04-07T12:00:00.000Z",
+    "ingestedAt": "2026-04-07T12:00:01.000Z",
+    "severity": "high",
+    "authority": "SAMA",
+    "entityScope": {},
+    "correlation": {
+      "alertId": "DRIFT-CONTRACT-001",
+      "documentKey": "DOC-CONTRACT-001",
+      "evidenceKey": "EVID-CONTRACT-001",
+      "contentHash": "hash-contract-001"
+    },
+    "evidenceRefs": [
+      {
+        "refType": "instruction_drift",
+        "refId": "DRIFT-CONTRACT-001",
+        "refHash": "hash-contract-001"
+      }
+    ],
+    "payload": {
+      "alertId": "DRIFT-CONTRACT-001",
+      "driftType": "parameter_change",
+      "title": "Contract drift example",
+      "description": "Administrative fee cap changed."
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 Date: 2026-04-07
 Program: SAQR productionization
-Status baseline: planning started
+Status baseline: Phase 1 complete, Phase 2 workflow workstream through P2-110 completed
 
 ## Working Rules
 
@@ -32,6 +32,16 @@ Add:
 
 - LogicGate-style no-code workflow engine
 - Archer-style multi-entity and sovereign deployment model
+
+## Phase 2 Done Means
+
+- Workflow definitions, approval routes, SLAs, escalations, and audit trails are configurable through a controlled backend model.
+- Workflow execution is event-driven from SAQR evidence and alert sources, not hard-coded demo logic.
+- Workflow lifecycle controls exist for publishing, versioning, rollback, and change history.
+- Multi-entity hierarchy, scoping, and portfolio roll-up rules are explicit and testable.
+- Sovereign and on-prem deployment patterns are defined for entity-aware delivery packaging.
+- Any UI changes required for Phase 2 are explicitly approved and regression-guarded.
+- Phase 2 validation fixtures, docs, and handoff assets are complete.
 
 ## Tracking Table
 
@@ -63,18 +73,31 @@ Add:
 | P1-701 | Phase 1 | Documentation and Handoff | Produce architecture docs, ADRs, runbooks, and configuration guides | Completed | Delivery documentation set |
 | P1-702 | Phase 1 | Documentation and Handoff | Produce Phase 1 handoff package for the delivery team | Completed | Handoff-ready implementation package |
 | P2-001 | Phase 2 | Baseline | Phase 2 feature direction confirmed | Completed | LogicGate + Archer priorities locked |
-| P2-101 | Phase 2 | No-Code Workflow Engine | Define workflow domain model: triggers, actions, approvals, SLAs, escalation rules | Pending | Workflow domain spec |
-| P2-102 | Phase 2 | No-Code Workflow Engine | Build workflow DSL / rules engine backend | Pending | Executable workflow engine |
-| P2-103 | Phase 2 | No-Code Workflow Engine | Add maker-checker, approval routing, committee escalation, and audit trail | Pending | Enterprise routing model |
-| P2-104 | Phase 2 | No-Code Workflow Engine | Add workflow versioning, rollback, and change-history controls | Pending | Controlled workflow lifecycle |
-| P2-105 | Phase 2 | No-Code Workflow Engine | Integrate workflow capabilities into SAQR without compromising current UI/UX | Pending | UI-safe feature integration plan |
-| P2-201 | Phase 2 | Multi-Entity Model | Define entity hierarchy for groups, subsidiaries, business units, and silos | Pending | Multi-entity data model |
-| P2-202 | Phase 2 | Multi-Entity Model | Add tenant isolation and portfolio-level roll-up logic | Pending | Isolation and aggregation design |
-| P2-203 | Phase 2 | Sovereign Deployment | Define sovereign cloud and on-prem deployment topology patterns | Pending | Deployment topology matrix |
-| P2-204 | Phase 2 | Sovereign Deployment | Add cross-entity reporting and executive roll-up views | Pending | Group risk reporting model |
-| P2-205 | Phase 2 | Documentation and Handoff | Produce Phase 2 handoff package | Pending | Delivery-team build package |
+| P2-002 | Phase 2 | Governance | Phase 2 roadmap table and execution checklist created | Completed | Phase 2 planning baseline |
+| P2-101 | Phase 2 | Workflow Foundations | Define workflow domain model: workflow, step, trigger, action, approval, SLA, escalation, evidence link | Completed | Workflow domain specification |
+| P2-102 | Phase 2 | Workflow Foundations | Define inbound event contract from CDC, NLP, CV, Sentinel, and manual initiation paths | Completed | Workflow event contract |
+| P2-103 | Phase 2 | Workflow Foundations | Define backend workflow DSL/schema and validation rules | Completed | Workflow definition grammar |
+| P2-104 | Phase 2 | Workflow Engine Core | Build workflow execution engine and state machine runtime | Completed | Executable workflow runtime |
+| P2-105 | Phase 2 | Workflow Engine Core | Build assignment, maker-checker, delegated approvals, and committee escalation model | Completed | Approval routing engine |
+| P2-106 | Phase 2 | Workflow Engine Core | Build SLA timers, reminders, breach handling, and escalation automation | Completed | SLA automation layer |
+| P2-107 | Phase 2 | Workflow Governance | Add workflow versioning, publishing, rollback, and change-history controls | Completed | Controlled workflow lifecycle |
+| P2-108 | Phase 2 | Workflow Governance | Add workflow audit ledger and evidence-linked decision history | Completed | Workflow audit model |
+| P2-109 | Phase 2 | Workflow Integration | Define UI-safe workflow integration plan and approval gate for any necessary UI changes | Completed | UI-safe integration plan |
+| P2-110 | Phase 2 | Workflow Integration | Publish workflow API contracts, fixtures, and delivery seams | Completed | Workflow contract package |
+| P2-201 | Phase 2 | Multi-Entity Foundations | Define entity hierarchy for group, legal entity, business unit, site, and silo scopes | Pending | Multi-entity domain model |
+| P2-202 | Phase 2 | Multi-Entity Foundations | Define scoping rules across users, workflows, alerts, evidence, and reporting | Pending | Entity scoping contract |
+| P2-203 | Phase 2 | Multi-Entity Foundations | Define tenant isolation, partitioning, and cross-entity access boundaries | Pending | Isolation model |
+| P2-204 | Phase 2 | Multi-Entity Reporting | Add portfolio roll-up logic and inherited control aggregation model | Pending | Roll-up and aggregation design |
+| P2-205 | Phase 2 | Multi-Entity Reporting | Define cross-entity reporting and executive roll-up contract | Pending | Group reporting model |
+| P2-206 | Phase 2 | Sovereign Deployment | Define sovereign cloud, per-country, and on-prem deployment topology patterns | Pending | Topology matrix |
+| P2-207 | Phase 2 | Sovereign Deployment | Define residency, encryption boundary, and cross-border data-movement rules | Pending | Sovereign policy model |
+| P2-208 | Phase 2 | Sovereign Deployment | Extend deployment and config packaging for entity-aware sovereign rollout patterns | Pending | Entity-aware deployment blueprint |
+| P2-301 | Phase 2 | Validation | Build mock fixtures and scenario harnesses for workflow and multi-entity execution | Pending | Phase 2 acceptance fixtures |
+| P2-302 | Phase 2 | Validation | Add Phase 2 quality gates and regression coverage for new engine and entity logic | Pending | Phase 2 verification path |
+| P2-303 | Phase 2 | Documentation and Handoff | Produce Phase 2 architecture docs, contracts, and runbooks | Pending | Phase 2 documentation set |
+| P2-304 | Phase 2 | Documentation and Handoff | Produce Phase 2 handoff package for the delivery team | Pending | Delivery-team Phase 2 package |
 
-## Immediate Execution Order
+## Phase 1 Execution Order
 
 1. Lock the demo environment.
 2. Create the production-ready environment split.
@@ -83,10 +106,21 @@ Add:
 5. Stabilize core algorithms and tests.
 6. Package the platform for delivery-team handoff.
 
+## Phase 2 Execution Order
+
+1. Lock the Phase 2 workflow and multi-entity domain model before writing implementation code.
+2. Build the backend workflow engine, routing, SLA, and audit layers first.
+3. Define the multi-entity hierarchy, scoping, and aggregation model next.
+4. Extend sovereign deployment and entity-aware packaging after the domain boundaries are stable.
+5. Only then expose Phase 2 capabilities through controlled APIs and approved UI-safe integration points.
+6. Close with fixtures, validation gates, docs, and the Phase 2 handoff package.
+
 ## Current Status Summary
 
 - Planning and scoping: Completed
 - Product hardening and deployment readiness: Completed
 - Phase 1 documentation and handoff closeout: Completed
 - Phase 1 overall status: Completed and ready for delivery-team handoff
-- Phase 2 feature build: Pending
+- Phase 2 planning baseline: Completed
+- Phase 2 workflow foundations, runtime core, governance controls, and delivery seams: P2-101 to P2-110 completed
+- Phase 2 feature build: In progress

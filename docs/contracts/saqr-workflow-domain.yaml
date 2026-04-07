@@ -1,0 +1,750 @@
+version: 5
+phase: "Phase 2"
+date: "2026-04-07"
+scope: "P2-101 to P2-108"
+purpose: "Define the backend workflow domain model for SAQR Phase 2, including approval-routing, SLA-automation, workflow-governance, and workflow-audit runtime concepts."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "The demo environment remains preserved and separate from the production-ready track."
+  - "Workflow execution must remain deterministic and event-driven."
+  - "Approval routing must be provider-driven and interface-ready."
+  - "Runtime state must stay forward-compatible with later multi-entity work."
+enumerations:
+  definitionStatus:
+    - "draft"
+    - "published"
+    - "deprecated"
+    - "retired"
+  instanceState:
+    - "queued"
+    - "active"
+    - "waiting_approval"
+    - "waiting_external"
+    - "breached"
+    - "completed"
+    - "canceled"
+    - "rolled_back"
+  stepState:
+    - "in_progress"
+    - "waiting_approval"
+    - "waiting_external"
+    - "completed"
+    - "canceled"
+  stepType:
+    - "assign"
+    - "approve"
+    - "remediate"
+    - "verify"
+    - "notify"
+    - "wait_timer"
+    - "invoke_webhook"
+    - "create_task"
+    - "collect_evidence"
+  actionType:
+    - "route_to_queue"
+    - "assign_actor"
+    - "request_approval"
+    - "request_remediation"
+    - "request_verification"
+    - "emit_notification"
+    - "invoke_delivery_webhook"
+    - "pause_until_deadline"
+    - "create_external_task"
+    - "attach_evidence_link"
+  selectorType:
+    - "user"
+    - "role"
+    - "queue"
+  approvalMode:
+    - "single"
+    - "maker_checker"
+    - "delegated"
+    - "parallel_committee"
+  approvalDecision:
+    - "approve"
+    - "reject"
+  approvalSessionStatus:
+    - "open"
+    - "approved"
+    - "rejected"
+    - "escalated"
+  approvalRoundStatus:
+    - "open"
+    - "approved"
+    - "rejected"
+    - "escalated"
+  quorumMode:
+    - "fixed"
+  rejectionMode:
+    - "first_rejection"
+    - "quorum_impossible"
+    - "return_to_remediation"
+  slaRuntimeStatus:
+    - "tracking"
+    - "completed"
+    - "escalated"
+  severity:
+    - "critical"
+    - "high"
+    - "medium"
+    - "low"
+    - "info"
+  escalationTargetType:
+    - "user"
+    - "role"
+    - "queue"
+    - "webhook"
+  governanceEntryType:
+    - "definition_registered"
+    - "draft_created"
+    - "workflow_published"
+    - "workflow_deprecated"
+    - "workflow_rollback_created"
+  auditLedgerSourceType:
+    - "runtime"
+    - "governance"
+  evidenceLinkSourceType:
+    - "instance"
+    - "audit"
+    - "decision"
+  auditEntryType:
+    - "instance_created"
+    - "step_started"
+    - "step_completed"
+    - "assignment_resolved"
+    - "assignment_changed"
+    - "approval_requested"
+    - "approval_recorded"
+    - "approval_resolved"
+    - "approval_delegated"
+    - "approval_delegation_denied"
+    - "approval_escalated"
+    - "committee_round_opened"
+    - "sla_warning"
+    - "sla_reminder_sent"
+    - "sla_breach"
+    - "escalation_triggered"
+    - "evidence_attached"
+    - "instance_completed"
+    - "instance_canceled"
+domainObjects:
+  selectorRef:
+    businessKey: "type + value"
+    requiredFields:
+      - "type"
+      - "value"
+    fields:
+      type:
+        type: "selectorType"
+      value:
+        type: "string"
+      label:
+        type: "string"
+        description: "Optional UI-safe label for future administration screens."
+  actorRef:
+    businessKey: "actorType + actorId"
+    requiredFields:
+      - "actorType"
+      - "actorId"
+    fields:
+      actorType:
+        type: "string"
+      actorId:
+        type: "string"
+      displayName:
+        type: "string"
+      roleKey:
+        type: "string"
+      sourceSystem:
+        type: "string"
+  workflowDefinition:
+    businessKey: "workflowKey + version"
+    requiredFields:
+      - "workflowKey"
+      - "version"
+      - "status"
+      - "entryStepKey"
+      - "triggers"
+      - "steps"
+    fields:
+      workflowKey:
+        type: "string"
+      version:
+        type: "integer"
+      status:
+        type: "definitionStatus"
+      owningAuthority:
+        type: "string"
+      defaultSeverity:
+        type: "severity"
+      entityScopeTemplate:
+        type: "object"
+      publishControls:
+        type: "object"
+        description: "Change-summary, approval requirement, rollback metadata, and publish timestamp controls."
+      triggers:
+        type: "array<object>"
+      steps:
+        type: "array<object>"
+      approvalPolicies:
+        type: "array<object>"
+      slaPolicies:
+        type: "array<object>"
+      escalationPolicies:
+        type: "array<object>"
+  workflowStep:
+    businessKey: "stepKey"
+    requiredFields:
+      - "stepKey"
+      - "order"
+      - "stepType"
+      - "actionType"
+      - "transitions"
+    fields:
+      stepKey:
+        type: "string"
+      order:
+        type: "integer"
+      name:
+        type: "string"
+      stepType:
+        type: "stepType"
+      actionType:
+        type: "actionType"
+      assignmentRule:
+        type: "object"
+        description: "Assignment selectors for route-to-queue, role, or direct-user resolution."
+      approvalPolicyRef:
+        type: "string"
+      slaPolicyRef:
+        type: "string"
+      escalationPolicyRefs:
+        type: "array<string>"
+      evidenceRequirement:
+        type: "object"
+      transitions:
+        type: "object"
+  approvalPolicy:
+    businessKey: "approvalPolicyKey"
+    requiredFields:
+      - "approvalPolicyKey"
+      - "mode"
+      - "minimumApprovals"
+      - "approverSelectors"
+    fields:
+      approvalPolicyKey:
+        type: "string"
+      mode:
+        type: "approvalMode"
+      minimumApprovals:
+        type: "integer"
+      approverSelectors:
+        type: "array<selectorRef>"
+      delegateSelectors:
+        type: "array<selectorRef>"
+        description: "Explicit delegates only. Empty means no delegation target is allowed."
+      committeeSelectors:
+        type: "array<selectorRef>"
+        description: "Selector set used when approval is escalated into a committee round."
+      quorumMode:
+        type: "quorumMode"
+      rejectionMode:
+        type: "rejectionMode"
+      makerCheckerScope:
+        type: "object"
+        description: "Boolean flags such as blockInstanceOriginActor and blockTriggerActor."
+  workflowVersionRecord:
+    businessKey: "workflowKey + version"
+    requiredFields:
+      - "workflowKey"
+      - "version"
+      - "status"
+      - "changeSummary"
+      - "approvalRecordRequired"
+    fields:
+      workflowKey:
+        type: "string"
+      version:
+        type: "integer"
+      status:
+        type: "definitionStatus"
+      changeSummary:
+        type: "string"
+      approvalRecordRequired:
+        type: "boolean"
+      publishedAt:
+        type: "timestamp"
+      rollbackOfVersion:
+        type: "integer"
+      replacedByVersion:
+        type: "integer"
+  approvalRecord:
+    businessKey: "approvalRecordId"
+    requiredFields:
+      - "approvalRecordId"
+    fields:
+      approvalRecordId:
+        type: "string"
+      approvedBy:
+        type: "actorRef"
+      approvedAt:
+        type: "timestamp"
+      notes:
+        type: "string"
+  workflowInstance:
+    businessKey: "instanceId"
+    requiredFields:
+      - "instanceId"
+      - "workflowKey"
+      - "workflowVersion"
+      - "state"
+      - "triggerEventId"
+      - "openedAt"
+    fields:
+      instanceId:
+        type: "string"
+      workflowKey:
+        type: "string"
+      workflowVersion:
+        type: "integer"
+      state:
+        type: "instanceState"
+      triggerEventId:
+        type: "string"
+      sourceFamily:
+        type: "string"
+      eventType:
+        type: "string"
+      authority:
+        type: "string"
+      severity:
+        type: "severity"
+      entityScope:
+        type: "object"
+      correlation:
+        type: "object"
+      owningQueue:
+        type: "string"
+      originActor:
+        type: "actorRef"
+      triggerActor:
+        type: "actorRef"
+      currentStepKey:
+        type: "string"
+      openedAt:
+        type: "timestamp"
+      closedAt:
+        type: "timestamp"
+      evidenceRefs:
+        type: "array<object>"
+  workflowStepRun:
+    businessKey: "runId"
+    requiredFields:
+      - "runId"
+      - "instanceId"
+      - "stepKey"
+      - "attempt"
+      - "state"
+      - "openedAt"
+    fields:
+      runId:
+        type: "string"
+      instanceId:
+        type: "string"
+      stepKey:
+        type: "string"
+      attempt:
+        type: "integer"
+      state:
+        type: "stepState"
+      assignedTo:
+        type: "actorRef"
+      assignments:
+        type: "array<approvalAssignment>"
+      approvalSession:
+        type: "approvalSession"
+      slaState:
+        type: "slaState"
+      dueAt:
+        type: "timestamp"
+      openedAt:
+        type: "timestamp"
+      completedAt:
+        type: "timestamp"
+      completedBy:
+        type: "actorRef"
+      notes:
+        type: "string"
+      payload:
+        type: "object"
+      evidenceRefs:
+        type: "array<object>"
+  slaState:
+    businessKey: "slaPolicyKey + openedAt"
+    requiredFields:
+      - "slaPolicyKey"
+      - "status"
+      - "openedAt"
+    fields:
+      slaPolicyKey:
+        type: "string"
+      status:
+        type: "slaRuntimeStatus"
+      warningDurationMinutes:
+        type: "integer"
+      targetDurationMinutes:
+        type: "integer"
+      breachDurationMinutes:
+        type: "integer"
+      breachSeverityOverride:
+        type: "severity"
+      reminderSchedule:
+        type: "array<object>"
+      warningRecordedAt:
+        type: "timestamp"
+      breachRecordedAt:
+        type: "timestamp"
+      pauseStates:
+        type: "array<string>"
+      pausedAt:
+        type: "timestamp"
+      totalPausedMs:
+        type: "integer"
+      pauseWindows:
+        type: "array<object>"
+      executedEscalations:
+        type: "array<object>"
+      lastEvaluatedAt:
+        type: "timestamp"
+      completedAt:
+        type: "timestamp"
+  approvalSession:
+    businessKey: "approvalSessionId"
+    requiredFields:
+      - "approvalSessionId"
+      - "approvalPolicyKey"
+      - "mode"
+      - "status"
+      - "rounds"
+      - "activeRoundId"
+    fields:
+      approvalSessionId:
+        type: "string"
+      approvalPolicyKey:
+        type: "string"
+      mode:
+        type: "approvalMode"
+      status:
+        type: "approvalSessionStatus"
+      minimumApprovals:
+        type: "integer"
+      quorumMode:
+        type: "quorumMode"
+      rejectionMode:
+        type: "rejectionMode"
+      delegateSelectors:
+        type: "array<selectorRef>"
+      committeeSelectors:
+        type: "array<selectorRef>"
+      makerCheckerScope:
+        type: "object"
+      rounds:
+        type: "array<approvalRound>"
+      activeRoundId:
+        type: "string"
+  approvalRound:
+    businessKey: "roundId"
+    requiredFields:
+      - "roundId"
+      - "roundNumber"
+      - "roundType"
+      - "status"
+      - "assignments"
+      - "decisions"
+    fields:
+      roundId:
+        type: "string"
+      roundNumber:
+        type: "integer"
+      roundType:
+        type: "string"
+        description: "Expected values include primary and committee."
+      status:
+        type: "approvalRoundStatus"
+      minimumApprovals:
+        type: "integer"
+      quorumMode:
+        type: "quorumMode"
+      rejectionMode:
+        type: "rejectionMode"
+      selectors:
+        type: "array<selectorRef>"
+      assignments:
+        type: "array<approvalAssignment>"
+      decisions:
+        type: "array<approvalDecisionRecord>"
+      openedAt:
+        type: "timestamp"
+      closedAt:
+        type: "timestamp"
+  approvalAssignment:
+    businessKey: "assignmentId"
+    requiredFields:
+      - "assignmentId"
+      - "actor"
+      - "assignmentType"
+      - "assignmentState"
+      - "assignedAt"
+    fields:
+      assignmentId:
+        type: "string"
+      actor:
+        type: "actorRef"
+      selectorType:
+        type: "selectorType"
+      selectorValue:
+        type: "string"
+      assignmentType:
+        type: "string"
+      assignmentState:
+        type: "string"
+        description: "Expected values include active and delegated."
+      delegatedBy:
+        type: "actorRef"
+      delegatedTo:
+        type: "actorRef"
+      assignedAt:
+        type: "timestamp"
+      reason:
+        type: "string"
+  approvalDecisionRecord:
+    businessKey: "decisionRecordId"
+    requiredFields:
+      - "decisionRecordId"
+      - "roundId"
+      - "actor"
+      - "decision"
+      - "decidedAt"
+    fields:
+      decisionRecordId:
+        type: "string"
+      roundId:
+        type: "string"
+      actor:
+        type: "actorRef"
+      decision:
+        type: "approvalDecision"
+      decidedAt:
+        type: "timestamp"
+      notes:
+        type: "string"
+      payload:
+        type: "object"
+      evidenceRefs:
+        type: "array<object>"
+  workflowAuditEntry:
+    businessKey: "auditEntryId"
+    requiredFields:
+      - "auditEntryId"
+      - "instanceId"
+      - "entryType"
+      - "recordedAt"
+      - "recordedBy"
+    fields:
+      auditEntryId:
+        type: "string"
+      instanceId:
+        type: "string"
+      stepKey:
+        type: "string"
+      entryType:
+        type: "auditEntryType"
+      recordedAt:
+        type: "timestamp"
+      recordedBy:
+        type: "actorRef"
+      summary:
+        type: "string"
+      payload:
+        type: "object"
+      evidenceRefs:
+        type: "array<object>"
+  workflowGovernanceEntry:
+    businessKey: "historyEntryId"
+    requiredFields:
+      - "historyEntryId"
+      - "workflowKey"
+      - "version"
+      - "entryType"
+      - "recordedAt"
+      - "recordedBy"
+    fields:
+      historyEntryId:
+        type: "string"
+      workflowKey:
+        type: "string"
+      version:
+        type: "integer"
+      entryType:
+        type: "governanceEntryType"
+      recordedAt:
+        type: "timestamp"
+      recordedBy:
+        type: "actorRef"
+      payload:
+        type: "object"
+  workflowAuditLedgerEntry:
+    businessKey: "ledgerEntryId"
+    requiredFields:
+      - "ledgerEntryId"
+      - "sourceType"
+      - "sourceEntryId"
+      - "workflowKey"
+      - "entryType"
+      - "recordedAt"
+      - "recordedBy"
+    fields:
+      ledgerEntryId:
+        type: "string"
+      sourceType:
+        type: "auditLedgerSourceType"
+      sourceEntryId:
+        type: "string"
+      workflowKey:
+        type: "string"
+      workflowVersion:
+        type: "integer"
+      instanceId:
+        type: "string"
+      stepKey:
+        type: "string"
+      entryType:
+        type: "string"
+      recordedAt:
+        type: "timestamp"
+      recordedBy:
+        type: "actorRef"
+      summary:
+        type: "string"
+      payload:
+        type: "object"
+      evidenceRefs:
+        type: "array<object>"
+  workflowDecisionHistoryEntry:
+    businessKey: "decisionRecordId"
+    requiredFields:
+      - "decisionRecordId"
+      - "instanceId"
+      - "workflowKey"
+      - "stepKey"
+      - "approvalSessionId"
+      - "roundId"
+      - "actor"
+      - "decision"
+      - "decidedAt"
+    fields:
+      decisionRecordId:
+        type: "string"
+      instanceId:
+        type: "string"
+      workflowKey:
+        type: "string"
+      workflowVersion:
+        type: "integer"
+      stepKey:
+        type: "string"
+      stepRunId:
+        type: "string"
+      approvalSessionId:
+        type: "string"
+      approvalPolicyKey:
+        type: "string"
+      approvalMode:
+        type: "approvalMode"
+      roundId:
+        type: "string"
+      roundNumber:
+        type: "integer"
+      roundType:
+        type: "string"
+      actor:
+        type: "actorRef"
+      decision:
+        type: "approvalDecision"
+      decidedAt:
+        type: "timestamp"
+      notes:
+        type: "string"
+      payload:
+        type: "object"
+      evidenceRefs:
+        type: "array<object>"
+      linkedAuditEntryIds:
+        type: "array<string>"
+      linkedLedgerEntryIds:
+        type: "array<string>"
+  workflowEvidenceLink:
+    businessKey: "refType + refId + refHash"
+    requiredFields:
+      - "refType"
+      - "refId"
+      - "firstSeenAt"
+      - "lastSeenAt"
+      - "linkedSourceTypes"
+    fields:
+      refType:
+        type: "string"
+      refId:
+        type: "string"
+      refHash:
+        type: "string"
+      firstSeenAt:
+        type: "timestamp"
+      lastSeenAt:
+        type: "timestamp"
+      linkedSourceTypes:
+        type: "array<evidenceLinkSourceType>"
+      linkedAuditEntryIds:
+        type: "array<string>"
+      linkedLedgerEntryIds:
+        type: "array<string>"
+      linkedDecisionRecordIds:
+        type: "array<string>"
+      linkedStepKeys:
+        type: "array<string>"
+lifecycleRules:
+  definitionLifecycle:
+    - "Only published workflow definitions may start new instances."
+    - "Published definitions remain immutable except through a new version."
+    - "Publishing a new version deprecates any older published version for the same workflowKey."
+    - "If approvalRecordRequired is true, publication requires an approval record."
+    - "Rollback creates a new version that references rollbackOfVersion and then becomes the published version."
+  approvalLifecycle:
+    - "Assign and approve steps resolve selectors through a provider-driven actor directory."
+    - "Maker-checker blocks approvals from actors disallowed by makerCheckerScope."
+    - "Delegation is explicit-delegates only."
+    - "parallel_committee reaches approval only when fixed quorum is met."
+    - "parallel_committee reaches rejection only when quorum becomes impossible with remaining eligible approvers."
+    - "Escalation to committee opens a new approval round and preserves prior-round audit history."
+  slaLifecycle:
+    - "Steps with slaPolicyRef open a step-local SLA runtime state when the step starts."
+    - "Reminder intervals are evaluated against effective elapsed time, not raw wall-clock time."
+    - "pauseStates stop SLA elapsed-time accumulation while the step or instance remains paused."
+    - "warningDurationMinutes triggers SLA warning audit entries once."
+    - "breachDurationMinutes triggers SLA breach handling once."
+    - "Escalation policies may emit notification targets, escalate approval rounds, or route to nextStepOverride automatically."
+  auditRequirements:
+    - "Every instance state change must create a workflowAuditEntry."
+    - "Every assignment resolution or reassignment must create a workflowAuditEntry."
+    - "Every approval request, delegation, escalation, and decision must create a workflowAuditEntry."
+    - "Every SLA reminder, warning, breach, and escalation automation event must create a workflowAuditEntry."
+    - "Every definition registration, draft creation, publication, deprecation, and rollback creation must create a workflowGovernanceEntry."
+    - "Runtime audit entries and governance entries must be projectable into immutable workflowAuditLedgerEntry views."
+    - "Approval decisions must remain queryable through workflowDecisionHistoryEntry with evidence-linked workflowEvidenceLink projections."
+deliveryNotes:
+  - "This contract is interface-ready and uses in-memory runtime state in the current increment."
+  - "The current increment implements deterministic SLA monitoring APIs, not a persistent background scheduler."
+  - "The current increment also implements deterministic governance APIs for versioning, publishing, rollback, and change history."
+  - "The current increment now also implements audit-ledger projections and evidence-linked decision history as in-memory query services."
+  - "Durable persistence and workflow APIs remain later Phase 2 work."
+  - "Entity-scope fields stay present now so later multi-entity work does not break workflow contracts."

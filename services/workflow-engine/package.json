@@ -1,0 +1,15 @@
+{
+    "name": "saqr-workflow-engine",
+    "version": "0.1.0",
+    "private": true,
+    "description": "SAQR Workflow Engine - deterministic event-driven workflow runtime for Phase 2",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "node --watch src/index.js",
+        "test": "node --test src/**/*.test.js"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    }
+}

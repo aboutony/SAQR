@@ -1,0 +1,44 @@
+{
+  "actor": {
+    "actorType": "user",
+    "actorId": "analyst-01",
+    "displayName": "Analyst 01",
+    "roleKey": "analyst"
+  },
+  "event": {
+    "eventId": "evt-contract-start-001",
+    "idempotencyKey": "dedupe-contract-start-001",
+    "eventType": "nlp.drift.detected",
+    "sourceFamily": "nlp",
+    "occurredAt": "2026-04-07T12:10:00.000Z",
+    "ingestedAt": "2026-04-07T12:10:01.000Z",
+    "severity": "high",
+    "authority": "SAMA",
+    "actor": {
+      "actorType": "user",
+      "actorId": "analyst-01",
+      "displayName": "Analyst 01",
+      "roleKey": "analyst"
+    },
+    "entityScope": {},
+    "correlation": {
+      "alertId": "DRIFT-CONTRACT-002",
+      "documentKey": "DOC-CONTRACT-002",
+      "evidenceKey": "EVID-CONTRACT-002",
+      "contentHash": "hash-contract-002"
+    },
+    "evidenceRefs": [
+      {
+        "refType": "instruction_drift",
+        "refId": "DRIFT-CONTRACT-002",
+        "refHash": "hash-contract-002"
+      }
+    ],
+    "payload": {
+      "alertId": "DRIFT-CONTRACT-002",
+      "driftType": "parameter_change",
+      "title": "Contract start example",
+      "description": "Minimum disclosure text updated."
+    }
+  }
+}

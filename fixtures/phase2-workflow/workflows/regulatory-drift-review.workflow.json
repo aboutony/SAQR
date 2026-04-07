@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "workflowKey": "regulatory-drift-review",
+  "version": 1,
+  "name": "Regulatory Drift Review",
+  "description": "Review NLP drift alerts and staged regulatory updates, collect supporting evidence, secure maker-checker approval, and verify remediation closure.",
+  "status": "draft",
+  "owningAuthority": "SAMA",
+  "defaultSeverity": "high",
+  "entryStepKey": "assign-compliance-analyst",
+  "triggers": [
+    {
+      "triggerKey": "nlp-drift-trigger",
+      "sourceFamilies": ["nlp"],
+      "eventTypes": ["nlp.drift.detected"],
+      "matchRules": [
+        {
+          "field": "authority",
+          "operator": "in",
+          "value": ["SAMA", "SDAIA"]
+        },
+        {
+          "field": "severity",
+          "operator": "in",
+          "value": ["critical", "high", "medium"]
+        }
+      ],
+      "idempotencyStrategy": "event.idempotencyKey"
+    },
+    {
+      "triggerKey": "sentinel-update-trigger",
+      "sourceFamilies": ["sentinel"],
+      "eventTypes": ["sentinel.regulatory_update.detected"],
+      "matchRules": [
+        {
+          "field": "authority",
+          "operator": "equals",
+          "value": "SAMA"
+        }
+      ],
+      "idempotencyStrategy": "event.idempotencyKey"
+    }
+  ],
+  "approvalPolicies": [
+    {
+      "approvalPolicyKey": "legal-maker-checker",
+      "mode": "maker_checker",
+      "minimumApprovals": 1,
+      "quorumMode": "fixed",
+      "approverSelectors": [
+        {
+          "type": "role",
+          "value": "auditor"
+        },
+        {
+          "type": "role",
+          "value": "admin"
+        }
+      ],
+      "delegateSelectors": [
+        {
+          "type": "role",
+          "value": "admin"
+        }
+      ],
+      "committeeSelectors": [
+        {
+          "type": "role",
+          "value": "board"
+        }
+      ],
+      "makerCheckerScope": {
+        "blockInstanceOriginActor": true,
+        "blockTriggerActor": true
+      },
+      "rejectionMode": "return_to_remediation"
+    }
+  ],
+  "slaPolicies": [
+    {
+      "slaPolicyKey": "triage-sla",
+      "targetDurationMinutes": 240,
+      "warningDurationMinutes": 180,
+      "breachDurationMinutes": 240,
+      "reminderIntervalsMinutes": [60, 120, 180],
+      "pauseStates": ["waiting_external"],
+      "breachSeverityOverride": "high"
+    },
+    {
+      "slaPolicyKey": "approval-sla",
+      "targetDurationMinutes": 480,
+      "warningDurationMinutes": 360,
+      "breachDurationMinutes": 480,
+      "reminderIntervalsMinutes": [120, 240, 360],
+      "pauseStates": [],
+      "breachSeverityOverride": "critical"
+    },
+    {
+      "slaPolicyKey": "remediation-sla",
+      "targetDurationMinutes": 1440,
+      "warningDurationMinutes": 1080,
+      "breachDurationMinutes": 1440,
+      "reminderIntervalsMinutes": [360, 720, 1080],
+      "pauseStates": ["waiting_external"],
+      "breachSeverityOverride": "critical"
+    }
+  ],
+  "escalationPolicies": [
+    {
+      "escalationPolicyKey": "escalate-compliance-manager",
+      "triggerCondition": "sla_breach",
+      "targetType": "role",
+      "targetRef": "admin",
+      "notificationTemplateKey": "sla-breach",
+      "severityOverride": "critical",
+      "nextStepOverride": "notify-management"
+    }
+  ],
+  "steps": [
+    {
+      "stepKey": "assign-compliance-analyst",
+      "order": 1,
+      "name": "Assign compliance analyst",
+      "stepType": "assign",
+      "actionType": "route_to_queue",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "queue",
+            "value": "compliance-analysts"
+          }
+        ]
+      },
+      "slaPolicyRef": "triage-sla",
+      "transitions": {
+        "onSuccess": "collect-source-evidence"
+      }
+    },
+    {
+      "stepKey": "collect-source-evidence",
+      "order": 2,
+      "name": "Collect source evidence",
+      "stepType": "collect_evidence",
+      "actionType": "attach_evidence_link",
+      "evidenceRequirement": {
+        "minReferences": 1,
+        "allowedRefTypes": [
+          "instruction_drift",
+          "obligation",
+          "regulatory_staging",
+          "vault_evidence"
+        ]
+      },
+      "transitions": {
+        "onSuccess": "request-legal-review"
+      }
+    },
+    {
+      "stepKey": "request-legal-review",
+      "order": 3,
+      "name": "Request legal review",
+      "stepType": "approve",
+      "actionType": "request_approval",
+      "approvalPolicyRef": "legal-maker-checker",
+      "slaPolicyRef": "approval-sla",
+      "escalationPolicyRefs": ["escalate-compliance-manager"],
+      "transitions": {
+        "onApprove": "trigger-remediation",
+        "onReject": "notify-management"
+      }
+    },
+    {
+      "stepKey": "trigger-remediation",
+      "order": 4,
+      "name": "Trigger remediation task",
+      "stepType": "remediate",
+      "actionType": "create_external_task",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "role",
+            "value": "analyst"
+          }
+        ]
+      },
+      "slaPolicyRef": "remediation-sla",
+      "transitions": {
+        "onSuccess": "verify-closure"
+      }
+    },
+    {
+      "stepKey": "verify-closure",
+      "order": 5,
+      "name": "Verify closure",
+      "stepType": "verify",
+      "actionType": "request_verification",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "role",
+            "value": "auditor"
+          }
+        ]
+      },
+      "transitions": {
+        "onSuccess": null,
+        "onReject": "trigger-remediation"
+      }
+    },
+    {
+      "stepKey": "notify-management",
+      "order": 6,
+      "name": "Notify management",
+      "stepType": "notify",
+      "actionType": "emit_notification",
+      "transitions": {
+        "onSuccess": null
+      }
+    }
+  ],
+  "publishControls": {
+    "changeSummary": "Initial drift-review workflow definition",
+    "approvalRecordRequired": true
+  }
+}

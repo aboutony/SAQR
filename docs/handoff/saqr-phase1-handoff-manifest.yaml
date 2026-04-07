@@ -14,6 +14,11 @@
       "purpose": "Primary final Phase 1 handoff entrypoint"
     },
     {
+      "name": "handoff-html",
+      "path": "docs/handoff/SAQR_Phase1_Delivery_Team_Handoff.html",
+      "purpose": "Presentation-ready delivery handoff document"
+    },
+    {
       "name": "handoff-summary",
       "path": "docs/handoff/SAQR_Phase1_Handoff_Summary.md",
       "purpose": "Blunt readiness summary"
@@ -34,6 +39,7 @@
       "category": "handoff",
       "paths": [
         "docs/handoff/README.md",
+        "docs/handoff/SAQR_Phase1_Delivery_Team_Handoff.html",
         "docs/handoff/SAQR_Phase1_Handoff_Summary.md",
         "docs/handoff/SAQR_Phase1_Delivery_Worklist.md",
         "docs/handoff/SAQR_Phase1_Validation_Guide.md",
@@ -47,6 +53,7 @@
         "docs/architecture/SAQR_Phase1_Architecture_Overview.md",
         "docs/architecture/SAQR_Phase1_Component_and_Dependency_Matrix.md",
         "docs/guides/SAQR_Phase1_Configuration_Guide.md",
+        "docs/guides/SAQR_Phase1_User_Installation_Guide.html",
         "docs/runbooks/SAQR_Phase1_Operations_Runbook.md",
         "docs/runbooks/SAQR_Phase1_Dependency_Incident_Runbook.md"
       ]
@@ -194,4 +201,3 @@
     "Phase 2 workflow and multi-entity capabilities are excluded from this handoff package."
   ]
 }
-

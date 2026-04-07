@@ -1,0 +1,143 @@
+{
+  "instanceId": "WFI-EXAMPLE-001",
+  "workflowKey": "regulatory-drift-review",
+  "workflowVersion": 1,
+  "runtimeAuditLedger": [
+    {
+      "ledgerEntryId": "runtime:WFA-EXAMPLE-001",
+      "sourceType": "runtime",
+      "sourceEntryId": "WFA-EXAMPLE-001",
+      "workflowKey": "regulatory-drift-review",
+      "workflowVersion": 1,
+      "instanceId": "WFI-EXAMPLE-001",
+      "stepKey": null,
+      "entryType": "instance_created",
+      "recordedAt": "2026-04-07T12:10:01.000Z",
+      "recordedBy": {
+        "actorType": "user",
+        "actorId": "analyst-01",
+        "displayName": "Analyst 01",
+        "roleKey": "analyst",
+        "sourceSystem": null
+      },
+      "summary": "Created workflow instance for regulatory-drift-review",
+      "payload": {
+        "triggerEventId": "evt-contract-start-001",
+        "sourceFamily": "nlp",
+        "eventType": "nlp.drift.detected"
+      },
+      "evidenceRefs": [
+        {
+          "refType": "instruction_drift",
+          "refId": "DRIFT-CONTRACT-002",
+          "refHash": "hash-contract-002"
+        }
+      ]
+    }
+  ],
+  "governanceAuditLedger": [
+    {
+      "ledgerEntryId": "governance:WFG-EXAMPLE-001",
+      "sourceType": "governance",
+      "sourceEntryId": "WFG-EXAMPLE-001",
+      "workflowKey": "regulatory-drift-review",
+      "workflowVersion": 1,
+      "instanceId": null,
+      "stepKey": null,
+      "entryType": "definition_registered",
+      "recordedAt": "2026-04-07T09:00:01.000Z",
+      "recordedBy": {
+        "actorType": "system",
+        "actorId": "workflow-governance",
+        "displayName": "Workflow Governance",
+        "roleKey": null,
+        "sourceSystem": null
+      },
+      "summary": "Registered workflow definition regulatory-drift-review v1: Initial drift-review workflow definition",
+      "payload": {
+        "status": "published",
+        "changeSummary": "Initial drift-review workflow definition"
+      },
+      "evidenceRefs": []
+    }
+  ],
+  "combinedAuditLedger": [
+    {
+      "ledgerEntryId": "governance:WFG-EXAMPLE-001",
+      "sourceType": "governance",
+      "sourceEntryId": "WFG-EXAMPLE-001",
+      "workflowKey": "regulatory-drift-review",
+      "workflowVersion": 1,
+      "instanceId": null,
+      "stepKey": null,
+      "entryType": "definition_registered",
+      "recordedAt": "2026-04-07T09:00:01.000Z",
+      "recordedBy": {
+        "actorType": "system",
+        "actorId": "workflow-governance",
+        "displayName": "Workflow Governance",
+        "roleKey": null,
+        "sourceSystem": null
+      },
+      "summary": "Registered workflow definition regulatory-drift-review v1: Initial drift-review workflow definition",
+      "payload": {
+        "status": "published",
+        "changeSummary": "Initial drift-review workflow definition"
+      },
+      "evidenceRefs": []
+    },
+    {
+      "ledgerEntryId": "runtime:WFA-EXAMPLE-001",
+      "sourceType": "runtime",
+      "sourceEntryId": "WFA-EXAMPLE-001",
+      "workflowKey": "regulatory-drift-review",
+      "workflowVersion": 1,
+      "instanceId": "WFI-EXAMPLE-001",
+      "stepKey": null,
+      "entryType": "instance_created",
+      "recordedAt": "2026-04-07T12:10:01.000Z",
+      "recordedBy": {
+        "actorType": "user",
+        "actorId": "analyst-01",
+        "displayName": "Analyst 01",
+        "roleKey": "analyst",
+        "sourceSystem": null
+      },
+      "summary": "Created workflow instance for regulatory-drift-review",
+      "payload": {
+        "triggerEventId": "evt-contract-start-001",
+        "sourceFamily": "nlp",
+        "eventType": "nlp.drift.detected"
+      },
+      "evidenceRefs": [
+        {
+          "refType": "instruction_drift",
+          "refId": "DRIFT-CONTRACT-002",
+          "refHash": "hash-contract-002"
+        }
+      ]
+    }
+  ],
+  "decisionHistory": [],
+  "evidenceLinks": [
+    {
+      "refType": "instruction_drift",
+      "refId": "DRIFT-CONTRACT-002",
+      "refHash": "hash-contract-002",
+      "firstSeenAt": "2026-04-07T12:10:01.000Z",
+      "lastSeenAt": "2026-04-07T12:10:01.000Z",
+      "linkedSourceTypes": [
+        "instance",
+        "audit"
+      ],
+      "linkedAuditEntryIds": [
+        "WFA-EXAMPLE-001"
+      ],
+      "linkedLedgerEntryIds": [
+        "runtime:WFA-EXAMPLE-001"
+      ],
+      "linkedDecisionRecordIds": [],
+      "linkedStepKeys": []
+    }
+  ]
+}

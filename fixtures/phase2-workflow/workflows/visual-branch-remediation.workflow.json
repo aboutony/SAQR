@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "workflowKey": "visual-branch-remediation",
+  "version": 1,
+  "name": "Visual Branch Remediation",
+  "description": "Route CV detections and manual branch findings into a controlled remediation and verification loop.",
+  "status": "draft",
+  "defaultSeverity": "medium",
+  "entryStepKey": "assign-site-operations",
+  "triggers": [
+    {
+      "triggerKey": "cv-violation-trigger",
+      "sourceFamilies": ["cv"],
+      "eventTypes": ["cv.violation.detected"],
+      "matchRules": [
+        {
+          "field": "severity",
+          "operator": "in",
+          "value": ["critical", "high", "medium"]
+        }
+      ],
+      "idempotencyStrategy": "event.idempotencyKey"
+    },
+    {
+      "triggerKey": "manual-branch-launch",
+      "sourceFamilies": ["manual"],
+      "eventTypes": ["workflow.manual.triggered"],
+      "matchRules": [
+        {
+          "field": "payload.launchCategory",
+          "operator": "equals",
+          "value": "branch-visual-remediation"
+        }
+      ],
+      "manualLaunchAllowed": true,
+      "idempotencyStrategy": "event.idempotencyKey"
+    }
+  ],
+  "slaPolicies": [
+    {
+      "slaPolicyKey": "ops-triage-sla",
+      "targetDurationMinutes": 120,
+      "warningDurationMinutes": 90,
+      "breachDurationMinutes": 120,
+      "reminderIntervalsMinutes": [30, 60, 90],
+      "pauseStates": [],
+      "breachSeverityOverride": "high"
+    },
+    {
+      "slaPolicyKey": "branch-remediation-sla",
+      "targetDurationMinutes": 720,
+      "warningDurationMinutes": 480,
+      "breachDurationMinutes": 720,
+      "reminderIntervalsMinutes": [180, 360, 540],
+      "pauseStates": [],
+      "breachSeverityOverride": "critical"
+    }
+  ],
+  "steps": [
+    {
+      "stepKey": "assign-site-operations",
+      "order": 1,
+      "name": "Assign site operations",
+      "stepType": "assign",
+      "actionType": "route_to_queue",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "queue",
+            "value": "site-operations"
+          }
+        ]
+      },
+      "slaPolicyRef": "ops-triage-sla",
+      "transitions": {
+        "onSuccess": "notify-branch-manager"
+      }
+    },
+    {
+      "stepKey": "notify-branch-manager",
+      "order": 2,
+      "name": "Notify branch manager",
+      "stepType": "notify",
+      "actionType": "emit_notification",
+      "transitions": {
+        "onSuccess": "open-remediation-webhook"
+      }
+    },
+    {
+      "stepKey": "open-remediation-webhook",
+      "order": 3,
+      "name": "Open remediation webhook",
+      "stepType": "invoke_webhook",
+      "actionType": "invoke_delivery_webhook",
+      "transitions": {
+        "onSuccess": "wait-remediation-window"
+      }
+    },
+    {
+      "stepKey": "wait-remediation-window",
+      "order": 4,
+      "name": "Wait remediation window",
+      "stepType": "wait_timer",
+      "actionType": "pause_until_deadline",
+      "timerDurationMinutes": 240,
+      "slaPolicyRef": "branch-remediation-sla",
+      "transitions": {
+        "onElapsed": "verify-branch-fix"
+      }
+    },
+    {
+      "stepKey": "verify-branch-fix",
+      "order": 5,
+      "name": "Verify branch fix",
+      "stepType": "verify",
+      "actionType": "request_verification",
+      "assignmentRule": {
+        "selectors": [
+          {
+            "type": "role",
+            "value": "auditor"
+          }
+        ]
+      },
+      "transitions": {
+        "onSuccess": null,
+        "onReject": "open-remediation-webhook"
+      }
+    }
+  ],
+  "publishControls": {
+    "changeSummary": "Initial visual branch remediation workflow",
+    "approvalRecordRequired": false
+  }
+}

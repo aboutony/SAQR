@@ -1,0 +1,276 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-07"
+scope: "P2-102"
+purpose: "Define the normalized inbound event contract for workflow-triggering events."
+principles:
+  - "All event sources must normalize into one common envelope before workflow matching."
+  - "The contract must preserve demo-vs-production separation."
+  - "The contract must remain forward-compatible with later multi-entity scoping."
+  - "Normalized events must be idempotent enough to avoid duplicate workflow instances."
+envelope:
+  requiredFields:
+    eventId:
+      type: "string"
+      description: "Stable event identifier from the producing source or normalization layer."
+    idempotencyKey:
+      type: "string"
+      description: "Key used to deduplicate repeated deliveries for the same workflow trigger."
+    eventType:
+      type: "string"
+      description: "Specific event type such as cdc.violation.detected."
+    sourceFamily:
+      type: "string"
+      allowedValues:
+        - "cdc"
+        - "nlp"
+        - "cv"
+        - "sentinel"
+        - "manual"
+    occurredAt:
+      type: "timestamp"
+      description: "When the source event actually occurred."
+    ingestedAt:
+      type: "timestamp"
+      description: "When the event was normalized into the workflow ingress layer."
+    severity:
+      type: "string"
+      allowedValues:
+        - "critical"
+        - "high"
+        - "medium"
+        - "low"
+        - "info"
+    entityScope:
+      type: "object"
+      description: "Future-safe scope envelope that can already carry partial values."
+    correlation:
+      type: "object"
+      description: "Business keys that tie the event back to source rows, documents, cameras, or evidence."
+    payload:
+      type: "object"
+      description: "Source-specific business payload after normalization."
+  conditionalFields:
+    authority:
+      type: "string"
+      requiredWhen:
+        - "sourceFamily in [cdc, nlp, sentinel]"
+      description: "Regulatory authority when the source is authority-governed."
+    evidenceRefs:
+      type: "array<object>"
+      requiredWhen:
+        - "evidence already exists or the source provides an immutable upstream record"
+    actor:
+      type: "object"
+      requiredWhen:
+        - "sourceFamily = manual"
+      description: "Initiating actor for analyst, auditor, or admin-triggered launches."
+  entityScopeShape:
+    fields:
+      groupId:
+        type: "string"
+        description: "Reserved for Phase 2 multi-entity hierarchy."
+      entityId:
+        type: "string"
+        description: "Reserved for legal-entity scope."
+      businessUnitId:
+        type: "string"
+      siteId:
+        type: "string"
+      siloId:
+        type: "string"
+  correlationShape:
+    commonFields:
+      sourceRecordKey:
+        type: "string"
+      documentKey:
+        type: "string"
+      evidenceKey:
+        type: "string"
+      workflowBusinessKey:
+        type: "string"
+      sourceUrl:
+        type: "string"
+      cameraId:
+        type: "string"
+      contentHash:
+        type: "string"
+  evidenceRefShape:
+    requiredFields:
+      - "refType"
+      - "refId"
+    optionalFields:
+      - "refHash"
+      - "relation"
+sourceFamilies:
+  cdc:
+    allowedEventTypes:
+      - "cdc.violation.detected"
+    currentProducer:
+      - "Evidence Vault CDC compliance flow"
+    currentRepoTruth:
+      - "Maps most directly to shadow.cdc_events and vault.evidence outputs."
+  nlp:
+    allowedEventTypes:
+      - "nlp.drift.detected"
+      - "nlp.obligation.triggered"
+    currentProducer:
+      - "NLP ingestion and drift detection flows"
+    currentRepoTruth:
+      - "Maps most directly to shadow.obligations and shadow.instruction_drift."
+  cv:
+    allowedEventTypes:
+      - "cv.violation.detected"
+    currentProducer:
+      - "CV Watchman evidence flow"
+    currentRepoTruth:
+      - "Maps most directly to shadow.cv_detections and vault.evidence."
+  sentinel:
+    allowedEventTypes:
+      - "sentinel.regulatory_update.detected"
+    currentProducer:
+      - "Sentinel staging and scrape detection"
+    currentRepoTruth:
+      - "Maps most directly to shadow.regulatory_staging."
+      - "Current live authority coverage is centered on SAMA and SDAIA."
+  manual:
+    allowedEventTypes:
+      - "workflow.manual.triggered"
+    currentProducer:
+      - "Future analyst, auditor, or admin initiated workflow launch path"
+eventTypes:
+  cdc.violation.detected:
+    startIntent: "Open a workflow when CDC compliance logic detects a violation."
+    minimumPayload:
+      sourceTable:
+        type: "string"
+      sourceSystem:
+        type: "string"
+      operation:
+        type: "string"
+      violationCode:
+        type: "string"
+      title:
+        type: "string"
+      description:
+        type: "string"
+      recordSnapshot:
+        type: "object"
+    recommendedEvidenceRefs:
+      - "vault_evidence"
+      - "cdc_event"
+    recommendedIdempotencyKey: "authority + violationCode + sourceTable + sourceRecordKey + evidenceKey"
+  nlp.drift.detected:
+    startIntent: "Open a workflow when regulatory instruction drift is detected."
+    minimumPayload:
+      alertId:
+        type: "string"
+      driftType:
+        type: "string"
+      title:
+        type: "string"
+      description:
+        type: "string"
+      previousObligation:
+        type: "object"
+      newObligation:
+        type: "object"
+      parameterDiff:
+        type: "object"
+    recommendedEvidenceRefs:
+      - "instruction_drift"
+      - "obligation"
+    recommendedIdempotencyKey: "authority + alertId"
+  nlp.obligation.triggered:
+    startIntent: "Open a workflow when a parsed obligation or derived constraint requires action."
+    minimumPayload:
+      obligationId:
+        type: "string"
+      documentId:
+        type: "string"
+      obligationType:
+        type: "string"
+      obligationText:
+        type: "string"
+      parameters:
+        type: "object"
+      triggerReason:
+        type: "string"
+    recommendedEvidenceRefs:
+      - "obligation"
+    recommendedIdempotencyKey: "authority + obligationId + triggerReason"
+  cv.violation.detected:
+    startIntent: "Open a workflow when a visual detection requires remediation or inspection."
+    minimumPayload:
+      evidenceId:
+        type: "string"
+      cameraId:
+        type: "string"
+      violationCode:
+        type: "string"
+      category:
+        type: "string"
+      confidence:
+        type: "number"
+      title:
+        type: "string"
+      description:
+        type: "string"
+    recommendedEvidenceRefs:
+      - "cv_detection"
+      - "vault_evidence"
+    recommendedIdempotencyKey: "cameraId + evidenceId"
+  sentinel.regulatory_update.detected:
+    startIntent: "Open a workflow when a regulatory source update requires legal, compliance, or policy review."
+    minimumPayload:
+      authority:
+        type: "string"
+      title:
+        type: "string"
+      sourceUrl:
+        type: "string"
+      contentHash:
+        type: "string"
+      publishDate:
+        type: "string"
+      category:
+        type: "string"
+    recommendedEvidenceRefs:
+      - "regulatory_staging"
+    recommendedIdempotencyKey: "authority + contentHash"
+  workflow.manual.triggered:
+    startIntent: "Open a workflow from a human-controlled manual launch path."
+    minimumPayload:
+      launchReason:
+        type: "string"
+      launchCategory:
+        type: "string"
+      summary:
+        type: "string"
+      targetWorkflowKey:
+        type: "string"
+      externalReference:
+        type: "string"
+    requiredActorFields:
+      - "actorType"
+      - "actorId"
+      - "displayName"
+    recommendedIdempotencyKey: "actorId + targetWorkflowKey + occurredAt"
+routingExpectations:
+  normalizationRules:
+    - "Producers may emit source-specific payloads, but the workflow ingress layer must normalize them into the common envelope."
+    - "Severity labels must be normalized before trigger matching."
+    - "Authority names must be canonicalized before trigger matching."
+    - "Entity scope values may be partially populated now but must preserve field names for future multi-entity work."
+    - "Evidence references should point at immutable or stable upstream records whenever possible."
+  deduplicationRules:
+    - "The same event must not open duplicate workflow instances for the same workflow trigger when idempotencyKey matches."
+    - "Workflow engines may still intentionally create different instances for different workflow definitions from the same event."
+  deliveryRoutingResponsibilities:
+    - "Delivery owns the durable ingress transport and retry semantics."
+    - "Delivery owns mapping normalized events into workflow-start requests."
+    - "Manual launch paths must enforce authz and actor attribution before event normalization."
+deliveryNotes:
+  - "NLP and CV are interface-ready and test-backed, but delivery still owns real-environment wiring and pilot validation."
+  - "Sentinel live implementation coverage is currently centered on SAMA and SDAIA."
+  - "This contract defines ingress only. Workflow DSL, runtime execution, and approval behavior are later Phase 2 items."

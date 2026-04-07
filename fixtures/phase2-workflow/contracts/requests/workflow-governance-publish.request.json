@@ -1,0 +1,14 @@
+{
+  "actor": {
+    "actorType": "user",
+    "actorId": "admin-01",
+    "displayName": "Admin 01",
+    "roleKey": "admin"
+  },
+  "approvalRecord": {
+    "approvalRecordId": "APR-P2-110-001",
+    "approvedBy": "Architecture Board",
+    "approvedAt": "2026-04-07T09:30:00.000Z",
+    "notes": "Approved for delivery-team API contract publication."
+  }
+}

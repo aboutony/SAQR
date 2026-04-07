@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SAQR Phase 1 delivery team handoff document">
+    <title>SAQR Phase 1 Delivery Team Handoff</title>
+    <link rel="stylesheet" href="../assets/saqr-doc-theme.css">
+</head>
+<body>
+    <main class="doc-shell">
+        <section class="page cover">
+            <div>
+                <span class="eyebrow">Phase 1 Delivery Handoff</span>
+                <h1>SAQR Production-Ready Handoff Document</h1>
+                <p class="subtitle">
+                    Formal handoff package for the delivery engineering team. This document consolidates the repo
+                    truth, delivery obligations, technical boundaries, validation path, and Phase 1 non-negotiables
+                    into one presentation-ready handover artifact.
+                </p>
+                <div class="cover-grid">
+                    <div class="cover-card">
+                        <span class="label">Audience</span>
+                        <span class="value">Internal Delivery Team</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Status</span>
+                        <span class="value">Delivery-Handoff Ready</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Phase</span>
+                        <span class="value">Phase 1 Complete</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Date</span>
+                        <span class="value">2026-04-07</span>
+                    </div>
+                </div>
+            </div>
+            <div class="cover-footer">
+                <div>
+                    <strong>Prepared From Repo State</strong><br>
+                    SAQR merged Phase 1 handoff baseline on GitHub main.
+                </div>
+                <div>
+                    <strong>Document Intent</strong><br>
+                    Equip delivery to continue without missing prerequisites, constraints, or validation steps.
+                </div>
+            </div>
+        </section>
+
+        <section class="page page-break">
+            <span class="section-kicker">Contents</span>
+            <h2 class="doc-title">Table of Contents</h2>
+            <p class="doc-lead">
+                This HTML file is formatted for browser review, PDF export, or Save as Word conversion.
+            </p>
+            <nav class="toc">
+                <a href="#executive-summary"><span>1. Executive Summary</span><span>01</span></a>
+                <a href="#project-overview"><span>2. Project Overview</span><span>02</span></a>
+                <a href="#phase1-position"><span>3. Phase 1 Readiness Position</span><span>03</span></a>
+                <a href="#solution-overview"><span>4. Solution and Architecture Overview</span><span>04</span></a>
+                <a href="#artifact-map"><span>5. Repository Artifact Map</span><span>05</span></a>
+                <a href="#delivery-workstreams"><span>6. Delivery Workstreams and Responsibilities</span><span>06</span></a>
+                <a href="#configuration"><span>7. Environment and Configuration Baseline</span><span>07</span></a>
+                <a href="#prerequisites"><span>8. External Prerequisites</span><span>08</span></a>
+                <a href="#validation"><span>9. Validation and Signoff Path</span><span>09</span></a>
+                <a href="#risks"><span>10. Risks, Limits, and Explicit Exclusions</span><span>10</span></a>
+                <a href="#appendices"><span>11. Appendices</span><span>11</span></a>
+            </nav>
+        </section>
+
+        <section class="page" id="executive-summary">
+            <span class="section-kicker">Executive Summary</span>
+            <h2>1. Executive Summary</h2>
+            <p>
+                SAQR Phase 1 is complete in repository scope. The platform has been moved from a pre-MVP demo state
+                to a delivery-handoff-ready package with separated demo and production-ready runtime behavior,
+                documented service contracts, hardened startup validation, provider-aware seams, deployment packaging,
+                acceptance fixtures, and a complete validation path.
+            </p>
+            <div class="callout.success">
+                <strong>Formal Verdict</strong>
+                <p>
+                    SAQR is ready for delivery-team implementation handoff. SAQR is not ready for direct client
+                    production cutover until delivery-owned infrastructure wiring and real-environment pilot validation
+                    are completed.
+                </p>
+            </div>
+            <div class="grid-3">
+                <div class="metric-card">
+                    <span class="metric-label">Repo Scope</span>
+                    <span class="metric-value">100%</span>
+                    <span class="metric-note">All tracked Phase 1 items are completed in the repository.</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Delivery Dependencies</span>
+                    <span class="metric-value">6</span>
+                    <span class="metric-note">Major external workstreams remain outside repo scope.</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Core Position</span>
+                    <span class="metric-value">Read-Only</span>
+                    <span class="metric-note">SAQR must not write back to client source systems.</span>
+                </div>
+            </div>
+            <h3>What delivery must understand immediately</h3>
+            <ul>
+                <li>The current demo experience is intentionally preserved and must continue to exist as a separate path.</li>
+                <li>The UI/UX baseline is frozen. Delivery must not redesign or reflow the interface in Phase 1.</li>
+                <li>The repo ships interface-ready algorithms, not live client infrastructure.</li>
+                <li>Current live regulatory-source scope is centered on SAMA and SDAIA. Anything beyond that is additional delivery work.</li>
+                <li>Phase 2 features are not part of this handoff and must not be implied as included.</li>
+            </ul>
+        </section>
+
+        <section class="page" id="project-overview">
+            <span class="section-kicker">Project Overview</span>
+            <h2>2. Project Overview</h2>
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>2.1 Platform purpose</h3>
+                    <p>
+                        SAQR is a read-only compliance interception platform. It observes regulatory change and client
+                        operating evidence, detects non-compliance against codified rules, preserves evidence, and
+                        exposes that evidence through the SAQR API and Shield UI.
+                    </p>
+                    <p>
+                        The Phase 1 target was not enterprise feature expansion. It was to turn the product core into
+                        a handoff-ready baseline that the delivery team can safely wire into real environments.
+                    </p>
+                </div>
+                <div class="panel">
+                    <h3>2.2 Non-negotiables that were preserved</h3>
+                    <ul>
+                        <li>Demo environment retained in full.</li>
+                        <li>UI/UX preserved with regression guardrails.</li>
+                        <li>No assumed live DB or third-party environment in repo.</li>
+                        <li>Only free tooling used in the build path.</li>
+                        <li>Documentation produced alongside implementation.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Project Fact</th>
+                        <th>Phase 1 Position</th>
+                        <th>Delivery Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Product state</td>
+                        <td><span class="pill green">Repo complete</span></td>
+                        <td>Delivery can proceed without first re-architecting the core.</td>
+                    </tr>
+                    <tr>
+                        <td>Client cutover</td>
+                        <td><span class="pill amber">Not included</span></td>
+                        <td>Requires environment wiring, security controls, and pilot validation.</td>
+                    </tr>
+                    <tr>
+                        <td>Demo experience</td>
+                        <td><span class="pill blue">Preserved</span></td>
+                        <td>Do not repurpose or break the demo path.</td>
+                    </tr>
+                    <tr>
+                        <td>UI redesign</td>
+                        <td><span class="pill red">Prohibited</span></td>
+                        <td>Only agreed and approved exceptions may touch the visual baseline.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="phase1-position">
+            <span class="section-kicker">Readiness Position</span>
+            <h2>3. Phase 1 Readiness Position</h2>
+            <div class="status-list">
+                <div class="status-row">
+                    <span class="status-badge complete">Completed In Repo</span>
+                    <div>
+                        Demo and production-ready runtime separation, auth scaffolding, config safety, observability,
+                        service contracts, provider boundaries, rule modularization, deployment packaging, acceptance
+                        fixtures, CI quality gates, release-readiness automation, and the final handoff package.
+                    </div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge action">Delivery-Owned</span>
+                    <div>
+                        Identity provider wiring, shadow database provisioning, Kafka and Kafka Connect / Debezium,
+                        VMS connectivity, infrastructure security controls, authority expansion, and pilot validation
+                        in the target environment.
+                    </div>
+                </div>
+                <div class="status-row">
+                    <span class="status-badge excluded">Explicitly Excluded</span>
+                    <div>
+                        LogicGate-style no-code workflow engine, Archer-style multi-entity and sovereign expansion,
+                        and any claim that the repo alone is sufficient for direct client go-live.
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout.warning">
+                <strong>Do Not Misstate Readiness</strong>
+                <p>
+                    Phase 1 completion means the repository is handoff-ready for delivery implementation. It does not
+                    mean SAQR is turnkey production-live. Any communication to the client must preserve that
+                    distinction.
+                </p>
+            </div>
+        </section>
+
+        <section class="page" id="solution-overview">
+            <span class="section-kicker">Architecture</span>
+            <h2>4. Solution and Architecture Overview</h2>
+            <p>
+                The production-ready SAQR topology is intentionally split into observation, interpretation, evidence,
+                and presentation layers. The system remains read-only against client source systems.
+            </p>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Primary Role</th>
+                        <th>Runtime Entry / Key Artifact</th>
+                        <th>Delivery Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Shield UI</td>
+                        <td>Frozen Phase 1 interface shell for dashboard, evidence visibility, and operator workflow.</td>
+                        <td><code>apps/shield-ui</code></td>
+                        <td>Use unchanged UI; configure runtime injection only.</td>
+                    </tr>
+                    <tr>
+                        <td>SAQR API</td>
+                        <td>Read API for dashboard metrics, staging visibility, evidence, and health metadata.</td>
+                        <td><code>apps/api/src/index.js</code></td>
+                        <td>Wire real bearer token issuance to documented JWT contract.</td>
+                    </tr>
+                    <tr>
+                        <td>Evidence Vault</td>
+                        <td>CDC processing, evidence sealing, rule evaluation, and Merkle logging.</td>
+                        <td><code>services/evidence-vault/src/index.js</code></td>
+                        <td>Needs Kafka and shadow DB.</td>
+                    </tr>
+                    <tr>
+                        <td>Sentinel Scrapers</td>
+                        <td>Regulatory-source collection and staging.</td>
+                        <td><code>services/sentinel-scrapers/src/index.js</code></td>
+                        <td>Live scope currently centered on SAMA and SDAIA.</td>
+                    </tr>
+                    <tr>
+                        <td>NLP Interpreter</td>
+                        <td>Circular parsing, obligation extraction, and drift detection.</td>
+                        <td><code>services/nlp-interpreter/src/index.js</code></td>
+                        <td>Interface-ready and test-backed; still delivery-wired in real environments.</td>
+                    </tr>
+                    <tr>
+                        <td>CV Watchman</td>
+                        <td>VMS scan-cycle processing, detection, and evidence creation.</td>
+                        <td><code>services/cv-watchman/src/index.js</code></td>
+                        <td>Requires delivery-side VMS provider connection and calibration.</td>
+                    </tr>
+                    <tr>
+                        <td>CDC Connector Artifacts</td>
+                        <td>Debezium connector registration and source DB contract.</td>
+                        <td><code>services/cdc-connector</code></td>
+                        <td>Artifact set, not a runnable Node service.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>4.1 Runtime modes</h3>
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Runtime</th>
+                                <th>Intended Use</th>
+                                <th>Behavior</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>demo</code></td>
+                                <td>Client demo continuity</td>
+                                <td>Allows embedded demo data, simulation helpers, and silent fallback paths.</td>
+                            </tr>
+                            <tr>
+                                <td><code>production-ready</code></td>
+                                <td>Delivery handoff baseline</td>
+                                <td>Rejects demo-only execution modes and enforces fail-fast config rules.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel">
+                    <h3>4.2 Core architectural rules</h3>
+                    <ul>
+                        <li>SAQR remains read-only to client source systems.</li>
+                        <li>Runtime enforcement is centralized through shared profile utilities.</li>
+                        <li>Config validation is centralized through shared service-config utilities.</li>
+                        <li>Provider boundaries are explicit so delivery can swap infrastructure adapters without rewriting core logic.</li>
+                        <li>Observability is structured and shared across services.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="artifact-map">
+            <span class="section-kicker">Artifact Inventory</span>
+            <h2>5. Repository Artifact Map</h2>
+            <p>
+                The following artifacts are the canonical handoff package entrypoints and supporting references the
+                delivery team should use first.
+            </p>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Key Artifacts</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Primary handoff entrypoints</td>
+                        <td>
+                            <code>docs/handoff/README.md</code><br>
+                            <code>docs/handoff/SAQR_Phase1_Handoff_Summary.md</code><br>
+                            <code>docs/handoff/SAQR_Phase1_Delivery_Worklist.md</code><br>
+                            <code>docs/handoff/SAQR_Phase1_Validation_Guide.md</code>
+                        </td>
+                        <td>Canonical starting point for delivery pickup.</td>
+                    </tr>
+                    <tr>
+                        <td>Architecture and runbooks</td>
+                        <td>
+                            <code>docs/architecture/SAQR_Phase1_Architecture_Overview.md</code><br>
+                            <code>docs/runbooks/SAQR_Phase1_Operations_Runbook.md</code><br>
+                            <code>docs/runbooks/SAQR_Phase1_Dependency_Incident_Runbook.md</code>
+                        </td>
+                        <td>Operating model, dependency awareness, and troubleshooting guidance.</td>
+                    </tr>
+                    <tr>
+                        <td>Contracts</td>
+                        <td>
+                            <code>docs/contracts/saqr-service-contracts.md</code><br>
+                            <code>docs/contracts/saqr-api.openapi.yaml</code><br>
+                            <code>docs/contracts/saqr-execution-sequences.yaml</code><br>
+                            <code>docs/contracts/saqr-integration-adapters.md</code>
+                        </td>
+                        <td>Delivery implementation contract and system boundary definition.</td>
+                    </tr>
+                    <tr>
+                        <td>Deployment and data</td>
+                        <td>
+                            <code>infra/docker-compose.production.yml</code><br>
+                            <code>infra/k8s/base/*</code><br>
+                            <code>infra/migrations/*</code><br>
+                            <code>docs/contracts/saqr-data-dictionary.md</code>
+                        </td>
+                        <td>Packaging templates, migration baseline, and schema governance.</td>
+                    </tr>
+                    <tr>
+                        <td>Validation</td>
+                        <td>
+                            <code>package.json</code><br>
+                            <code>tools/ci/run-phase1-quality-gates.js</code><br>
+                            <code>tools/ci/run-phase1-release-readiness.js</code><br>
+                            <code>tools/ci/verify-phase1-handoff-package.js</code>
+                        </td>
+                        <td>Free-toolchain validation and release-readiness flow.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="delivery-workstreams">
+            <span class="section-kicker">Responsibilities</span>
+            <h2>6. Delivery Workstreams and Responsibilities</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Workstream</th>
+                        <th>Repo Status</th>
+                        <th>Delivery Team Must Do</th>
+                        <th>Completion Evidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Identity and API access</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Wire a real token issuer or IdP, issue compatible JWTs, validate access from frozen UI.</td>
+                        <td>Authenticated API requests succeed with delivery-issued tokens.</td>
+                    </tr>
+                    <tr>
+                        <td>Shadow database and schema</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Provision target PostgreSQL, apply migrations, validate least-privilege access for services.</td>
+                        <td>Startup validation passes and shadow tables are queryable.</td>
+                    </tr>
+                    <tr>
+                        <td>CDC and messaging</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Provision Kafka and Kafka Connect / Debezium, register connector artifacts, validate event flow.</td>
+                        <td>CDC topics populate and Evidence Vault consumes correctly.</td>
+                    </tr>
+                    <tr>
+                        <td>Regulatory sources</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Validate live SAMA and SDAIA scraping in target network conditions. Add more authorities only if needed.</td>
+                        <td>Stable live staging ingestion with documented selector behavior.</td>
+                    </tr>
+                    <tr>
+                        <td>CV and VMS</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Connect the real VMS provider, validate scan-cycle behavior, calibrate pilot detection behavior.</td>
+                        <td>Real camera connectivity and validated evidence persistence.</td>
+                    </tr>
+                    <tr>
+                        <td>Platform deployment</td>
+                        <td><span class="pill amber">Delivery action</span></td>
+                        <td>Replace placeholders, tailor compose or Kubernetes packaging, configure ingress, TLS, registry, and network controls.</td>
+                        <td>Target-environment deployment plan and secure runtime manifest.</td>
+                    </tr>
+                    <tr>
+                        <td>Demo preservation</td>
+                        <td><span class="pill green">Complete in repo</span></td>
+                        <td>Keep the demo environment separate from the production-ready deployment path.</td>
+                        <td>Demo path remains runnable and unchanged.</td>
+                    </tr>
+                    <tr>
+                        <td>Phase 2 feature set</td>
+                        <td><span class="pill red">Excluded</span></td>
+                        <td>Do not scope or imply workflow-engine or multi-entity features as part of this handoff.</td>
+                        <td>Phase 2 tracked independently.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout.info">
+                <strong>Recommended Delivery Order</strong>
+                <p>
+                    1. Provision shadow DB and schema. 2. Wire auth and API access. 3. Establish Kafka and CDC flow.
+                    4. Validate Sentinel and NLP. 5. Connect CV to real VMS. 6. Apply target deployment controls. 7.
+                    Run full validation and pilot-readiness signoff.
+                </p>
+            </div>
+        </section>
+
+        <section class="page" id="configuration">
+            <span class="section-kicker">Configuration Baseline</span>
+            <h2>7. Environment and Configuration Baseline</h2>
+            <p>
+                Delivery must preserve the two-track configuration model and respect the production-ready fail-fast
+                rules. No real secrets are stored in the repository.
+            </p>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Area</th>
+                        <th>Variables / Controls</th>
+                        <th>Delivery Guidance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Global runtime</td>
+                        <td><code>SAQR_RUNTIME_MODE</code>, <code>SAQR_LOG_LEVEL</code>, <code>SAQR_AUDIT_LOG_ENABLED</code></td>
+                        <td>Use <code>production-ready</code> behavior for delivery environments and keep demo isolated.</td>
+                    </tr>
+                    <tr>
+                        <td>API</td>
+                        <td><code>API_HOST</code>, <code>API_PORT</code>, <code>AUTH_ENABLED</code>, <code>JWT_SECRET</code>, <code>AUTH_JWT_ISSUER</code>, <code>AUTH_JWT_AUDIENCE</code></td>
+                        <td>Do not disable auth in the production-ready track.</td>
+                    </tr>
+                    <tr>
+                        <td>Shared DB</td>
+                        <td><code>SHADOW_DB_HOST</code>, <code>SHADOW_DB_PORT</code>, <code>SHADOW_DB_NAME</code>, <code>SHADOW_DB_USER</code>, <code>SHADOW_DB_PASSWORD</code></td>
+                        <td>Placeholder values are rejected in production-ready mode.</td>
+                    </tr>
+                    <tr>
+                        <td>Evidence Vault</td>
+                        <td><code>KAFKA_BOOTSTRAP_SERVERS</code>, <code>EVIDENCE_VAULT_TOPICS</code>, <code>NTP_SERVER</code></td>
+                        <td>Kafka and NTP validation are part of delivery readiness.</td>
+                    </tr>
+                    <tr>
+                        <td>Sentinel</td>
+                        <td><code>SENTINEL_MODE</code>, <code>SENTINEL_CRON</code>, <code>SENTINEL_BROWSER_HEADLESS</code></td>
+                        <td><code>demo</code> mode is not acceptable in the production-ready track.</td>
+                    </tr>
+                    <tr>
+                        <td>NLP</td>
+                        <td><code>NLP_BOOT_MODE</code>, <code>NLP_VALIDATE_DB_ON_STARTUP</code></td>
+                        <td><code>demo-ingest</code> is rejected in production-ready mode.</td>
+                    </tr>
+                    <tr>
+                        <td>CV Watchman</td>
+                        <td><code>VMS_TYPE</code>, <code>CV_VMS_HOST</code>, <code>CV_VMS_USERNAME</code>, <code>CV_VMS_PASSWORD</code></td>
+                        <td><code>demo</code> VMS is not acceptable in the production-ready track.</td>
+                    </tr>
+                    <tr>
+                        <td>UI runtime injection</td>
+                        <td><code>SAQR_UI_API_BASE</code>, <code>SAQR_UI_AUTH_ENABLED</code>, <code>SAQR_UI_TOKEN_STORAGE_KEY</code></td>
+                        <td>UI configuration only; no visual redesign required.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>Source templates</h3>
+                    <ul>
+                        <li><code>.env.demo.example</code> keeps the current demo baseline.</li>
+                        <li><code>.env.production.example</code> is the delivery handoff placeholder template.</li>
+                        <li><code>shared/runtime-profile.js</code> controls demo versus production-ready behavior.</li>
+                        <li><code>shared/service-config.js</code> centralizes placeholder rejection and startup validation.</li>
+                    </ul>
+                </div>
+                <div class="panel">
+                    <h3>Configuration hygiene rules</h3>
+                    <ul>
+                        <li>Never commit real client secrets into the repository.</li>
+                        <li>Do not bypass runtime validation to force a service up.</li>
+                        <li>Keep config changes synchronized with templates, docs, and contracts.</li>
+                        <li>Treat localhost warnings in production-ready mode as delivery action items.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="prerequisites">
+            <span class="section-kicker">External Dependencies</span>
+            <h2>8. External Prerequisites</h2>
+            <div class="callout.danger">
+                <strong>Critical Dependency Notice</strong>
+                <p>
+                    The repository does not provision the client environment. Delivery must bring the external
+                    dependencies below before any production-ready deployment claim is made.
+                </p>
+            </div>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Prerequisite</th>
+                        <th>Owner</th>
+                        <th>Required For</th>
+                        <th>If Missing</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Shadow PostgreSQL</td>
+                        <td>Client or delivery team</td>
+                        <td>API, Evidence Vault, NLP, CV, Sentinel</td>
+                        <td>Core persistence and visibility paths do not function.</td>
+                    </tr>
+                    <tr>
+                        <td>Kafka and Kafka Connect / Debezium</td>
+                        <td>Client or delivery team</td>
+                        <td>CDC connector and Evidence Vault</td>
+                        <td>CDC evidence path is not live.</td>
+                    </tr>
+                    <tr>
+                        <td>Identity provider or token issuer</td>
+                        <td>Delivery team</td>
+                        <td>Authenticated API access from Shield UI</td>
+                        <td>Production-ready auth contract cannot be exercised.</td>
+                    </tr>
+                    <tr>
+                        <td>VMS endpoint and credentials</td>
+                        <td>Client or delivery team</td>
+                        <td>CV Watchman</td>
+                        <td>Real camera scan flow remains unvalidated.</td>
+                    </tr>
+                    <tr>
+                        <td>Ingress, DNS, TLS, storage, and cluster controls</td>
+                        <td>Delivery team</td>
+                        <td>Compose / Kubernetes deployment</td>
+                        <td>No secure client deployment posture exists.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="validation">
+            <span class="section-kicker">Validation</span>
+            <h2>9. Validation and Signoff Path</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Step</th>
+                        <th>Command</th>
+                        <th>Expected Signal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Workspace bootstrap</td>
+                        <td><code>npm run phase1:bootstrap</code></td>
+                        <td><code>workspace bootstrap complete</code></td>
+                    </tr>
+                    <tr>
+                        <td>Handoff package verification</td>
+                        <td><code>npm run phase1:handoff:verify</code></td>
+                        <td>PASS line confirming manifest and references are valid</td>
+                    </tr>
+                    <tr>
+                        <td>Quality gates</td>
+                        <td><code>npm run phase1:quality</code></td>
+                        <td>All listed gates report PASSED</td>
+                    </tr>
+                    <tr>
+                        <td>Release-readiness</td>
+                        <td><code>npm run phase1:release:verify</code></td>
+                        <td><code>release-readiness verification complete</code></td>
+                    </tr>
+                    <tr>
+                        <td>Container build smoke test</td>
+                        <td><code>npm run phase1:release:verify -- --build-containers</code></td>
+                        <td>Production-ready images build successfully</td>
+                    </tr>
+                    <tr>
+                        <td>UI freeze verification</td>
+                        <td><code>npm --prefix apps/shield-ui run ui:baseline:check</code></td>
+                        <td>UI baseline check passes for all tracked files</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="checklist">
+                <div class="checklist-item">
+                    <strong>Repo package signoff</strong>
+                    Bootstrap, handoff verification, quality gates, and release-readiness must all pass.
+                </div>
+                <div class="checklist-item">
+                    <strong>Delivery-environment signoff</strong>
+                    DB, Kafka, IdP, VMS, and platform prerequisites must be wired and validated in target conditions.
+                </div>
+                <div class="checklist-item">
+                    <strong>Pilot-readiness signoff</strong>
+                    Real-environment validation must be complete before any production-live claim is made.
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="risks">
+            <span class="section-kicker">Risks and Limits</span>
+            <h2>10. Risks, Limits, and Explicit Exclusions</h2>
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>Current limits that remain true</h3>
+                    <ul>
+                        <li>No real client DB, Kafka, IdP, or VMS is provisioned in-repo.</li>
+                        <li>Sentinel live implementation is currently centered on SAMA and SDAIA.</li>
+                        <li>NLP and CV are interface-ready and test-backed, but pilot fit must still be validated in the target environment.</li>
+                        <li>Kubernetes manifests are base templates, not final client manifests.</li>
+                    </ul>
+                </div>
+                <div class="panel">
+                    <h3>Items that are explicitly out of scope for Phase 1</h3>
+                    <ul>
+                        <li>LogicGate-style no-code workflow engine.</li>
+                        <li>Archer-style multi-entity model.</li>
+                        <li>Cross-entity reporting and sovereign topology expansion beyond current packaging.</li>
+                        <li>Any promise of turnkey client go-live from repo contents alone.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout.warning">
+                <strong>Delivery Messaging Rule</strong>
+                <p>
+                    Describe this handoff as a production-ready implementation package for the delivery team. Do not
+                    describe it as a client-ready production deployment until delivery-owned prerequisites and pilot
+                    evidence exist.
+                </p>
+            </div>
+        </section>
+
+        <section class="page" id="appendices">
+            <span class="section-kicker">Appendices</span>
+            <h2>11. Appendices</h2>
+
+            <h3>11.1 Key file paths</h3>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Purpose</th>
+                        <th>Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Primary handoff package</td>
+                        <td><code>docs/handoff/README.md</code></td>
+                    </tr>
+                    <tr>
+                        <td>Service contracts</td>
+                        <td><code>docs/contracts/saqr-service-contracts.md</code></td>
+                    </tr>
+                    <tr>
+                        <td>Architecture overview</td>
+                        <td><code>docs/architecture/SAQR_Phase1_Architecture_Overview.md</code></td>
+                    </tr>
+                    <tr>
+                        <td>Deployment blueprint</td>
+                        <td><code>docs/SAQR_Phase1_Deployment_Blueprint.md</code></td>
+                    </tr>
+                    <tr>
+                        <td>Configuration guide</td>
+                        <td><code>docs/guides/SAQR_Phase1_Configuration_Guide.md</code></td>
+                    </tr>
+                    <tr>
+                        <td>Release checklist</td>
+                        <td><code>docs/checklists/SAQR_Phase1_Release_Checklist.md</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>11.2 Delivery handoff statement</h3>
+            <div class="callout.success">
+                <strong>Final Handoff Statement</strong>
+                <p>
+                    Delivery may now take ownership of the SAQR Phase 1 package, wire the client-specific
+                    infrastructure, execute the documented validation path, and continue into pilot deployment work
+                    without first reworking the core architecture or changing the user experience.
+                </p>
+            </div>
+
+            <p class="small-note">
+                End of document.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

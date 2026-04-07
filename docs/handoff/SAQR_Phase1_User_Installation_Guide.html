@@ -1,0 +1,1065 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SAQR Phase 1 user installation and evaluation guide">
+    <title>SAQR Phase 1 User Installation Guide</title>
+    <style>
+:root {
+    --page-bg: #f3f7fb;
+    --paper: #ffffff;
+    --ink: #0f172a;
+    --muted: #475569;
+    --border: #d7e3ef;
+    --border-strong: #bfd1e3;
+    --brand: #0f766e;
+    --brand-strong: #115e59;
+    --brand-soft: #d8f3ef;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --warn: #b45309;
+    --warn-soft: #fef3c7;
+    --danger: #b91c1c;
+    --danger-soft: #fee2e2;
+    --success: #166534;
+    --success-soft: #dcfce7;
+    --shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 28%),
+        radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 32%),
+        linear-gradient(180deg, #eff5fb 0%, #f7fbff 100%);
+    color: var(--ink);
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+code,
+pre,
+.mono {
+    font-family: "Consolas", "Courier New", monospace;
+}
+
+main.doc-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 24px 72px;
+}
+
+.page {
+    background: var(--paper);
+    border: 1px solid rgba(191, 209, 227, 0.7);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 44px 48px;
+    margin-bottom: 28px;
+}
+
+.page.cover {
+    min-height: calc(100vh - 88px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.95), rgba(30, 64, 175, 0.92)),
+        linear-gradient(180deg, #115e59, #1d4ed8);
+    color: #ffffff;
+    border: none;
+}
+
+.cover .eyebrow {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.cover h1 {
+    margin: 18px 0 12px;
+    font-size: 3rem;
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+}
+
+.cover .subtitle {
+    max-width: 760px;
+    font-size: 1.22rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.cover-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.cover-card {
+    border-radius: 18px;
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.cover-card .label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.cover-card .value {
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.cover-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: flex-end;
+    margin-top: 36px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.95rem;
+}
+
+.doc-title {
+    margin: 0 0 10px;
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.doc-lead {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1.06rem;
+}
+
+.toc {
+    margin-top: 22px;
+    display: grid;
+    gap: 10px;
+}
+
+.toc a {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #fbfdff;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.toc a span:last-child {
+    color: var(--muted);
+}
+
+.section-kicker {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--brand-soft);
+    color: var(--brand-strong);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+h2 {
+    margin: 0 0 12px;
+    font-size: 1.72rem;
+    line-height: 1.24;
+    letter-spacing: -0.02em;
+}
+
+h3 {
+    margin: 28px 0 10px;
+    font-size: 1.16rem;
+    line-height: 1.35;
+}
+
+p {
+    margin: 0 0 14px;
+}
+
+ul,
+ol {
+    margin: 0 0 14px 22px;
+}
+
+li {
+    margin: 0 0 8px;
+}
+
+.grid-2,
+.grid-3 {
+    display: grid;
+    gap: 18px;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panel {
+    padding: 20px 22px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.panel h3:first-child {
+    margin-top: 0;
+}
+
+.metric-card {
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: #ffffff;
+}
+
+.metric-card .metric-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.metric-card .metric-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.metric-card .metric-note {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.callout {
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    margin: 18px 0;
+}
+
+.callout strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.94rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.callout p:last-child,
+.callout ul:last-child {
+    margin-bottom: 0;
+}
+
+.callout.success {
+    background: var(--success-soft);
+    border-color: #b7e4c7;
+}
+
+.callout.success strong {
+    color: var(--success);
+}
+
+.callout.warning {
+    background: var(--warn-soft);
+    border-color: #f4d88a;
+}
+
+.callout.warning strong {
+    color: var(--warn);
+}
+
+.callout.danger {
+    background: var(--danger-soft);
+    border-color: #f6b5b5;
+}
+
+.callout.danger strong {
+    color: var(--danger);
+}
+
+.callout.info {
+    background: var(--accent-soft);
+    border-color: #bcd7ff;
+}
+
+.callout.info strong {
+    color: #1d4ed8;
+}
+
+.status-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.status-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.status-badge.complete {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.status-badge.action {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+
+.status-badge.excluded {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0 8px;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+}
+
+.doc-table th,
+.doc-table td {
+    padding: 14px 15px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    text-align: left;
+}
+
+.doc-table thead th {
+    background: linear-gradient(90deg, #0f766e, #2563eb);
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.doc-table tbody tr:nth-child(even) td {
+    background: #f8fbff;
+}
+
+.doc-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.pill.green {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
+.pill.amber {
+    background: var(--warn-soft);
+    color: var(--warn);
+}
+
+.pill.blue {
+    background: var(--accent-soft);
+    color: #1d4ed8;
+}
+
+.pill.red {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+pre.code-block {
+    margin: 16px 0;
+    padding: 18px;
+    border: 1px solid #d7e3ef;
+    border-radius: 18px;
+    background: #0f172a;
+    color: #e2e8f0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+    overflow-x: auto;
+}
+
+.small-note {
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.checklist {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.checklist-item {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.checklist-item strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.page-break {
+    page-break-after: always;
+}
+
+@media (max-width: 980px) {
+    .cover-grid,
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .page {
+        padding: 28px 24px;
+    }
+
+    .cover h1 {
+        font-size: 2.3rem;
+    }
+
+    .cover-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media print {
+    @page {
+        size: A4;
+        margin: 14mm;
+    }
+
+    body {
+        background: #ffffff;
+    }
+
+    main.doc-shell {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .page {
+        box-shadow: none;
+        border: 1px solid #cfd8e3;
+        margin: 0 0 12mm;
+        break-inside: avoid;
+    }
+
+    .page.cover {
+        min-height: 257mm;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+}
+
+</style>
+</head>
+<body>
+    <main class="doc-shell">
+        <section class="page cover">
+            <div>
+                <span class="eyebrow">Phase 1 User Guide</span>
+                <h1>SAQR Installation and Evaluation Guide</h1>
+                <p class="subtitle">
+                    A client-facing technical guide for installing and trying the preserved SAQR Phase 1 demo path.
+                    This document is intentionally honest: it enables local evaluation, not direct production
+                    deployment.
+                </p>
+                <div class="cover-grid">
+                    <div class="cover-card">
+                        <span class="label">Audience</span>
+                        <span class="value">Client Technical Review Team</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Primary Path</span>
+                        <span class="value">Demo Evaluation Install</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Phase</span>
+                        <span class="value">Phase 1</span>
+                    </div>
+                    <div class="cover-card">
+                        <span class="label">Date</span>
+                        <span class="value">2026-04-07</span>
+                    </div>
+                </div>
+            </div>
+            <div class="cover-footer">
+                <div>
+                    <strong>Use This Document For</strong><br>
+                    Local installation and trial of the preserved demo experience.
+                </div>
+                <div>
+                    <strong>Do Not Use This Document For</strong><br>
+                    Production deployment, security hardening, or client cutover.
+                </div>
+            </div>
+        </section>
+
+        <section class="page page-break">
+            <span class="section-kicker">Contents</span>
+            <h2 class="doc-title">Table of Contents</h2>
+            <p class="doc-lead">
+                Read this guide in order. The recommended install path is the demo evaluation route.
+            </p>
+            <nav class="toc">
+                <a href="#exec"><span>1. Executive Summary</span><span>01</span></a>
+                <a href="#scope"><span>2. Scope, Audience, and Limitations</span><span>02</span></a>
+                <a href="#requirements"><span>3. System Requirements</span><span>03</span></a>
+                <a href="#package"><span>4. Package Contents</span><span>04</span></a>
+                <a href="#decision"><span>5. Installation Decision Guide</span><span>05</span></a>
+                <a href="#steps"><span>6. Step-by-Step Demo Evaluation Install</span><span>06</span></a>
+                <a href="#validation"><span>7. First-Run Validation</span><span>07</span></a>
+                <a href="#try"><span>8. How To Try SAQR</span><span>08</span></a>
+                <a href="#troubleshooting"><span>9. Troubleshooting</span><span>09</span></a>
+                <a href="#cleanup"><span>10. Stop and Cleanup</span><span>10</span></a>
+            </nav>
+        </section>
+
+        <section class="page" id="exec">
+            <span class="section-kicker">Executive Summary</span>
+            <h2>1. Executive Summary</h2>
+            <p>
+                This guide provides a practical way for a client technical team to install and try SAQR Phase 1
+                locally using the preserved demo environment. It is designed for evaluation, walkthroughs, and limited
+                hands-on testing of the user experience and core platform narrative.
+            </p>
+            <div class="callout.warning">
+                <strong>Important Truth</strong>
+                <p>
+                    The installation path in this guide is not a production deployment. It is a local evaluation path
+                    based on the preserved demo runtime. The production-ready handoff package exists for the delivery
+                    team and requires external prerequisites not provided in this repository.
+                </p>
+            </div>
+            <div class="grid-3">
+                <div class="metric-card">
+                    <span class="metric-label">Recommended Outcome</span>
+                    <span class="metric-value">Local Trial</span>
+                    <span class="metric-note">Validate the UI flow, demo runtime, and API heartbeat locally.</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Technical Level</span>
+                    <span class="metric-value">Moderate</span>
+                    <span class="metric-note">Designed for technical reviewers comfortable with terminal commands.</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Expected Time</span>
+                    <span class="metric-value">20-30 Min</span>
+                    <span class="metric-note">Assuming Node.js is already installed.</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="page" id="scope">
+            <span class="section-kicker">Scope</span>
+            <h2>2. Scope, Audience, and Limitations</h2>
+            <div class="grid-2">
+                <div class="panel">
+                    <h3>2.1 Intended audience</h3>
+                    <ul>
+                        <li>Client technical reviewers</li>
+                        <li>Client innovation or digital teams</li>
+                        <li>Client compliance stakeholders supported by a technical user</li>
+                    </ul>
+                </div>
+                <div class="panel">
+                    <h3>2.2 What this guide covers</h3>
+                    <ul>
+                        <li>Local dependency bootstrap</li>
+                        <li>Launching the demo-mode API</li>
+                        <li>Opening the preserved Shield UI</li>
+                        <li>Verifying first-run success</li>
+                        <li>Trying core demo interactions safely</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Included In This Guide</th>
+                        <th>Not Included In This Guide</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Demo environment</td>
+                        <td><span class="pill green">Yes</span></td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Production-ready delivery handoff</td>
+                        <td><span class="pill amber">Referenced only</span></td>
+                        <td>Direct client self-install</td>
+                    </tr>
+                    <tr>
+                        <td>Real DB, Kafka, IdP, or VMS integration</td>
+                        <td><span class="pill red">No</span></td>
+                        <td>Handled by delivery team</td>
+                    </tr>
+                    <tr>
+                        <td>Production cutover</td>
+                        <td><span class="pill red">No</span></td>
+                        <td>Outside Phase 1 client trial scope</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="requirements">
+            <span class="section-kicker">Requirements</span>
+            <h2>3. System Requirements</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>Minimum</th>
+                        <th>Recommended</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Operating system</td>
+                        <td>Windows 10/11, macOS, or Linux</td>
+                        <td>Windows 11 or recent macOS / Linux</td>
+                    </tr>
+                    <tr>
+                        <td>Node.js</td>
+                        <td>Version 22</td>
+                        <td>Latest 22.x LTS-compatible release</td>
+                    </tr>
+                    <tr>
+                        <td>npm</td>
+                        <td>Installed with Node.js</td>
+                        <td>Latest version bundled with Node.js 22</td>
+                    </tr>
+                    <tr>
+                        <td>Browser</td>
+                        <td>Chrome, Edge, or Firefox</td>
+                        <td>Latest Chrome or Edge</td>
+                    </tr>
+                    <tr>
+                        <td>Disk space</td>
+                        <td>3 GB free</td>
+                        <td>5 GB free</td>
+                    </tr>
+                    <tr>
+                        <td>Internet access</td>
+                        <td>Needed for npm package install</td>
+                        <td>Needed for a smoother first-time setup</td>
+                    </tr>
+                    <tr>
+                        <td>Optional utility</td>
+                        <td>Python 3 for local static hosting</td>
+                        <td>Python 3 installed and available on PATH</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout.info">
+                <strong>Free-Tool Rule</strong>
+                <p>
+                    The steps below use only free tools: Node.js, npm, a web browser, and optionally Python for local
+                    static file serving.
+                </p>
+            </div>
+        </section>
+
+        <section class="page" id="package">
+            <span class="section-kicker">Package Contents</span>
+            <h2>4. Package Contents</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Why It Matters For Installation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>apps/shield-ui</code></td>
+                        <td>Contains the Gateway Selector and Shield Dashboard UI.</td>
+                    </tr>
+                    <tr>
+                        <td><code>apps/api</code></td>
+                        <td>Contains the API service used for local heartbeat validation.</td>
+                    </tr>
+                    <tr>
+                        <td><code>.env.demo.example</code></td>
+                        <td>Contains the demo runtime configuration values used in this guide.</td>
+                    </tr>
+                    <tr>
+                        <td><code>tools/ci/bootstrap-workspace.js</code></td>
+                        <td>Used by <code>npm run phase1:bootstrap</code> to install dependencies.</td>
+                    </tr>
+                    <tr>
+                        <td><code>docs/handoff/*</code></td>
+                        <td>Delivery-team package. Useful for technical reference, but not needed for basic client trial.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="decision">
+            <span class="section-kicker">Decision Guide</span>
+            <h2>5. Installation Decision Guide</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>If you want to...</th>
+                        <th>Use this path</th>
+                        <th>Recommended?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>See the preserved SAQR experience quickly and safely</td>
+                        <td>Demo evaluation install in this guide</td>
+                        <td><span class="pill green">Yes</span></td>
+                    </tr>
+                    <tr>
+                        <td>Validate production-ready infrastructure wiring</td>
+                        <td>Delivery-team handoff package</td>
+                        <td><span class="pill amber">Delivery only</span></td>
+                    </tr>
+                    <tr>
+                        <td>Go live in a client environment</td>
+                        <td>Not covered by this guide</td>
+                        <td><span class="pill red">No</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="steps">
+            <span class="section-kicker">Installation Steps</span>
+            <h2>6. Step-by-Step Demo Evaluation Install</h2>
+            <h3>Step 1. Obtain the repository package</h3>
+            <p>Place the SAQR repository on your machine by either:</p>
+            <ul>
+                <li>cloning it from GitHub, or</li>
+                <li>extracting the provided ZIP into a local working folder.</li>
+            </ul>
+            <pre class="code-block">git clone https://github.com/aboutony/SAQR.git
+cd SAQR</pre>
+
+            <h3>Step 2. Open a terminal in the repository root</h3>
+            <p>
+                The repository root is the folder that contains <code>package.json</code>,
+                <code>apps</code>, <code>services</code>, <code>docs</code>, and <code>infra</code>.
+            </p>
+
+            <h3>Step 3. Install all required dependencies</h3>
+            <p>Run the Phase 1 bootstrap command from the repository root:</p>
+            <pre class="code-block">npm run phase1:bootstrap</pre>
+            <p class="small-note">
+                Expected success signal: <code>[phase1:bootstrap] workspace bootstrap complete</code>
+            </p>
+
+            <h3>Step 4. Start the SAQR demo API</h3>
+            <p>
+                Open a dedicated terminal window and use the following PowerShell commands. These commands load the
+                demo configuration into the current process and start the API in demo mode.
+            </p>
+            <pre class="code-block">Get-Content .env.demo.example | Where-Object { $_ -and $_ -notmatch '^\s*#' } | ForEach-Object {
+    $name, $value = $_ -split '=', 2
+    [System.Environment]::SetEnvironmentVariable($name, $value, 'Process')
+}
+
+Set-Location apps\api
+npm start</pre>
+            <p>
+                Keep this terminal window open while you are evaluating SAQR.
+            </p>
+
+            <h3>Step 5. Verify the API heartbeat</h3>
+            <p>In a browser, open the following URL:</p>
+            <pre class="code-block">http://127.0.0.1:3001/api/v1/sources/heartbeat</pre>
+            <p>
+                You should receive a JSON response with demo runtime status and the demo authority list.
+            </p>
+
+            <h3>Step 6. Launch the Shield UI</h3>
+            <p>The fastest path is to open the Gateway Selector directly in your browser:</p>
+            <pre class="code-block">apps\shield-ui\GatewaySelector.html</pre>
+            <p>
+                If your browser or security policy does not allow local HTML execution comfortably, use a simple local
+                static server from the <code>apps/shield-ui</code> folder:
+            </p>
+            <pre class="code-block">cd apps\shield-ui
+python -m http.server 8080</pre>
+            <p>Then open:</p>
+            <pre class="code-block">http://127.0.0.1:8080/GatewaySelector.html</pre>
+        </section>
+
+        <section class="page" id="validation">
+            <span class="section-kicker">First Run</span>
+            <h2>7. First-Run Validation</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Checkpoint</th>
+                        <th>What Success Looks Like</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Bootstrap complete</td>
+                        <td>The install command completes without dependency errors.</td>
+                    </tr>
+                    <tr>
+                        <td>API heartbeat</td>
+                        <td>The heartbeat URL returns JSON with <code>"runtimeMode":"demo"</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>Gateway Selector opens</td>
+                        <td>The initial SAQR gateway page renders in your browser.</td>
+                    </tr>
+                    <tr>
+                        <td>Dashboard opens</td>
+                        <td>After session setup, the Shield dashboard loads without a fatal error page.</td>
+                    </tr>
+                    <tr>
+                        <td>Demo behavior appears</td>
+                        <td>You can see demo metrics, demo stream behavior, and preserved controls.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout.success">
+                <strong>Validated In This Repository</strong>
+                <p>
+                    The local demo API startup and heartbeat path were verified from this repository state while
+                    preparing this guide.
+                </p>
+            </div>
+        </section>
+
+        <section class="page" id="try">
+            <span class="section-kicker">Try SAQR</span>
+            <h2>8. How To Try SAQR</h2>
+            <h3>8.1 Initialize a session</h3>
+            <ol>
+                <li>Open the Gateway Selector page.</li>
+                <li>Enter a corporate email and organization ID.</li>
+                <li>Select a market, industry, and language.</li>
+                <li>Enter the dashboard.</li>
+            </ol>
+
+            <h3>8.2 Suggested evaluation path</h3>
+            <ul>
+                <li>Review the top-level dashboard metrics and authority heartbeat.</li>
+                <li>Inspect the Meta-Audit Stream table and the Instruction Drift panel.</li>
+                <li>Try the preserved demo controls if they are visible in the demo runtime.</li>
+                <li>Observe how the session changes based on market and industry selection.</li>
+            </ul>
+
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>What you may see</th>
+                        <th>Why it appears</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Demo metrics and populated cards</td>
+                        <td>The demo runtime intentionally preserves embedded data and simulation flows.</td>
+                    </tr>
+                    <tr>
+                        <td>Authority heartbeat data</td>
+                        <td>The demo API exposes a local heartbeat endpoint on port 3001.</td>
+                    </tr>
+                    <tr>
+                        <td>Read-only posture badges</td>
+                        <td>SAQR is intentionally designed as a read-only compliance interception product.</td>
+                    </tr>
+                    <tr>
+                        <td>No real client data</td>
+                        <td>This guide does not connect any client DB, VMS, or third-party platform.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="callout.warning">
+                <strong>What This Trial Does Not Prove</strong>
+                <p>
+                    A successful local evaluation does not prove production readiness in the client environment. It
+                    only proves that the preserved Phase 1 demo path can be installed and tried locally.
+                </p>
+            </div>
+
+            <h3>8.3 Optional note for advanced technical reviewers</h3>
+            <p>
+                The repository also includes a production-ready handoff package for the delivery team. That path is
+                documented separately and depends on real infrastructure such as shadow PostgreSQL, Kafka, an identity
+                provider, and VMS connectivity. It is not a self-service client install path.
+            </p>
+        </section>
+
+        <section class="page" id="troubleshooting">
+            <span class="section-kicker">Troubleshooting</span>
+            <h2>9. Troubleshooting</h2>
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th>Issue</th>
+                        <th>Likely Cause</th>
+                        <th>Suggested Fix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>npm run phase1:bootstrap</code> fails</td>
+                        <td>Node.js or npm is missing, outdated, or blocked by network policy.</td>
+                        <td>Install Node.js 22 and rerun the bootstrap command.</td>
+                    </tr>
+                    <tr>
+                        <td>Heartbeat URL does not respond</td>
+                        <td>The API terminal is not running or port 3001 is in use.</td>
+                        <td>Restart the API terminal and confirm nothing else is bound to port 3001.</td>
+                    </tr>
+                    <tr>
+                        <td>UI opens but looks incomplete</td>
+                        <td>Local file restrictions or blocked external assets in the browser.</td>
+                        <td>Use the optional Python static server path and reopen the UI through <code>http://127.0.0.1:8080</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>The dashboard opens but some live calls fail</td>
+                        <td>The demo runtime still attempts heartbeat visibility through the API.</td>
+                        <td>Confirm the API terminal is running and the heartbeat URL returns JSON.</td>
+                    </tr>
+                    <tr>
+                        <td>You expected real client integrations</td>
+                        <td>This guide is limited to the preserved demo path.</td>
+                        <td>Escalate to the delivery team and use the delivery handoff package instead.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="page" id="cleanup">
+            <span class="section-kicker">Stop and Cleanup</span>
+            <h2>10. Stop and Cleanup</h2>
+            <h3>10.1 Stop the local run</h3>
+            <ul>
+                <li>Close the browser tabs.</li>
+                <li>Return to the API terminal window and press <code>Ctrl + C</code>.</li>
+                <li>If you started a Python static server, stop it with <code>Ctrl + C</code> as well.</li>
+            </ul>
+
+            <h3>10.2 Remove the local package if required</h3>
+            <p>
+                If you only needed a temporary evaluation copy, delete the extracted or cloned SAQR folder after the
+                trial is complete.
+            </p>
+
+            <div class="callout.info">
+                <strong>Escalation Path</strong>
+                <p>
+                    If the client wishes to move beyond this local evaluation and into delivery-led implementation,
+                    the correct next artifact is the delivery handoff package in
+                    <code>docs/handoff/README.md</code>.
+                </p>
+            </div>
+
+            <p class="small-note">
+                End of document.
+            </p>
+        </section>
+    </main>
+</body>
+</html>
+

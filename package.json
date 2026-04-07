@@ -6,7 +6,10 @@
     "phase1:handoff:verify": "node tools/ci/verify-phase1-handoff-package.js",
     "phase1:quality": "node tools/ci/run-phase1-quality-gates.js",
     "phase1:quality:ci": "node tools/ci/run-phase1-quality-gates.js --ci",
-    "phase1:release:verify": "node tools/ci/run-phase1-release-readiness.js"
+    "phase1:release:verify": "node tools/ci/run-phase1-release-readiness.js",
+    "phase2:workflow:validate": "node tools/phase2-workflow/validate-workflow-definition.js",
+    "phase2:workflow:test": "node --test tools/phase2-workflow/validator.test.js",
+    "phase2:workflow:engine:test": "npm --prefix services/workflow-engine test"
   },
   "engines": {
     "node": ">=22.0.0"

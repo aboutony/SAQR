@@ -1,0 +1,254 @@
+version: 4
+phase: "Phase 2"
+date: "2026-04-07"
+scope: "P2-103 to P2-107"
+purpose: "Define the workflow-definition DSL and validation grammar for SAQR Phase 2, including approval-routing selectors, SLA policy fields, escalation conditions, and governance publish controls."
+canonicalAuthoringFormat:
+  fileFormat: "JSON"
+  filenamePattern: "*.workflow.json"
+  reason:
+    - "Keeps validation dependency-free in the current Node-only free-toolchain."
+    - "Supports future export from a no-code workflow-administration surface."
+validatorEntrypoints:
+  cli: "tools/phase2-workflow/validate-workflow-definition.js"
+  module: "tools/phase2-workflow/validator.js"
+  tests: "tools/phase2-workflow/validator.test.js"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "workflowKey"
+    - "version"
+    - "name"
+    - "status"
+    - "entryStepKey"
+    - "triggers"
+    - "steps"
+    - "publishControls"
+  optionalFields:
+    - "description"
+    - "owningAuthority"
+    - "defaultSeverity"
+    - "entityScopeTemplate"
+    - "approvalPolicies"
+    - "slaPolicies"
+    - "escalationPolicies"
+    - "metadata"
+  fieldContracts:
+    schemaVersion:
+      type: "integer"
+      fixedValue: 1
+    workflowKey:
+      type: "string"
+      pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    version:
+      type: "integer"
+      minimum: 1
+    status:
+      allowedValues:
+        - "draft"
+        - "published"
+        - "deprecated"
+        - "retired"
+    defaultSeverity:
+      allowedValues:
+        - "critical"
+        - "high"
+        - "medium"
+        - "low"
+        - "info"
+selectorGrammar:
+  shape:
+    requiredFields:
+      - "type"
+      - "value"
+    allowedTypes:
+      - "user"
+      - "role"
+      - "queue"
+triggerGrammar:
+  requiredFields:
+    - "triggerKey"
+    - "sourceFamilies"
+    - "eventTypes"
+    - "matchRules"
+  sourceFamilies:
+    - "cdc"
+    - "nlp"
+    - "cv"
+    - "sentinel"
+    - "manual"
+  allowedEventTypes:
+    - "cdc.violation.detected"
+    - "nlp.drift.detected"
+    - "nlp.obligation.triggered"
+    - "cv.violation.detected"
+    - "sentinel.regulatory_update.detected"
+    - "workflow.manual.triggered"
+  matchRuleShape:
+    requiredFields:
+      - "field"
+      - "operator"
+      - "value"
+    allowedOperators:
+      - "equals"
+      - "not_equals"
+      - "in"
+      - "gte"
+      - "lte"
+      - "contains"
+      - "exists"
+policyGrammar:
+  approvalPolicy:
+    requiredFields:
+      - "approvalPolicyKey"
+      - "mode"
+      - "minimumApprovals"
+      - "approverSelectors"
+    modeValues:
+      - "single"
+      - "maker_checker"
+      - "delegated"
+      - "parallel_committee"
+    optionalFields:
+      - "delegateSelectors"
+      - "committeeSelectors"
+      - "quorumMode"
+      - "rejectionMode"
+      - "makerCheckerScope"
+      - "segregationOfDuties"
+    quorumModeValues:
+      - "fixed"
+    rejectionModeValues:
+      - "first_rejection"
+      - "quorum_impossible"
+      - "return_to_remediation"
+  slaPolicy:
+    requiredFields:
+      - "slaPolicyKey"
+      - "targetDurationMinutes"
+      - "breachDurationMinutes"
+    optionalFields:
+      - "warningDurationMinutes"
+      - "reminderIntervalsMinutes"
+      - "pauseStates"
+      - "breachSeverityOverride"
+  escalationPolicy:
+    requiredFields:
+      - "escalationPolicyKey"
+      - "triggerCondition"
+      - "targetType"
+      - "targetRef"
+    triggerConditions:
+      - "sla_warning"
+      - "sla_breach"
+      - "approval_rejected"
+      - "manual_escalation"
+    targetTypes:
+      - "user"
+      - "role"
+      - "queue"
+      - "webhook"
+stepGrammar:
+  requiredFields:
+    - "stepKey"
+    - "order"
+    - "name"
+    - "stepType"
+    - "actionType"
+    - "transitions"
+  assignmentRule:
+    shape:
+      preferredField: "selectors"
+      legacyFallbackFields:
+        - "actorId"
+        - "role"
+        - "queue"
+      notes:
+        - "selectors is the canonical grammar going forward."
+        - "Legacy single-target fields remain accepted for compatibility during Phase 2."
+  stepTypeRules:
+    assign:
+      allowedActionTypes:
+        - "route_to_queue"
+        - "assign_actor"
+      requiredTransitions:
+        - "onSuccess"
+    approve:
+      allowedActionTypes:
+        - "request_approval"
+      requiredFields:
+        - "approvalPolicyRef"
+      requiredTransitions:
+        - "onApprove"
+        - "onReject"
+    remediate:
+      allowedActionTypes:
+        - "request_remediation"
+        - "create_external_task"
+      requiredTransitions:
+        - "onSuccess"
+    verify:
+      allowedActionTypes:
+        - "request_verification"
+      requiredTransitions:
+        - "onSuccess"
+    notify:
+      allowedActionTypes:
+        - "emit_notification"
+      requiredTransitions:
+        - "onSuccess"
+    wait_timer:
+      allowedActionTypes:
+        - "pause_until_deadline"
+      requiredFields:
+        - "timerDurationMinutes"
+      requiredTransitions:
+        - "onElapsed"
+    invoke_webhook:
+      allowedActionTypes:
+        - "invoke_delivery_webhook"
+      requiredTransitions:
+        - "onSuccess"
+    create_task:
+      allowedActionTypes:
+        - "create_external_task"
+      requiredTransitions:
+        - "onSuccess"
+    collect_evidence:
+      allowedActionTypes:
+        - "attach_evidence_link"
+      requiredTransitions:
+        - "onSuccess"
+publishControls:
+  requiredFields:
+    - "changeSummary"
+    - "approvalRecordRequired"
+  optionalFields:
+    - "rollbackOfVersion"
+    - "publishedAt"
+  lifecycleRules:
+    - "changeSummary is mandatory for every authored version."
+    - "approvalRecordRequired determines whether governance publication requires an approval record."
+    - "rollbackOfVersion is set only on rollback-created versions."
+    - "publishedAt is written by governance controls, not by authoring tools."
+validationRules:
+  - "workflowKey, triggerKey, stepKey, and policy keys must be unique within their scope."
+  - "Step order values must be unique and contiguous starting at 1."
+  - "entryStepKey must exist and reference the step with order 1."
+  - "Referenced approval, SLA, and escalation policies must exist."
+  - "Assignment selectors, approver selectors, delegate selectors, and committee selectors must use only user, role, or queue."
+  - "maker_checker policies must include makerCheckerScope or segregationOfDuties."
+  - "parallel_committee policies must use fixed quorum behavior."
+  - "Positive integer validation applies to timer fields, SLA durations, and reminder intervals."
+  - "Escalation trigger conditions must use the contract-approved vocabulary."
+  - "At least one workflow trigger and one workflow step are required."
+bundledExamples:
+  - "fixtures/phase2-workflow/workflows/regulatory-drift-review.workflow.json"
+  - "fixtures/phase2-workflow/workflows/visual-branch-remediation.workflow.json"
+  - "fixtures/phase2-workflow/workflows/cross-authority-committee-review.workflow.json"
+deliveryNotes:
+  - "This DSL remains backend-first and does not authorize UI changes."
+  - "Approval routing in the runtime now consumes this selector and policy grammar."
+  - "The current runtime implements deterministic SLA monitoring APIs against this grammar."
+  - "Governance services now consume publishControls to enforce versioning, publication, rollback, and change-history rules."
+  - "Durable persistence and workflow APIs remain later Phase 2 work."

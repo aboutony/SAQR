@@ -1,0 +1,41 @@
+version: 1
+phase: "Phase 2"
+scope: "P2-110"
+purpose: "Index the delivery-facing request, response, and authoring fixtures that support the Phase 2 workflow API contract package."
+definitionFixtures:
+  - path: "fixtures/phase2-workflow/workflows/regulatory-drift-review.workflow.json"
+    role: "authoring-definition"
+    usedFor:
+      - "definition validation"
+      - "published reference workflow"
+  - path: "fixtures/phase2-workflow/workflows/visual-branch-remediation.workflow.json"
+    role: "authoring-definition"
+    usedFor:
+      - "definition validation"
+      - "published reference workflow"
+  - path: "fixtures/phase2-workflow/workflows/cross-authority-committee-review.workflow.json"
+    role: "authoring-definition"
+    usedFor:
+      - "definition validation"
+      - "published reference workflow"
+requestFixtures:
+  - path: "fixtures/phase2-workflow/contracts/requests/workflow-event-match.request.json"
+    endpoint: "POST /api/workflows/events/match"
+    description: "Normalized NLP drift event used to match a published workflow."
+  - path: "fixtures/phase2-workflow/contracts/requests/workflow-event-start.request.json"
+    endpoint: "POST /api/workflows/events/start"
+    description: "Normalized event plus actor envelope used to start a workflow instance."
+  - path: "fixtures/phase2-workflow/contracts/requests/workflow-governance-publish.request.json"
+    endpoint: "POST /api/workflows/governance/{workflowKey}/versions/{version}/publish"
+    description: "Approval-gated governance publication example."
+responseFixtures:
+  - path: "fixtures/phase2-workflow/contracts/responses/workflow-definitions.list.response.json"
+    endpoint: "GET /api/workflows/definitions"
+    description: "Representative definitions list response from the workflow contract seam."
+  - path: "fixtures/phase2-workflow/contracts/responses/workflow-instance-audit.response.json"
+    endpoint: "GET /api/workflows/instances/{instanceId}/audit"
+    description: "Representative combined audit view for one workflow instance."
+deliveryNotes:
+  - "These fixtures are contract examples and seam references, not durable persistence artifacts."
+  - "Bundled workflow definition files remain the canonical authoring examples."
+  - "The API surface is published as a delivery contract even where runtime route wiring is still a later delivery concern."

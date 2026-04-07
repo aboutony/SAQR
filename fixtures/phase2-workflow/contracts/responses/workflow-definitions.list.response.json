@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "workflowKey": "cross-authority-committee-review",
+      "version": 1,
+      "status": "published",
+      "name": "Cross Authority Committee Review",
+      "defaultSeverity": "critical",
+      "entryStepKey": "assign-risk-triage"
+    },
+    {
+      "workflowKey": "regulatory-drift-review",
+      "version": 1,
+      "status": "published",
+      "name": "Regulatory Drift Review",
+      "owningAuthority": "SAMA",
+      "defaultSeverity": "high",
+      "entryStepKey": "assign-compliance-analyst"
+    },
+    {
+      "workflowKey": "visual-branch-remediation",
+      "version": 1,
+      "status": "published",
+      "name": "Visual Branch Remediation",
+      "defaultSeverity": "critical",
+      "entryStepKey": "assign-site-operations"
+    }
+  ],
+  "total": 3
+}

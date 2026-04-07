@@ -1,0 +1,57 @@
+version: 1
+phase: "Phase 2"
+scope: "P2-109"
+status: "backend_only_no_ui_change_approved"
+purpose: "Define the UI-safe integration policy and approval gate for exposing Phase 2 workflow capabilities without compromising the frozen SAQR UI baseline."
+baseline:
+  uiManifest: "apps/shield-ui/ui-baseline.manifest.json"
+  guardrailDocument: "docs/SAQR_Phase1_UI_Freeze_and_Regression_Guardrails.md"
+  runtimeRule: "Tracked UI files remain frozen until explicit written approval exists."
+defaultPolicy:
+  integrationMode: "backend_only"
+  baselineRefreshApproved: false
+  demoEnvironmentMustRemainUsable: true
+  productionReadyEnvironmentMustRemainUsable: true
+allowedWithoutUiApproval:
+  - "services/workflow-engine/**"
+  - "apps/api/**"
+  - "shared/**"
+  - "fixtures/**"
+  - "tools/**"
+  - "docs/**"
+  - "apps/shield-ui/runtime-config*.js"
+candidateTouchpoints:
+  tier1:
+    - "apps/shield-ui/WorkflowManager.js"
+    - "apps/shield-ui/Dispatcher.js"
+    - "apps/shield-ui/SessionArchitect.js"
+  tier2:
+    - "apps/shield-ui/app.js"
+    - "apps/shield-ui/index.html"
+    - "apps/shield-ui/GatewaySelector.html"
+    - "apps/shield-ui/styles.css"
+    - "apps/shield-ui/SettingsModal.js"
+    - "apps/shield-ui/CourtReadyReport.js"
+prohibitedWithoutApproval:
+  - "new pages or navigation"
+  - "visual redesign"
+  - "workflow administration screens"
+  - "copy-only workflow relabeling"
+  - "baseline manifest refresh"
+approvalGate:
+  checklistPath: "docs/checklists/SAQR_Phase2_UI_Approval_Gate.md"
+  requiredEvidence:
+    - "business justification"
+    - "backend-only insufficiency statement"
+    - "exact tracked-file scope"
+    - "before screenshots"
+    - "after screenshots or wireframes"
+    - "demo runtime review"
+    - "production-ready runtime review"
+  requiredChecks:
+    - "npm --prefix apps/shield-ui run ui:baseline:check"
+  baselineRefreshRule: "Only after explicit written approval and final visual review."
+deliveryInterpretation:
+  - "Phase 2 currently authorizes no visible workflow UI changes."
+  - "Any future UI touch remains exception-based."
+  - "Backend and API delivery remains the default exposure path."

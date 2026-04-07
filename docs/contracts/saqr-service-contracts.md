@@ -20,6 +20,25 @@ Related integration-adapter artifact:
 
 - `docs/contracts/saqr-integration-adapters.md`
 
+Related Phase 2 workflow-foundation artifacts:
+
+- `docs/contracts/saqr-workflow-domain.yaml`
+- `docs/contracts/saqr-workflow-events.yaml`
+- `docs/contracts/saqr-workflow-dsl.yaml`
+
+Related Phase 2 workflow-runtime artifact:
+
+- `docs/SAQR_Phase2_Workflow_Execution_Engine.md`
+- `docs/SAQR_Phase2_Approval_Routing_Engine.md`
+- `docs/SAQR_Phase2_SLA_Automation.md`
+- `docs/SAQR_Phase2_Workflow_Governance.md`
+- `docs/SAQR_Phase2_Workflow_Audit_Model.md`
+- `docs/SAQR_Phase2_UI_Safe_Integration_Plan.md`
+- `docs/SAQR_Phase2_Workflow_Contract_Package.md`
+- `docs/contracts/saqr-workflow-api.openapi.yaml`
+- `docs/contracts/saqr-workflow-fixtures.yaml`
+- `docs/contracts/saqr-workflow-ui-integration.yaml`
+
 Related acceptance-fixture artifact:
 
 - `docs/contracts/saqr-acceptance-fixtures.yaml`

@@ -1,0 +1,81 @@
+version: 1
+phase: "Phase 1"
+date: "2026-04-07"
+scope: "P1-601"
+profiles:
+  local-handoff-compose:
+    artifact: "infra/docker-compose.production.yml"
+    purpose: "Delivery-team workstation or pre-integration dry run with external dependencies supplied separately."
+    images:
+      shieldUi: "apps/shield-ui/Dockerfile"
+      api: "apps/api/Dockerfile"
+      evidenceVault: "services/evidence-vault/Dockerfile"
+      nlpInterpreter: "services/nlp-interpreter/Dockerfile"
+      cvWatchman: "services/cv-watchman/Dockerfile"
+      sentinelScrapers: "services/sentinel-scrapers/Dockerfile"
+    publicEndpoints:
+      - "http://<host>:8080"
+      - "http://<host>:3001/health"
+  kubernetes-handoff:
+    artifact: "infra/k8s/base/kustomization.yaml"
+    purpose: "Base sovereign-cloud or on-prem Kubernetes packaging for delivery-team tailoring."
+    namespace: "saqr-platform"
+    manifests:
+      - "infra/k8s/base/configmap.template.yaml"
+      - "infra/k8s/base/secret.template.yaml"
+      - "infra/k8s/base/deployments.yaml"
+      - "infra/k8s/base/services.yaml"
+      - "infra/k8s/base/ingress.template.yaml"
+containerStrategy:
+  ui:
+    imageBase: "nginx:1.27-alpine"
+    runtimeInjection:
+      - "SAQR_UI_API_BASE"
+      - "SAQR_UI_AUTH_ENABLED"
+      - "SAQR_UI_TOKEN_STORAGE_KEY"
+      - "SAQR_UI_RUNTIME_PROFILE"
+  api:
+    imageBase: "node:22-alpine"
+    readinessPath: "/health"
+    replicas: 2
+  workers:
+    imageBase: "node:22-alpine"
+    singletonByDefault:
+      - "saqr-sentinel-scrapers"
+      - "saqr-cv-watchman"
+      - "saqr-nlp-interpreter"
+      - "saqr-evidence-vault"
+  browserWorker:
+    service: "saqr-sentinel-scrapers"
+    imageBase: "mcr.microsoft.com/playwright:v1.49.0-jammy"
+externalDependencies:
+  - name: "Shadow PostgreSQL"
+    responsibility: "client or delivery team"
+    requiredBy:
+      - "saqr-api"
+      - "saqr-sentinel-scrapers"
+      - "saqr-cv-watchman"
+      - "saqr-nlp-interpreter"
+      - "saqr-evidence-vault"
+  - name: "Kafka and Kafka Connect / Debezium"
+    responsibility: "client or delivery team"
+    requiredBy:
+      - "saqr-evidence-vault"
+      - "services/cdc-connector"
+  - name: "NTP authority"
+    responsibility: "client or delivery team"
+    requiredBy:
+      - "saqr-evidence-vault"
+  - name: "VMS endpoint"
+    responsibility: "client or delivery team"
+    requiredBy:
+      - "saqr-cv-watchman"
+  - name: "Identity provider or token issuer"
+    responsibility: "delivery team"
+    requiredBy:
+      - "saqr-api"
+releaseNotes:
+  - "The demo environment remains outside this packaging path and is not replaced by these artifacts."
+  - "UI visuals are unchanged; only runtime configuration injection was added for deployment portability."
+  - "Kubernetes manifests are templates and require client-specific image registry, DNS, secrets, and network policy tailoring."
+

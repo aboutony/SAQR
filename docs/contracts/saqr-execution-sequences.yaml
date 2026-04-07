@@ -1,0 +1,255 @@
+version: 1
+phase: "Phase 1"
+date: "2026-04-07"
+scope: "P1-404"
+sequences:
+  REG-INGEST-01:
+    title: "Sentinel scrape to regulatory staging"
+    status: "implemented"
+    objective: "Capture regulatory source changes and stage them for downstream processing."
+    participants:
+      - "Sentinel Scrapers"
+      - "Sovereign Bridge"
+      - "shadow.regulatory_staging"
+      - "API heartbeat/staging endpoints"
+    preconditions:
+      - "SAQR runtime is production-ready."
+      - "SENTINEL_MODE=live."
+      - "Bridge DB connection values are non-placeholder."
+    idempotency:
+      key: "contentHash"
+      enforcement: "INSERT ... ON CONFLICT (content_hash) DO NOTHING"
+    steps:
+      - id: 1
+        actor: "Sentinel Scrapers"
+        action: "Fetch and parse supported authority sources."
+        output: "authority, title, sourceUrl, contentHash, detectedAt"
+      - id: 2
+        actor: "Sovereign Bridge"
+        action: "Persist staged records."
+        output: "shadow.regulatory_staging rows"
+      - id: 3
+        actor: "API"
+        action: "Expose heartbeat and recent staging status."
+        output: "/api/v1/sources/heartbeat and /api/v1/sources/staging/recent"
+    observability:
+      - "scrape.session.started"
+      - "scrape.source_completed"
+      - "bridge.rule_ingested"
+      - "audit.sources.scrape_session_completed"
+    failure_policy:
+      recoverable:
+        - "Source layout changes"
+        - "Browser launch/transient fetch failures"
+      handling:
+        - "Log structured scrape failure"
+        - "Retry on next scheduled session"
+      terminal:
+        - "Persistent DB connectivity failure when startup validation is required"
+
+  REG-INGEST-02:
+    title: "Staging row to NLP ingestion"
+    status: "interface_ready_delivery_wiring_required"
+    objective: "Convert staged regulatory documents into parsed obligations and drift records."
+    participants:
+      - "Document acquisition worker"
+      - "NLP Interpreter"
+      - "shadow.obligations"
+      - "shadow.instruction_drift"
+    preconditions:
+      - "Staged record exists with contentHash and sourceUrl."
+      - "Document text acquisition provider is available."
+      - "NLP_BOOT_MODE=service."
+    idempotency:
+      key: "document revision identity, recommended as authority + contentHash"
+      enforcement: "Delivery team must ensure document text is not re-enqueued as a new revision unless contentHash changes."
+    steps:
+      - id: 1
+        actor: "Document acquisition worker"
+        action: "Resolve staged source URL into authoritative text or parsed document content."
+        output: "rawText + metadata"
+      - id: 2
+        actor: "NLP Interpreter"
+        action: "Call ingestCircular(rawText, metadata)."
+        output: "parsed document, obligations, drift results"
+      - id: 3
+        actor: "NLP repository"
+        action: "Persist obligation baseline and drift alerts."
+        output: "shadow.obligations and shadow.instruction_drift updates"
+    observability:
+      - "nlp.circular_ingestion.started"
+      - "nlp.circular_ingestion.parsed"
+      - "nlp.circular_ingestion.obligations_extracted"
+      - "audit.nlp.drift_detected_batch"
+      - "nlp.circular_ingestion.persisted"
+    failure_policy:
+      recoverable:
+        - "Document fetch timeout"
+        - "Parser/extractor transient failure"
+      handling:
+        - "Do not mark the staged document as completed"
+        - "Retry with backoff via the delivery orchestration layer"
+      terminal:
+        - "Unreadable document source"
+        - "Unsupported document format without provider implementation"
+
+  RULE-EXEC-01:
+    title: "CDC compliance rule execution"
+    status: "implemented"
+    objective: "Evaluate source-system CDC changes against modular compliance rulesets."
+    participants:
+      - "Debezium/Kafka payload"
+      - "Evidence Vault CDC flow"
+      - "Compliance Engine"
+    preconditions:
+      - "CDC payload includes op and source.table."
+      - "Evidence Vault service is connected to Kafka."
+    idempotency:
+      key: "CDC event hash including timestamp authority"
+      enforcement: "shadow.cdc_events and evidence persistence layer"
+    steps:
+      - id: 1
+        actor: "Message decoder"
+        action: "Decode CDC envelope."
+        output: "event payload"
+      - id: 2
+        actor: "Timestamp authority"
+        action: "Acquire NTP-backed timestamp."
+        output: "timestamp record"
+      - id: 3
+        actor: "Compliance Engine"
+        action: "Evaluate event via modular rulesets."
+        output: "zero or more violations"
+    observability:
+      - "cdc.event_ingested"
+      - "audit.cdc.violations_detected"
+      - "evidence.duplicate_skipped"
+      - "audit.evidence.sealed"
+    failure_policy:
+      recoverable:
+        - "Temporary DB write failure"
+        - "Temporary NTP/network failure when fallback is allowed"
+      handling:
+        - "Current repo logs and returns control"
+        - "Delivery team must add explicit retry/DLQ handling before production cutover"
+      terminal:
+        - "Invalid CDC payload shape"
+        - "Required startup dependency unavailable when validation is enforced"
+
+  RULE-EXEC-02:
+    title: "NLP constraint-to-CDC comparison"
+    status: "interface_ready_delivery_wiring_required"
+    objective: "Compare extracted regulatory constraints to live CDC-derived operational values."
+    participants:
+      - "Constraint evaluation engine"
+      - "CDC value provider"
+      - "Alerting consumer"
+    preconditions:
+      - "Extracted constraints are available from semantic extraction."
+      - "CDC value provider exposes current normalized field values."
+    idempotency:
+      key: "recommended as authority + ruleId + field + regulatoryValue + contentHash"
+      enforcement: "Delivery-team alert sink must deduplicate repeated evaluations for the same document revision."
+    steps:
+      - id: 1
+        actor: "Constraint evaluation engine"
+        action: "Match normalized constraints to normalized CDC fields."
+        output: "candidate field matches"
+      - id: 2
+        actor: "Constraint rulesets"
+        action: "Evaluate caps, thresholds, and time windows."
+        output: "violation findings"
+      - id: 3
+        actor: "Alerting consumer"
+        action: "Persist or route resulting alert objects."
+        output: "delivery-defined alert lifecycle"
+    observability:
+      - "nlp.sentinel_entry_processed"
+    failure_policy:
+      recoverable:
+        - "Missing provider mapping for a field"
+        - "Unavailable live CDC value source"
+      handling:
+        - "Skip unmatched fields"
+        - "Log and retry at orchestration layer when source values are unavailable"
+
+  EVID-SEAL-01:
+    title: "CDC evidence sealing and Merkle batching"
+    status: "implemented"
+    objective: "Seal detected CDC violations as immutable evidence and roll them into daily integrity batches."
+    participants:
+      - "Evidence Vault repository"
+      - "vault.evidence"
+      - "vault.merkle_log"
+    preconditions:
+      - "Violation objects exist from RULE-EXEC-01."
+      - "Timestamp authority record is available."
+    idempotency:
+      key: "sha256_hash of canonical evidence payload"
+      enforcement: "ON CONFLICT (sha256_hash) DO NOTHING"
+    steps:
+      - id: 1
+        actor: "Evidence repository"
+        action: "Build canonical evidence payload and hash."
+        output: "sha256 evidence hash"
+      - id: 2
+        actor: "Evidence repository"
+        action: "Persist sealed evidence."
+        output: "vault.evidence row"
+      - id: 3
+        actor: "Merkle batch processor"
+        action: "Aggregate daily hashes and persist Merkle root."
+        output: "vault.merkle_log row"
+    observability:
+      - "audit.evidence.sealed"
+      - "audit.evidence.merkle_batch_sealed"
+      - "merkle.batch.already_sealed"
+    failure_policy:
+      recoverable:
+        - "Duplicate evidence payload"
+        - "Empty batch interval"
+      handling:
+        - "Log duplicate skip"
+        - "Skip empty batch without error"
+
+  EVID-SEAL-02:
+    title: "Visual evidence sealing"
+    status: "implemented"
+    objective: "Seal CV detections as evidence and persist visual audit records."
+    participants:
+      - "CV Watchman"
+      - "shadow.cv_detections"
+      - "vault.evidence"
+    preconditions:
+      - "Frame source is connected."
+      - "Detection engine yields one or more detections."
+    idempotency:
+      key: "detectionHash / evidenceId pair"
+      enforcement: "shadow.cv_detections ON CONFLICT (evidence_id) DO NOTHING and evidence hash dedupe in vault"
+    steps:
+      - id: 1
+        actor: "Detection engine"
+        action: "Run visual detection and NMS."
+        output: "detection objects"
+      - id: 2
+        actor: "Evidence factory"
+        action: "Create canonical visual evidence record."
+        output: "evidence payload"
+      - id: 3
+        actor: "Evidence repository"
+        action: "Persist detection record and sealed vault evidence."
+        output: "shadow.cv_detections and vault.evidence rows"
+    observability:
+      - "cv.scan_cycle.started"
+      - "audit.cv.detection_observed"
+      - "cv.scan_cycle.completed"
+    failure_policy:
+      recoverable:
+        - "Per-detection persistence failure"
+      handling:
+        - "Log failure and continue scan cycle"
+delivery_team_requirements:
+  - "Wire a document acquisition/orchestration worker for REG-INGEST-02."
+  - "Add retry/DLQ semantics for CDC message failures before production deployment."
+  - "Implement durable alert persistence/routing for RULE-EXEC-02."
+  - "Preserve demo/runtime split while wiring production-ready execution."

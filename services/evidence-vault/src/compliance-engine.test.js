@@ -4,7 +4,11 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const { detectViolations } = require('./compliance-engine');
+const {
+    CDC_RULESETS,
+    createComplianceEvaluationService,
+    detectViolations,
+} = require('./compliance-engine');
 
 describe('SAMA-CP-001: Font Size Compliance', () => {
     it('detects font size below 14pt', () => {
@@ -86,5 +90,29 @@ describe('DELETE operations', () => {
             font_size_pt: 8,
         });
         assert.equal(violations.length, 0);
+    });
+});
+
+describe('Modular compliance engine', () => {
+    it('registers the expected CDC rulesets', () => {
+        assert.equal(CDC_RULESETS.length, 3);
+    });
+
+    it('evaluates rules through the modular engine service', () => {
+        const engine = createComplianceEvaluationService();
+        const violations = engine.evaluate({
+            table: 'consumer_disclosures',
+            operation: 'INSERT',
+            afterState: {
+                product_id: 'PL-002',
+                product_name: 'SME Loan',
+                font_size_pt: 10,
+                channel: 'digital',
+            },
+            now: new Date('2026-04-07T00:00:00.000Z'),
+        });
+
+        assert.equal(violations.length, 1);
+        assert.equal(violations[0].violationCode, 'SAMA-CP-001');
     });
 });

@@ -1,0 +1,81 @@
+{
+  "fixtureId": "cdc-replay-001",
+  "timestampRecord": {
+    "timestamp": "2026-04-07T09:00:00.000Z",
+    "source": "harness://fixed-ntp"
+  },
+  "events": [
+    {
+      "name": "consumer_disclosure_font_breach",
+      "message": {
+        "payload": {
+          "op": "u",
+          "source": {
+            "db": "client_banking",
+            "table": "consumer_disclosures"
+          },
+          "after": {
+            "product_id": "CC-001",
+            "product_name": "Credit Card Platinum",
+            "font_size_pt": 11,
+            "channel": "digital"
+          }
+        }
+      },
+      "expectedViolationCodes": [
+        "SAMA-CP-001"
+      ]
+    },
+    {
+      "name": "cooling_off_expired_cancellation",
+      "message": {
+        "payload": {
+          "op": "u",
+          "source": {
+            "db": "client_banking",
+            "table": "cooling_off_periods"
+          },
+          "after": {
+            "contract_id": "CO-123",
+            "customer_id": "CU-900",
+            "end_date": "2026-03-30T00:00:00.000Z",
+            "cancellation_requested": true,
+            "status": "active"
+          }
+        }
+      },
+      "expectedViolationCodes": [
+        "SAMA-CP-003"
+      ]
+    },
+    {
+      "name": "branch_signage_and_license_expired",
+      "message": {
+        "payload": {
+          "op": "u",
+          "source": {
+            "db": "client_banking",
+            "table": "branch_compliance"
+          },
+          "after": {
+            "branch_code": "JED-001",
+            "branch_name": "Jeddah Corniche",
+            "municipality": "Jeddah",
+            "signage_status": "non_compliant",
+            "lighting_status": "compliant",
+            "license_expiry": "2026-03-15"
+          }
+        }
+      },
+      "expectedViolationCodes": [
+        "MOMAH-BR-001",
+        "MOMAH-BR-003"
+      ]
+    }
+  ],
+  "expected": {
+    "totalCdcEvents": 3,
+    "totalEvidenceRecords": 4,
+    "merkleBatch": true
+  }
+}

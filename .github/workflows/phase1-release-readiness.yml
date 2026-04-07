@@ -1,0 +1,28 @@
+name: Phase 1 Release Readiness
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Bootstrap workspace packages
+        run: npm run phase1:bootstrap
+
+      - name: Run release-readiness verification
+        run: npm run phase1:release:verify -- --build-containers
+

@@ -1,5 +1,5 @@
 // ============================================
-// SAQR Sentinel — SDAIA News Scraper
+// SAQR Sentinel - SDAIA News Scraper
 // Headless Playwright scraper for:
 // https://sdaia.gov.sa/en/MediaCenter/News/
 // Targets PDPL enforcement circulars and AI governance updates
@@ -8,16 +8,18 @@
 const crypto = require('crypto');
 
 /**
- * SDAIA News/PDPL Scraper
+ * SDAIA News/PDPL scraper.
  * Uses Playwright to navigate the SDAIA media center
- * and extract news headlines + PDF links.
+ * and extract news headlines plus PDF links.
  *
  * @param {import('playwright').Browser} browser - Playwright browser instance
+ * @param {{ logger?: object }} [options]
  * @returns {Promise<Array<{authority: string, title: string, sourceUrl: string, category: string, publishDate: string, contentHash: string, detectedAt: string}>>}
  */
-async function scrapeSDAIA(browser) {
+async function scrapeSDAIA(browser, options = {}) {
     const TARGET_URL = 'https://sdaia.gov.sa/en/MediaCenter/News/';
     const results = [];
+    const logger = options.logger || null;
 
     let page;
     try {
@@ -29,39 +31,42 @@ async function scrapeSDAIA(browser) {
 
         await page.goto(TARGET_URL, { waitUntil: 'networkidle', timeout: 30000 });
 
-        // Wait for news grid to render
         await page.waitForSelector('.news-item, .card, article, .media-item', { timeout: 15000 }).catch(() => {
-            console.log('[SDAIA] No news grid found — page may have changed structure');
+            logger?.warn('scrape.source_structure_warning', {
+                authority: 'SDAIA',
+                sourceUrl: TARGET_URL,
+                reason: 'No news grid found; source structure may have changed.',
+            });
         });
 
-        // Extract news entries from the grid
         const entries = await page.evaluate(() => {
-            // Try multiple selectors for resilience
             const selectors = [
                 '.news-item', '.card', 'article', '.media-item',
-                '.news-list li', '.blog-post', '[class*="news"]'
+                '.news-list li', '.blog-post', '[class*="news"]',
             ];
 
-            let items = [];
-            for (const sel of selectors) {
-                const elements = document.querySelectorAll(sel);
-                if (elements.length > 0) {
-                    elements.forEach(el => {
-                        const titleEl = el.querySelector('h2, h3, h4, .title, a[class*="title"]') || el.querySelector('a');
-                        const dateEl = el.querySelector('.date, time, [class*="date"], small');
-                        const linkEl = el.querySelector('a[href]');
-                        const pdfEl = el.querySelector('a[href$=".pdf"]');
-
-                        const title = titleEl ? titleEl.textContent.trim() : '';
-                        const href = pdfEl ? pdfEl.href : (linkEl ? linkEl.href : '');
-                        const dateText = dateEl ? dateEl.textContent.trim() : '';
-
-                        if (title && title.length > 5) {
-                            items.push({ title, href, dateText, hasPdf: !!pdfEl });
-                        }
-                    });
-                    break; // Use first matching selector
+            const items = [];
+            for (const selector of selectors) {
+                const elements = document.querySelectorAll(selector);
+                if (elements.length === 0) {
+                    continue;
                 }
+
+                elements.forEach((element) => {
+                    const titleEl = element.querySelector('h2, h3, h4, .title, a[class*="title"]') || element.querySelector('a');
+                    const dateEl = element.querySelector('.date, time, [class*="date"], small');
+                    const linkEl = element.querySelector('a[href]');
+                    const pdfEl = element.querySelector('a[href$=".pdf"]');
+
+                    const title = titleEl ? titleEl.textContent.trim() : '';
+                    const href = pdfEl ? pdfEl.href : (linkEl ? linkEl.href : '');
+                    const dateText = dateEl ? dateEl.textContent.trim() : '';
+
+                    if (title && title.length > 5) {
+                        items.push({ title, href, dateText, hasPdf: Boolean(pdfEl) });
+                    }
+                });
+                break;
             }
 
             return items.slice(0, 20);
@@ -82,11 +87,20 @@ async function scrapeSDAIA(browser) {
             });
         }
 
-        console.log(`[SDAIA] Scraped ${results.length} news entries from ${TARGET_URL}`);
+        logger?.info('scrape.source_completed', {
+            authority: 'SDAIA',
+            sourceUrl: TARGET_URL,
+            resultCount: results.length,
+        });
     } catch (err) {
-        console.error(`[SDAIA] Scraper error: ${err.message}`);
+        logger?.error('scrape.source_failed', err, {
+            authority: 'SDAIA',
+            sourceUrl: TARGET_URL,
+        });
     } finally {
-        if (page) await page.close().catch(() => { });
+        if (page) {
+            await page.close().catch(() => { });
+        }
     }
 
     return results;
@@ -104,15 +118,15 @@ function scrapeSDAIADemo() {
         { title: 'Data Protection Officer Registration Portal Now Mandatory', category: 'PDPL Enforcement', date: '2026-02-14' },
     ];
 
-    return news.map(n => {
-        const hashInput = `SDAIA|${n.title}|${n.date}`;
+    return news.map((entry) => {
+        const hashInput = `SDAIA|${entry.title}|${entry.date}`;
         const contentHash = crypto.createHash('sha256').update(hashInput).digest('hex');
         return {
             authority: 'SDAIA',
-            title: n.title,
+            title: entry.title,
             sourceUrl: 'https://sdaia.gov.sa/en/MediaCenter/News/',
-            category: n.category,
-            publishDate: n.date,
+            category: entry.category,
+            publishDate: entry.date,
             contentHash,
             detectedAt: new Date().toISOString(),
         };

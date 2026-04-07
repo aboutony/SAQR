@@ -1,46 +1,49 @@
-# 🦅 SAQR — Violation Interceptor
+# SAQR
 
-**صقر** (Falcon) — A non-intrusive compliance observation platform for Saudi Banking (SAMA) and Municipal (MOMAH) sectors.
+SAQR is a read-only compliance interception platform with two parallel tracks in this repository:
 
-## Golden Rule
+- the preserved demo environment for client demos
+- the production-ready Phase 1 handoff package for the delivery team
 
-> SAQR never writes to client systems. All data flows are **read-only** via Change Data Capture (CDC).
+## Current Status
 
-## Architecture
+Phase 1 is complete for delivery-team handoff.
 
-```
-Client DB (Oracle/MSSQL) → Debezium CDC → Kafka → Shadow DB → Compliance Engine → Evidence Vault → Shield UI
-Client CCTV (VMS) → Stream Ingest → CV Pipeline (The Watchman) → Evidence Vault
-```
+Phase 1 is not a direct client production-cutover package. Real client prerequisites and delivery-owned wiring are still required.
 
-## Modules
+## Start Here
 
-| Module | Purpose |
-|---|---|
-| **CDC Connector** | Debezium log-based CDC for read-only database mirroring |
-| **Evidence Vault** | SHA-256 hashing + NTP timestamping + Merkle log |
-| **Shield UI** | Executive compliance dashboard |
-| **The Interpreter** | Arabic Legal-BERT for regulatory NLP |
-| **The Watchman** | YOLOv8 computer vision for visual compliance |
-| **CFO Savings Hub** | ROI dashboard for intercepted penalties |
+- Final Phase 1 handoff package: `docs/handoff/README.md`
+- Delivery documentation index: `docs/README.md`
+- Phase tracker: `docs/SAQR_Phase_1_Phase_2_Tracker.md`
 
-## Quick Start
+## Repo Truths
+
+- The demo environment remains preserved and separate.
+- The UI/UX is frozen and must not be changed without explicit approval.
+- External prerequisites are not provisioned in this repo.
+- Current live regulatory-source implementation is centered on SAMA and SDAIA.
+- NLP and CV are interface-ready and test-backed, but still require target-environment wiring and pilot validation.
+
+## Validation Commands
 
 ```bash
-# Start infrastructure (Kafka, PostgreSQL, etc.)
-docker-compose -f infra/docker-compose.yml up -d
-
-# Start the API
-cd apps/api && npm install && npm run dev
-
-# Start the Shield UI
-cd apps/shield-ui && npm install && npm run dev
+npm run phase1:bootstrap
+npm run phase1:handoff:verify
+npm run phase1:quality
+npm run phase1:release:verify -- --build-containers
 ```
 
-## Data Sovereignty
+## Delivery Scope
 
-All processing and storage resides within Saudi Arabia (STC Cloud). Compliant with PDPL, SDAIA, and NCA standards.
+This repository includes the production-ready contracts, packaging, validation path, and handoff documentation for:
 
-## License
+- Shield UI
+- SAQR API
+- Evidence Vault
+- Sentinel Scrapers
+- NLP Interpreter
+- CV Watchman
+- CDC connector artifacts
 
-Proprietary — All rights reserved.
+Phase 2 items are intentionally excluded from the Phase 1 handoff package.

@@ -3,7 +3,103 @@
 // Three.js 3D Shield + Demo Mode + BiDi + All Engines
 // ============================================
 
-const API_BASE = 'http://localhost:3001';
+const SAQR_RUNTIME = (() => {
+  const cfg = (typeof window !== 'undefined' && window.SAQR_RUNTIME) ? window.SAQR_RUNTIME : {};
+  const experience = cfg.experience || {};
+  const auth = cfg.auth || {};
+
+  return {
+    mode: cfg.mode || 'demo',
+    profile: cfg.profile || 'demo',
+    apiBase: cfg.apiBase || 'http://localhost:3001',
+    auth: {
+      enabled: auth.enabled === true,
+      tokenStorageKey: auth.tokenStorageKey || 'saqr_api_bearer_token',
+      staticBearerToken: auth.staticBearerToken || '',
+    },
+    experience: {
+      enableDemoData: experience.enableDemoData !== false,
+      autoActivateDemo: experience.autoActivateDemo !== false,
+      enableExecutiveDemoControls: experience.enableExecutiveDemoControls !== false,
+      exposeSimulationHelpers: experience.exposeSimulationHelpers !== false,
+      enableDemoWorkflowAutomation: experience.enableDemoWorkflowAutomation !== false,
+      allowSilentApiFallback: experience.allowSilentApiFallback !== false,
+    },
+  };
+})();
+
+const API_BASE = SAQR_RUNTIME.apiBase;
+const RUNTIME_DISABLED_MESSAGE = 'Disabled in production-ready environment';
+let missingAuthTokenWarningShown = false;
+
+function isDemoRuntimeEnabled() {
+  return SAQR_RUNTIME.experience.enableDemoData;
+}
+
+function shouldAutoActivateDemoRuntime() {
+  return isDemoRuntimeEnabled() && SAQR_RUNTIME.experience.autoActivateDemo;
+}
+
+function areExecutiveDemoControlsEnabled() {
+  return isDemoRuntimeEnabled() && SAQR_RUNTIME.experience.enableExecutiveDemoControls;
+}
+
+function areSimulationHelpersExposed() {
+  return isDemoRuntimeEnabled() && SAQR_RUNTIME.experience.exposeSimulationHelpers;
+}
+
+function getRuntimeBearerToken() {
+  if (!SAQR_RUNTIME.auth.enabled) return '';
+  if (SAQR_RUNTIME.auth.staticBearerToken) return SAQR_RUNTIME.auth.staticBearerToken;
+
+  try {
+    const stored = sessionStorage.getItem(SAQR_RUNTIME.auth.tokenStorageKey);
+    return stored ? stored.trim() : '';
+  } catch (err) {
+    return '';
+  }
+}
+
+function buildApiHeaders() {
+  const headers = {};
+  const token = getRuntimeBearerToken();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  } else if (SAQR_RUNTIME.auth.enabled && !missingAuthTokenWarningShown) {
+    missingAuthTokenWarningShown = true;
+    console.warn(`[SAQR] No bearer token found in sessionStorage key "${SAQR_RUNTIME.auth.tokenStorageKey}" for production-ready API runtime.`);
+  }
+
+  return headers;
+}
+
+function isDemoWorkflowAutomationEnabled() {
+  return isDemoRuntimeEnabled() && SAQR_RUNTIME.experience.enableDemoWorkflowAutomation;
+}
+
+function warnRuntimeDisabled(feature) {
+  console.warn(`[SAQR Runtime] ${feature} is ${RUNTIME_DISABLED_MESSAGE.toLowerCase()}. Active mode: ${SAQR_RUNTIME.mode}`);
+}
+
+function disableInteractiveControl(element, reason = RUNTIME_DISABLED_MESSAGE) {
+  if (!element) return;
+  element.disabled = true;
+  element.classList.add('exec-btn-disabled');
+  element.setAttribute('aria-disabled', 'true');
+  element.title = reason;
+}
+
+function applyRuntimeExperienceGuardrails() {
+  if (!areExecutiveDemoControlsEnabled()) {
+    disableInteractiveControl(document.getElementById('execSimulateBtn'));
+    disableInteractiveControl(document.getElementById('execResolveBtn'));
+  }
+
+  if (!isDemoRuntimeEnabled()) {
+    document.querySelectorAll('.demo-sector-btn').forEach(btn => disableInteractiveControl(btn));
+  }
+}
 
 // -----------------------------------------------
 // Internationalisation (i18n)
@@ -752,6 +848,11 @@ function populateAuthorityFilter() {
 // Demo Mode — Activation (Executive: Baseline Green)
 // -----------------------------------------------
 function activateDemoSector(sector) {
+  if (!isDemoRuntimeEnabled()) {
+    warnRuntimeDisabled('Demo sector activation');
+    return false;
+  }
+
   currentDemoSector = sector;
   const data = DEMO_DATA[sector];
   if (!data) return;
@@ -853,6 +954,11 @@ function setHeartbeatMode(mode) {
 // Executive Controls — Simulate Violation
 // -----------------------------------------------
 function simulateViolation() {
+  if (!isDemoRuntimeEnabled() || !areExecutiveDemoControlsEnabled()) {
+    warnRuntimeDisabled('Violation simulation');
+    return;
+  }
+
   console.log(`[SimulateViolation] Called — currentDemoSector="${currentDemoSector}", demoPhase="${demoPhase}"`);
   if (!currentDemoSector || demoPhase !== 'green') return;
   demoPhase = 'violation';
@@ -1013,6 +1119,11 @@ function simulateViolation() {
 // Executive Controls — Resolve & Reset
 // -----------------------------------------------
 function resolveViolation() {
+  if (!isDemoRuntimeEnabled() || !areExecutiveDemoControlsEnabled()) {
+    warnRuntimeDisabled('Violation resolution simulation');
+    return;
+  }
+
   if (!currentDemoSector || demoPhase !== 'violation') return;
   demoPhase = 'resolved';
 
@@ -1130,6 +1241,11 @@ function updateExecControls() {
 // "intercepting" a penalty before it hits the client.
 // -----------------------------------------------
 function simulateInterception() {
+  if (!isDemoRuntimeEnabled() || !areExecutiveDemoControlsEnabled()) {
+    warnRuntimeDisabled('Penalty interception simulation');
+    return;
+  }
+
   console.log(`[SimulateInterception] Called — currentDemoSector="${currentDemoSector}", demoPhase="${demoPhase}"`);
   // Ensure we're on a sector with True Zero baseline — use session industry, not hardcoded banking
   if (!currentDemoSector) {
@@ -1153,9 +1269,11 @@ function simulateInterception() {
   simulateViolation();
 }
 
-window.simulateViolation = simulateViolation;
-window.resolveViolation = resolveViolation;
-window.simulateInterception = simulateInterception;
+if (areSimulationHelpersExposed()) {
+  window.simulateViolation = simulateViolation;
+  window.resolveViolation = resolveViolation;
+  window.simulateInterception = simulateInterception;
+}
 
 // -----------------------------------------------
 // Certificate Modal (Click-to-Verify)
@@ -1367,7 +1485,9 @@ document.querySelectorAll('.demo-sector-btn').forEach(btn => {
 // -----------------------------------------------
 async function fetchAPI(endpoint) {
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`);
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      headers: buildApiHeaders(),
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -1445,13 +1565,14 @@ async function loadViolations() {
 async function loadBreakdown() {
   const data = await fetchAPI('/api/dashboard/breakdown');
   if (!data) return;
-  let st = 0, mt = 0;
-  data.forEach(r => { if (r.authority === 'SAMA') st += +r.count; if (r.authority === 'MOMAH') mt += +r.count; });
-  const mx = Math.max(st, mt, 1);
-  document.getElementById('samaCount').textContent = st;
-  document.getElementById('momahCount').textContent = mt;
-  document.getElementById('samaBar').style.width = `${(st / mx) * 100}%`;
-  document.getElementById('momahBar').style.width = `${(mt / mx) * 100}%`;
+
+  const authorityTotals = data.reduce((acc, row) => {
+    const authority = row.authority || 'OTHER';
+    acc[authority] = (acc[authority] || 0) + Number(row.count || 0);
+    return acc;
+  }, {});
+
+  renderDynamicBreakdown(authorityTotals);
 }
 
 async function loadMerkle() {
@@ -1510,6 +1631,7 @@ async function initDashboard() {
 }
 
 // Apply saved preferences
+applyRuntimeExperienceGuardrails();
 setTheme(currentTheme);
 setLanguage(currentLang);
 
@@ -1520,23 +1642,30 @@ setTimeout(initShield, 100);
 setTimeout(() => {
   // Only activate if no sector was set by gateway session
   if (!currentDemoSector) {
-    let sector = 'banking'; // Default only when no gateway
-    if (typeof SessionArchitect !== 'undefined') {
-      const s = SessionArchitect.getSession();
-      if (s && s.active && s.industry && s.industry.demoSector) {
-        sector = s.industry.demoSector;
+    if (shouldAutoActivateDemoRuntime()) {
+      let sector = 'banking'; // Default only when no gateway
+      if (typeof SessionArchitect !== 'undefined') {
+        const s = SessionArchitect.getSession();
+        if (s && s.active && s.industry && s.industry.demoSector) {
+          sector = s.industry.demoSector;
+        }
       }
+      console.log(`[AutoInit] No sector set by gateway — activating: "${sector}"`);
+      activateDemoSector(sector);
+    } else {
+      console.log(`[AutoInit] ${SAQR_RUNTIME.mode} runtime — demo auto-activation disabled; loading live dashboard path`);
+      initDashboard();
     }
-    console.log(`[AutoInit] No sector set by gateway — activating: "${sector}"`);
-    activateDemoSector(sector);
   } else {
     console.log(`[AutoInit] Sector already set by gateway: "${currentDemoSector}" — skipping`);
   }
 }, 500);
 
 // Exec control buttons — use simulateInterception (session-aware) not simulateViolation directly
-document.getElementById('execSimulateBtn')?.addEventListener('click', simulateInterception);
-document.getElementById('execResolveBtn')?.addEventListener('click', resolveViolation);
+if (areExecutiveDemoControlsEnabled()) {
+  document.getElementById('execSimulateBtn')?.addEventListener('click', simulateInterception);
+  document.getElementById('execResolveBtn')?.addEventListener('click', resolveViolation);
+}
 
 // Live polling (only when NOT in demo mode)
 setInterval(() => {
@@ -1638,6 +1767,11 @@ window.toggleIntelReveal = toggleIntelReveal;
 // Usage: simulateSentinelDetection('SAMA', 'New SME Fee Cap Circular (Feb 2026)')
 // -----------------------------------------------
 function simulateSentinelDetection(authority, title) {
+  if (!isDemoRuntimeEnabled() || !areExecutiveDemoControlsEnabled()) {
+    warnRuntimeDisabled('Sentinel detection simulation');
+    return;
+  }
+
   authority = authority || 'SAMA';
   title = title || 'New SME Fee Cap Circular — 1% Maximum Admin Fee';
 
@@ -1657,8 +1791,10 @@ function simulateSentinelDetection(authority, title) {
   }
 }
 
-window.simulateSentinelDetection = simulateSentinelDetection;
-window.showToast = showToast;
+if (areSimulationHelpersExposed()) {
+  window.simulateSentinelDetection = simulateSentinelDetection;
+  window.showToast = showToast;
+}
 
 // -----------------------------------------------
 // Sentinel Heartbeat Poller — Checks staging API
@@ -1668,7 +1804,9 @@ window.showToast = showToast;
 let lastSeenStagingId = 0;
 setInterval(async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/sources/staging/recent?hours=1`);
+    const res = await fetch(`${API_BASE}/api/v1/sources/staging/recent?hours=1`, {
+      headers: buildApiHeaders(),
+    });
     if (!res.ok) return;
     const data = await res.json();
     if (!data.entries || data.entries.length === 0) return;
@@ -1681,8 +1819,10 @@ setInterval(async () => {
         showToast(entry.authority, entry.title);
       }
     });
-  } catch {
-    // API unreachable — silent fallback (demo mode)
+  } catch (err) {
+    if (!SAQR_RUNTIME.experience.allowSilentApiFallback) {
+      console.warn(`[Sentinel Poller] ${err.message}`);
+    }
   }
 }, 30000);
 
@@ -1734,7 +1874,7 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
     }
 
     // 3. CRITICAL — Activate demo sector FIRST (before any dependent modules that might crash)
-    if (session.industry.demoSector) {
+    if (shouldAutoActivateDemoRuntime() && session.industry.demoSector) {
       const sectorMap = {
         banking: 'banking', healthcare: 'healthcare', fnb: 'fnb',
         manufacturing: 'manufacturing', hospitality: 'hospitality', education: 'education',
@@ -1747,8 +1887,10 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
       } else {
         console.warn(`[Gateway] ⚠️ Demo sector "${session.industry.demoSector}" not found in sectorMap or DEMO_DATA`);
       }
-    } else {
+    } else if (shouldAutoActivateDemoRuntime()) {
       console.warn('[Gateway] ⚠️ No demoSector in session.industry');
+    } else {
+      console.log(`[Gateway] ${SAQR_RUNTIME.mode} runtime — live dashboard path preserved for session ${session.siloId}`);
     }
 
     // 4. Dynamic Authority Grid (AuthorityMapper) — runs AFTER demo sector is locked
@@ -1850,7 +1992,7 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
   }
 
   // Auto-activate demo sector — session-aware
-  if (typeof activateDemoSector === 'function') {
+  if (shouldAutoActivateDemoRuntime() && typeof activateDemoSector === 'function') {
     // Reverse map: industry key → demo sector
     const INDUSTRY_TO_SECTOR = {
       BFSI: 'banking', Healthcare: 'healthcare', 'F&B': 'fnb',
@@ -1870,6 +2012,8 @@ console.log('🛡️  7 Authorities | simulateInterception() | simulateSentinelD
       if (locked && INDUSTRY_TO_SECTOR[locked]) sector = INDUSTRY_TO_SECTOR[locked];
     }
     if (DEMO_DATA[sector]) activateDemoSector(sector);
+  } else {
+    initDashboard();
   }
 })();
 
@@ -2114,6 +2258,8 @@ simulateViolation = function () {
   const _origSimViolationWF = simulateViolation;
   simulateViolation = function () {
     _origSimViolationWF.apply(this, arguments);
+
+    if (!isDemoWorkflowAutomationEnabled()) return;
 
     // Create tickets from current sector's violations
     setTimeout(() => {

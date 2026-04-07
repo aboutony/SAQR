@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "phase": "Phase 1",
+  "checkpoints": [
+    "P1-201",
+    "P1-202"
+  ],
+  "baselineDate": "2026-04-07",
+  "guardrail": "Any drift in tracked UI files requires explicit approval before baseline refresh.",
+  "trackedFileCount": 13,
+  "files": [
+    {
+      "path": "app.js",
+      "role": "primary-dashboard",
+      "sha256": "acb020ec7894a7b75bbbd533c51a69d8c7ad3099f261bad5930a0dc1b550b45e",
+      "lineCount": 2395,
+      "byteCount": 114666
+    },
+    {
+      "path": "AuthorityMapper.js",
+      "role": "ui-module",
+      "sha256": "8806770c552b029c6253cbab10331ce4c6fd59878168e08ea27d459889c758ff",
+      "lineCount": 231,
+      "byteCount": 14570
+    },
+    {
+      "path": "CDCPipeline.js",
+      "role": "ui-module",
+      "sha256": "ff2bc7b49ba0237b2ccaba9e1400f710464485b3c3966a173a9239266cc90c25",
+      "lineCount": 183,
+      "byteCount": 8441
+    },
+    {
+      "path": "CourtReadyReport.js",
+      "role": "ui-overlay",
+      "sha256": "a48a64c9e0e0a440c6a4e4704f0ad3bd2efe2de90bd8ab445b2bf2748ae016d0",
+      "lineCount": 287,
+      "byteCount": 12818
+    },
+    {
+      "path": "Dispatcher.js",
+      "role": "ui-module",
+      "sha256": "f9026be482a3a3135eda47a367351b246beed99a34bb21c85e2727becf248163",
+      "lineCount": 317,
+      "byteCount": 12187
+    },
+    {
+      "path": "GatewaySelector.html",
+      "role": "entry-shell",
+      "sha256": "06957b99a2f8d9c8dda7c6dd156c47a0ff6d5983abba2817f7f82f3d0d4ae160",
+      "lineCount": 1223,
+      "byteCount": 55795
+    },
+    {
+      "path": "index.html",
+      "role": "entry-shell",
+      "sha256": "926d4bf45c904c9aab305b10e7c5a49a908fd2ecdca516686b69a5885ec42dc9",
+      "lineCount": 488,
+      "byteCount": 26113
+    },
+    {
+      "path": "SessionArchitect.js",
+      "role": "ui-module",
+      "sha256": "10fe7ebe4fd474c4b16f6169fcb2e40d0745527159d46e2464ae0e0c0d0335bd",
+      "lineCount": 277,
+      "byteCount": 13053
+    },
+    {
+      "path": "SettingsModal.js",
+      "role": "ui-overlay",
+      "sha256": "f1be835968a7d6b3c10789702ba384694bc8a1d3c6a9260f97ec5a784d446408",
+      "lineCount": 356,
+      "byteCount": 18388
+    },
+    {
+      "path": "styles.css",
+      "role": "style-system",
+      "sha256": "637824c55edf3726267cb1f48349b7591b966499d57b800c709b3ed2395cf6fc",
+      "lineCount": 4273,
+      "byteCount": 82481
+    },
+    {
+      "path": "TranslatorCore.js",
+      "role": "ui-module",
+      "sha256": "6e58ed8a601cbf779c858887329f6ad9fe96d5ac9dd5c947e7506a688cc804ea",
+      "lineCount": 408,
+      "byteCount": 20526
+    },
+    {
+      "path": "VerticalPruner.js",
+      "role": "ui-module",
+      "sha256": "185dbf3b381397ed16cac3578b11877543b65df3c9d8c613f5e62bf547401c09",
+      "lineCount": 106,
+      "byteCount": 3924
+    },
+    {
+      "path": "WorkflowManager.js",
+      "role": "ui-module",
+      "sha256": "d15cce62098b9110d6f8c48e7d680bbaf0872f4766c7e4ce420eb4470c915b7c",
+      "lineCount": 248,
+      "byteCount": 9219
+    }
+  ]
+}

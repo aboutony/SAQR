@@ -1,115 +1,129 @@
 // ============================================
-// SAQR Sentinel — Orchestrator
-// Runs SAMA + SDAIA scrapers on a 15-minute
-// interval and pushes results through the
+// SAQR Sentinel - Orchestrator
+// Runs registered authority providers on a
+// schedule and pushes results through the
 // Sovereign Bridge into regulatory_staging.
 // ============================================
 
 const cron = require('node-cron');
 const { chromium } = require('playwright');
-const { scrapeSAMA, scrapeSAMADemo } = require('./sama-scraper');
-const { scrapeSDAIA, scrapeSDAIADemo } = require('./sdaia-scraper');
-const { ingestRules, ingestRulesDemo, closePool } = require('./bridge');
+const { ingestRules, ingestRulesDemo, closePool, testBridgeConnection } = require('./bridge');
+const {
+    createDefaultRegulatorySourceRegistry,
+    createRegulatorySourceOrchestrator,
+    resolveRegulatorySources,
+} = require('./source-adapters');
+const { buildSentinelConfig } = require('./config');
+const { createServiceLogger, installProcessHandlers } = require('../../../shared/observability');
 
-// Mode: 'live' uses Playwright + DB, 'demo' uses mock data + console
-const MODE = process.env.SENTINEL_MODE || 'demo';
-const CRON_SCHEDULE = process.env.SENTINEL_CRON || '*/15 * * * *'; // Every 15 minutes
+const config = buildSentinelConfig(process.env);
+const MODE = config.mode;
+const CRON_SCHEDULE = config.schedule;
+const logger = createServiceLogger({ service: 'saqr-sentinel', runtime: config.runtime });
+const sourceOrchestrator = createRegulatorySourceOrchestrator({
+    sources: resolveRegulatorySources(config.authorities, createDefaultRegulatorySourceRegistry()),
+    logger,
+});
 
-/**
- * Execute a full scrape cycle for all authorities.
- */
 async function runScrapeSession() {
     const startTime = Date.now();
-    console.log('');
-    console.log('🦅 ============================================');
-    console.log('🦅  SAQR Sentinel — Scrape Session Started');
-    console.log(`🦅  Mode: ${MODE.toUpperCase()} | Time: ${new Date().toISOString()}`);
-    console.log('🦅 ============================================');
+    config.warnings.forEach((warning) => logger.warn('startup.configuration_warning', { warning }));
+    logger.info('scrape.session.started', {
+        mode: MODE,
+        authorities: config.authorities,
+    });
 
     let samaResults = [];
     let sdaiaResults = [];
+    let allRules = [];
+    let browser;
 
     if (MODE === 'live') {
-        // Launch headless Chromium
-        let browser;
         try {
             browser = await chromium.launch({
-                headless: true,
+                headless: config.browser.headless,
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
             });
-
-            // Run scrapers in parallel
-            [samaResults, sdaiaResults] = await Promise.all([
-                scrapeSAMA(browser),
-                scrapeSDAIA(browser),
-            ]);
         } catch (err) {
-            console.error(`[SENTINEL] Browser launch error: ${err.message}`);
-        } finally {
-            if (browser) await browser.close().catch(() => { });
+            logger.error('scrape.session.browser_launch_failed', err, {
+                mode: MODE,
+            });
         }
+    }
 
-        // Push through Sovereign Bridge
-        const allRules = [...samaResults, ...sdaiaResults];
+    try {
+        const results = await sourceOrchestrator.run({
+            mode: MODE,
+            browser,
+        });
+
+        samaResults = results.byAuthority.SAMA || [];
+        sdaiaResults = results.byAuthority.SDAIA || [];
+        allRules = results.entries;
+    } finally {
+        if (browser) await browser.close().catch(() => { });
+    }
+
+    if (MODE === 'live') {
         await ingestRules(allRules);
     } else {
-        // Demo mode — no network, no DB
-        samaResults = scrapeSAMADemo();
-        sdaiaResults = scrapeSDAIADemo();
-
-        const allRules = [...samaResults, ...sdaiaResults];
         ingestRulesDemo(allRules);
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-    console.log('');
-    console.log(`🦅  Session complete in ${elapsed}s`);
-    console.log(`🦅  SAMA: ${samaResults.length} entries | SDAIA: ${sdaiaResults.length} entries`);
-    console.log('🦅 ============================================');
-    console.log('');
+    logger.audit('sources.scrape_session_completed', {
+        mode: MODE,
+        durationSeconds: Number(elapsed),
+        samaEntries: samaResults.length,
+        sdaiaEntries: sdaiaResults.length,
+        totalEntries: allRules.length,
+    });
 }
 
-// -----------------------------------------------
-// Scheduler
-// -----------------------------------------------
-function startScheduler() {
-    console.log('');
-    console.log('🦅 ============================================');
-    console.log('🦅  SAQR Sentinel Engine v1.0');
-    console.log(`🦅  Mode: ${MODE.toUpperCase()}`);
-    console.log(`🦅  Schedule: ${CRON_SCHEDULE}`);
-    console.log('🦅  Authorities: SAMA, SDAIA');
-    console.log('🦅  Bridge: Sovereign Bridge (One-Way Encrypted)');
-    console.log('🦅 ============================================');
-    console.log('');
-
-    // Run immediately on startup
-    runScrapeSession();
-
-    // Schedule recurring runs
-    cron.schedule(CRON_SCHEDULE, () => {
-        runScrapeSession();
+async function startScheduler() {
+    config.warnings.forEach((warning) => logger.warn('startup.configuration_warning', { warning }));
+    logger.info('service.startup.completed', {
+        mode: MODE,
+        schedule: CRON_SCHEDULE,
+        authorities: config.authorities,
+        bridgeDbValidation: config.bridge.validateDbOnStartup,
     });
 
-    console.log(`[SENTINEL] Scheduler active — next run in 15 minutes`);
+    if (MODE === 'live' && config.bridge.validateDbOnStartup) {
+        try {
+            await testBridgeConnection();
+            logger.info('dependency.bridge_db.connected');
+        } catch (err) {
+            logger.fatal('dependency.bridge_db.failed', err);
+            process.exit(1);
+        }
+    }
+
+    await runScrapeSession();
+
+    cron.schedule(CRON_SCHEDULE, () => {
+        runScrapeSession().catch(err => {
+            logger.error('scrape.session.failed', err, {
+                mode: MODE,
+            });
+        });
+    });
+
+    logger.info('scheduler.active', {
+        schedule: CRON_SCHEDULE,
+    });
 }
 
-// -----------------------------------------------
-// Graceful Shutdown
-// -----------------------------------------------
-process.on('SIGINT', async () => {
-    console.log('\n[SENTINEL] Shutting down gracefully...');
-    if (MODE === 'live') await closePool();
-    process.exit(0);
+installProcessHandlers({
+    logger,
+    onShutdown: async () => {
+        if (MODE === 'live') {
+            await closePool();
+        }
+    },
 });
 
-process.on('SIGTERM', async () => {
-    console.log('\n[SENTINEL] Terminated — closing connections...');
-    if (MODE === 'live') await closePool();
-    process.exit(0);
+startScheduler().catch(err => {
+    logger.fatal('service.startup.failed', err);
+    process.exit(1);
 });
-
-// -----------------------------------------------
-// Main
-// -----------------------------------------------
-startScheduler();

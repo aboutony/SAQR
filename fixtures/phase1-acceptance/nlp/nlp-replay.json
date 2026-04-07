@@ -1,0 +1,33 @@
+{
+  "fixtureId": "nlp-replay-001",
+  "metadata": {
+    "authority": "SAMA",
+    "title": "Consumer Protection Circular Update 2026",
+    "referenceNumber": "402/2026",
+    "issueDate": "2026-04-07"
+  },
+  "rawText": "Circular No. 402/2026\n\nArticle 1\nConsumer disclosures must use font size minimum 14pt.\n\nArticle 2\nCash advance fees shall not exceed SAR 75 per transaction.\n\nArticle 3\nCustomers must be notified within 10 business days.\n",
+  "baseline": [
+    {
+      "obligationId": "OBL-SAMA-BASE-001",
+      "authority": "SAMA",
+      "article": "Article 1",
+      "obligationText": "Consumer disclosures must use font size minimum 12pt.",
+      "obligationType": "threshold",
+      "parameters": {
+        "fontSize": 12
+      },
+      "severity": "mandatory",
+      "confidence": 0.9,
+      "sourceSection": "Article 1"
+    }
+  ],
+  "expected": {
+    "minimumObligationCount": 3,
+    "driftCount": 4,
+    "mustIncludeDriftTypes": [
+      "added",
+      "removed"
+    ]
+  }
+}

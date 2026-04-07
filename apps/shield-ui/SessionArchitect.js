@@ -87,6 +87,9 @@ const SessionArchitect = (() => {
             throw new Error(`[SessionArchitect] Unknown industry: ${industry}`);
         }
 
+        const runtimeConfig = (typeof window !== 'undefined' && window.SAQR_RUNTIME) ? window.SAQR_RUNTIME : {};
+        const runtimeExperience = runtimeConfig.experience || {};
+
         const siloId = `silo_${industry.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}`;
         const schemaConfig = INDUSTRY_SCHEMA_MAP[industry];
         const marketConfig = MARKET_SENTINEL_MAP[market] || MARKET_SENTINEL_MAP._default;
@@ -123,6 +126,13 @@ const SessionArchitect = (() => {
                 ...nmtConfig,
             },
 
+            // Runtime profile
+            runtime: {
+                mode: runtimeConfig.mode || 'demo',
+                profile: runtimeConfig.profile || 'demo',
+                demoEnabled: runtimeExperience.enableDemoData !== false,
+            },
+
             // Sovereignty
             sovereignty: {
                 dataResidency: marketConfig.residency,
@@ -145,6 +155,7 @@ const SessionArchitect = (() => {
         console.log(`  → Market: ${market} (${marketConfig.residency})`);
         console.log(`  → Sentinels: ${marketConfig.scrapers.join(', ')}`);
         console.log(`  → NMT: ${nmtConfig.locale} via ${nmtConfig.engine}`);
+        console.log(`  → Runtime: ${runtimeConfig.mode || 'demo'}`);
 
         return session;
     }

@@ -94,6 +94,13 @@ describe('Constraint Extraction', () => {
         assert.ok(constraints.length > 0);
         assert.ok(constraints[0].context.length > 10, 'Context should be meaningful');
     });
+
+    it('should infer point-based threshold units for font-size rules', () => {
+        const constraints = extractConstraints('Consumer disclosures must use font size minimum 14pt');
+        const thresholdConstraint = constraints.find(c => c.type === 'minimumThreshold');
+        assert.ok(thresholdConstraint);
+        assert.equal(thresholdConstraint.unit, 'pt');
+    });
 });
 
 // -----------------------------------------------
@@ -175,7 +182,6 @@ describe('Sentinel Demo Pipeline', () => {
         const alerts = processSentinelDemo();
         assert.ok(Array.isArray(alerts));
         // Demo should produce at least one alert (SAMA fee cap mismatch)
-        console.log(`  [DEMO] Generated ${alerts.length} alerts`);
         if (alerts.length > 0) {
             assert.ok(alerts[0].alertId);
             assert.ok(alerts[0].authority);

@@ -1,0 +1,14 @@
+.git
+.gitignore
+docs
+fixtures
+infra/k8s
+tools
+**/node_modules
+**/.vercel
+**/coverage
+**/*.test.js
+*.log
+.env
+.env.*
+

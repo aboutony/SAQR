@@ -5,146 +5,66 @@
 // ============================================
 
 const { Pool } = require('pg');
-const { parseCircular } = require('./regulatory-parser');
-const { extractObligations } = require('./obligation-extractor');
-const { detectDrift } = require('./drift-detector');
+const { buildNlpConfig } = require('./config');
+const {
+    createNlpIngestionFlow,
+    createPostgresNlpRepository,
+    createRuleBasedNlpProviders,
+} = require('./nlp-flow');
+const { createServiceLogger, installProcessHandlers } = require('../../../shared/observability');
+const { createPostgresAdapter } = require('../../../shared/postgres-adapter');
 
-const pool = new Pool({
-    host: process.env.SHADOW_DB_HOST || 'localhost',
-    port: parseInt(process.env.SHADOW_DB_PORT || '5432', 10),
-    database: process.env.SHADOW_DB_NAME || 'saqr_shadow',
-    user: process.env.SHADOW_DB_USER || 'saqr',
-    password: process.env.SHADOW_DB_PASSWORD || 'saqr_dev_password',
+const config = buildNlpConfig(process.env);
+const pool = new Pool(config.db);
+const logger = createServiceLogger({ service: 'saqr-nlp-interpreter', runtime: config.runtime });
+const db = createPostgresAdapter(pool, {
+    name: 'saqr-nlp-interpreter-db',
+    logger,
 });
-
-// -----------------------------------------------
-// Store obligation in DB
-// -----------------------------------------------
-async function storeObligation(obl, documentId) {
-    const query = `
-    INSERT INTO shadow.obligations
-      (obligation_id, document_id, authority, article, obligation_text,
-       obligation_type, parameters, severity, confidence, source_section)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (obligation_id) DO UPDATE SET
-      obligation_text = EXCLUDED.obligation_text,
-      parameters = EXCLUDED.parameters,
-      confidence = EXCLUDED.confidence,
-      updated_at = NOW()
-    RETURNING id
-  `;
-    const values = [
-        obl.obligationId, documentId, obl.authority, obl.article,
-        obl.obligationText, obl.obligationType, JSON.stringify(obl.parameters),
-        obl.severity, obl.confidence, obl.sourceSection,
-    ];
-    return pool.query(query, values);
-}
-
-// -----------------------------------------------
-// Store drift alert in DB
-// -----------------------------------------------
-async function storeDriftAlert(alert) {
-    const query = `
-    INSERT INTO shadow.instruction_drift
-      (alert_id, drift_type, authority, severity, title, description,
-       previous_obligation, new_obligation, parameter_diff, detected_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    ON CONFLICT (alert_id) DO NOTHING
-    RETURNING id
-  `;
-    const values = [
-        alert.alertId, alert.driftType, alert.authority, alert.severity,
-        alert.title, alert.description,
-        JSON.stringify(alert.previousObligation),
-        JSON.stringify(alert.newObligation),
-        JSON.stringify(alert.parameterDiff),
-        alert.detectedAt,
-    ];
-    return pool.query(query, values);
-}
-
-// -----------------------------------------------
-// Ingest a new circular
-// -----------------------------------------------
-async function ingestCircular(rawText, metadata) {
-    console.log(`\n📜 Ingesting circular: ${metadata.title || 'Untitled'}`);
-
-    // Step 1: Parse
-    const parsed = parseCircular(rawText, metadata);
-    console.log(`   📄 Parsed ${parsed.sections.length} sections (${parsed.language})`);
-
-    // Step 2: Extract obligations
-    const obligations = extractObligations(parsed.sections, parsed.authority);
-    console.log(`   📋 Extracted ${obligations.length} obligations`);
-
-    // Step 3: Load baseline for drift comparison
-    let baseline = [];
-    try {
-        const result = await pool.query(
-            `SELECT obligation_id, authority, article, obligation_text,
-              obligation_type, parameters, severity, confidence, source_section
-       FROM shadow.obligations
-       WHERE authority = $1
-       ORDER BY id`,
-            [parsed.authority]
-        );
-        baseline = result.rows.map(r => ({
-            obligationId: r.obligation_id,
-            authority: r.authority,
-            article: r.article,
-            obligationText: r.obligation_text,
-            obligationType: r.obligation_type,
-            parameters: typeof r.parameters === 'string' ? JSON.parse(r.parameters) : r.parameters,
-            severity: r.severity,
-            confidence: r.confidence,
-            sourceSection: r.source_section,
-        }));
-        console.log(`   📊 Baseline: ${baseline.length} existing obligations`);
-    } catch (err) {
-        console.log(`   ℹ️  No baseline found (first ingestion): ${err.message}`);
-    }
-
-    // Step 4: Detect drift
-    const drifts = detectDrift(baseline, obligations, parsed.authority);
-    if (drifts.length > 0) {
-        console.log(`   ⚠️  INSTRUCTION DRIFT DETECTED: ${drifts.length} alerts`);
-        for (const d of drifts) {
-            console.log(`      🔄 [${d.severity.toUpperCase()}] ${d.title}`);
-            await storeDriftAlert(d);
-        }
-    } else {
-        console.log(`   ✅ No drift detected`);
-    }
-
-    // Step 5: Store new obligations (upsert)
-    for (const obl of obligations) {
-        await storeObligation(obl, parsed.documentId);
-    }
-    console.log(`   💾 Stored ${obligations.length} obligations`);
-
-    return { parsed, obligations, drifts };
-}
+const { parser, obligationExtractor, driftDetector } = createRuleBasedNlpProviders();
+const repository = createPostgresNlpRepository(db);
+const ingestCircular = createNlpIngestionFlow({
+    parser,
+    obligationExtractor,
+    driftDetector,
+    repository,
+    logger,
+});
 
 // -----------------------------------------------
 // Main — Demo ingestion
 // -----------------------------------------------
 async function main() {
-    console.log('');
-    console.log('🦅 ============================================');
-    console.log('🦅  SAQR NLP INTERPRETER — Starting');
-    console.log('🦅  Mode: Rule-Based (Phase A)');
-    console.log('🦅  BERT Swap: Ready for Phase B');
-    console.log('🦅 ============================================');
-    console.log('');
+    config.warnings.forEach((warning) => logger.warn('startup.configuration_warning', { warning }));
+    logger.info('service.startup.completed', {
+        bootMode: config.nlp.bootMode,
+        startupDbValidation: config.startup.validateDbOnStartup,
+        pipeline: 'phase-a-rule-engine',
+    });
 
     // Test DB connection
     try {
-        await pool.query('SELECT 1');
-        console.log('✅ Shadow DB connected');
+        await db.healthcheck();
+        logger.info('dependency.shadow_db.connected');
     } catch (err) {
-        console.error('❌ Shadow DB connection failed:', err.message);
-        console.log('ℹ️  Run in test-only mode (no DB persistence)');
+        logger.error('dependency.shadow_db.failed', err, {
+            startupValidationRequired: config.startup.validateDbOnStartup,
+        });
+        if (config.startup.validateDbOnStartup) {
+            process.exit(1);
+        }
+        logger.warn('dependency.shadow_db.deferred_validation', {
+            message: 'Run in test-only mode (no DB persistence)',
+        });
+    }
+
+    if (config.nlp.bootMode !== 'demo-ingest') {
+        logger.info('service.ready', {
+            mode: 'service',
+            awaiting: 'regulatory_circulars',
+            demoIngestionSkipped: true,
+        });
+        return;
     }
 
     // Demo: Ingest sample SAMA circular
@@ -171,15 +91,29 @@ async function main() {
             issueDate: '2026-01-15',
         });
     } catch (err) {
-        console.log('ℹ️  Demo ingestion (no DB):', err.message);
+        logger.warn('nlp.demo_ingestion.failed', {
+            error: err,
+        });
     }
 
-    console.log('');
-    console.log('🦅 NLP Interpreter ready. Awaiting circulars...');
+    logger.info('service.ready', {
+        mode: 'demo-ingest',
+        awaiting: 'regulatory_circulars',
+    });
 }
 
 module.exports = { ingestCircular };
 
+installProcessHandlers({
+    logger,
+    onShutdown: async () => {
+        await db.close().catch(() => { });
+    },
+});
+
 if (require.main === module) {
-    main().catch(console.error);
+    main().catch((err) => {
+        logger.fatal('service.startup.failed', err);
+        process.exit(1);
+    });
 }

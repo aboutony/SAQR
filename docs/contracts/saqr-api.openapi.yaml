@@ -1,0 +1,672 @@
+openapi: 3.1.0
+info:
+  title: SAQR API
+  version: 1.0.0-phase1
+  summary: Phase 1 delivery handoff API contract
+  description: >
+    Read-only SAQR backend API for the Shield UI and delivery-team integrations.
+    In production-ready runtime, bearer JWT auth is required for all protected endpoints.
+servers:
+  - url: http://localhost:3001
+    description: Local delivery handoff default
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health probe
+      security: []
+      responses:
+        '200':
+          description: Service health
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/auth/me:
+    get:
+      summary: Resolve current auth context
+      responses:
+        '200':
+          description: Auth context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/platform/runtime:
+    get:
+      summary: Resolve active runtime profile
+      responses:
+        '200':
+          description: Runtime details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformRuntimeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/dashboard/kpis:
+    get:
+      summary: Core dashboard KPIs
+      responses:
+        '200':
+          description: KPI summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardKpis'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/violations:
+    get:
+      summary: Paginated violation list
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: authority
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Violation page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViolationsPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/evidence/{id}:
+    get:
+      summary: Retrieve a sealed evidence record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Evidence record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/penalty-schedule:
+    get:
+      summary: Penalty schedule reference
+      responses:
+        '200':
+          description: Penalty schedule entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PenaltyScheduleEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/merkle-log:
+    get:
+      summary: Recent Merkle seal batches
+      responses:
+        '200':
+          description: Merkle log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MerkleLogEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/cdc-events:
+    get:
+      summary: Recent CDC events
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+      responses:
+        '200':
+          description: CDC event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CdcEvent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/dashboard/breakdown:
+    get:
+      summary: Authority and severity breakdown
+      responses:
+        '200':
+          description: Breakdown rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BreakdownRow'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/obligations:
+    get:
+      summary: Obligation list
+      parameters:
+        - name: authority
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Obligation entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Obligation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/drift-alerts:
+    get:
+      summary: Drift alert list
+      parameters:
+        - name: acknowledged
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Drift alert entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DriftAlert'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/dashboard/nlp-kpis:
+    get:
+      summary: NLP KPI summary
+      responses:
+        '200':
+          description: NLP KPI payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NlpKpis'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/cv/detections:
+    get:
+      summary: CV detections gallery
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: camera
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+      responses:
+        '200':
+          description: Detection records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CvDetection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/cv/cameras:
+    get:
+      summary: Camera registry
+      responses:
+        '200':
+          description: Camera list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CameraRecord'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/cv/kpis:
+    get:
+      summary: CV KPI summary
+      responses:
+        '200':
+          description: CV KPI payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvKpis'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/sources/heartbeat:
+    get:
+      summary: Source-ingestion heartbeat
+      description: >
+        Public in demo runtime and protected in production-ready runtime unless
+        explicitly configured otherwise.
+      security:
+        - bearerAuth: []
+        - {}
+      responses:
+        '200':
+          description: Heartbeat payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceHeartbeat'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/sources/staging/recent:
+    get:
+      summary: Recent staging records
+      parameters:
+        - name: hours
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 1
+      responses:
+        '200':
+          description: Recent staging result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StagingRecentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+  responses:
+    Unauthorized:
+      description: Bearer token missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Authenticated but missing required permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+        requiredPermissions:
+          type: array
+          items: { type: string }
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string }
+        service: { type: string }
+        runtimeMode: { type: string, enum: [demo, production-ready] }
+        time: { type: string, format: date-time }
+    AuthMeResponse:
+      type: object
+      properties:
+        authenticated: { type: boolean }
+        mode: { type: string }
+        subject: { type: string }
+        email: { type: string, format: email }
+        tenantId: { type: string }
+        roles:
+          type: array
+          items: { type: string }
+        permissions:
+          type: array
+          items: { type: string }
+        issuer: { type: string }
+        audience:
+          oneOf:
+            - { type: string }
+            - type: array
+              items: { type: string }
+    PlatformRuntimeResponse:
+      type: object
+      properties:
+        runtime:
+          type: object
+          properties:
+            component: { type: string }
+            mode: { type: string }
+            isDemo: { type: boolean }
+            isProductionReady: { type: boolean }
+        auth:
+          type: object
+          properties:
+            enabled: { type: boolean }
+            issuer: { type: string }
+            audience: { type: string }
+        sources:
+          type: object
+          properties:
+            heartbeatPublic: { type: boolean }
+            authorities:
+              type: array
+              items: { type: string }
+    DashboardKpis:
+      type: object
+      properties:
+        totalViolationsIntercepted: { type: integer }
+        criticalViolations: { type: integer }
+        projectedPenaltyExposure: { type: number }
+        todayInterceptions: { type: integer }
+    ViolationSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        evidence_type: { type: string }
+        violation_code: { type: string }
+        authority: { type: string }
+        severity: { type: string }
+        title: { type: string }
+        description: { type: string }
+        sha256_hash: { type: string }
+        ntp_timestamp: { type: string, format: date-time }
+        created_at: { type: string, format: date-time }
+    ViolationsPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViolationSummary'
+        pagination:
+          type: object
+          properties:
+            page: { type: integer }
+            limit: { type: integer }
+            total: { type: integer }
+    EvidenceRecord:
+      allOf:
+        - $ref: '#/components/schemas/ViolationSummary'
+        - type: object
+          properties:
+            raw_payload:
+              oneOf:
+                - { type: object }
+                - { type: string }
+            source_module: { type: string }
+            description_ar: { type: string }
+            description_en: { type: string }
+            min_penalty_sar: { type: number }
+            max_penalty_sar: { type: number }
+            source_document: { type: string }
+    PenaltyScheduleEntry:
+      type: object
+      properties:
+        authority: { type: string }
+        violation_code: { type: string }
+        description_ar: { type: string }
+        description_en: { type: string }
+        min_penalty_sar: { type: number }
+        max_penalty_sar: { type: number }
+        source_document: { type: string }
+    MerkleLogEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        batch_date: { type: string, format: date }
+        evidence_count: { type: integer }
+        merkle_root: { type: string }
+        computed_at: { type: string, format: date-time }
+    CdcEvent:
+      type: object
+      properties:
+        id: { type: integer }
+        source_system: { type: string }
+        source_table: { type: string }
+        operation: { type: string }
+        event_timestamp: { type: string, format: date-time }
+        ingested_at: { type: string, format: date-time }
+        sha256_hash: { type: string }
+    BreakdownRow:
+      type: object
+      properties:
+        authority: { type: string }
+        severity: { type: string }
+        count: { type: integer }
+        max_exposure: { type: number }
+    Obligation:
+      type: object
+      properties:
+        obligation_id: { type: string }
+        document_id: { type: string }
+        authority: { type: string }
+        article: { type: string }
+        obligation_text: { type: string }
+        obligation_type: { type: string }
+        parameters:
+          oneOf:
+            - { type: object }
+            - { type: string }
+        severity: { type: string }
+        confidence: { type: number }
+        source_section: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    DriftAlert:
+      type: object
+      properties:
+        alert_id: { type: string }
+        drift_type: { type: string }
+        authority: { type: string }
+        severity: { type: string }
+        title: { type: string }
+        description: { type: string }
+        previous_obligation:
+          oneOf:
+            - { type: object }
+            - { type: string }
+        new_obligation:
+          oneOf:
+            - { type: object }
+            - { type: string }
+        parameter_diff:
+          oneOf:
+            - { type: object }
+            - { type: string }
+        acknowledged: { type: boolean }
+        detected_at: { type: string, format: date-time }
+    NlpKpis:
+      type: object
+      properties:
+        totalObligations: { type: integer }
+        totalDriftAlerts: { type: integer }
+        unacknowledgedAlerts: { type: integer }
+    CvDetection:
+      type: object
+      properties:
+        id: { type: integer }
+        evidence_id: { type: string }
+        camera_id: { type: string }
+        source: { type: string }
+        violation_code: { type: string }
+        category: { type: string }
+        confidence: { type: number }
+        bbox:
+          oneOf:
+            - { type: object }
+            - { type: string }
+        frame_hash: { type: string }
+        detection_hash: { type: string }
+        ntp_timestamp: { type: string, format: date-time }
+        severity: { type: string }
+        name_en: { type: string }
+        name_ar: { type: string }
+        record_type: { type: string }
+    CameraRecord:
+      type: object
+      properties:
+        camera_id: { type: string }
+        name: { type: string }
+        site_code: { type: string }
+        source: { type: string }
+        enabled: { type: boolean }
+    CvKpis:
+      type: object
+      properties:
+        totalDetections: { type: integer }
+        criticalDetections: { type: integer }
+        signageViolations: { type: integer }
+        visualViolations: { type: integer }
+        structuralViolations: { type: integer }
+    SourceAuthority:
+      type: object
+      properties:
+        code: { type: string }
+        name: { type: string }
+        name_ar: { type: string }
+        status: { type: string }
+        lastSync: { type: string, format: date-time }
+    SourceHeartbeat:
+      type: object
+      properties:
+        status: { type: string }
+        timestamp: { type: string, format: date-time }
+        runtimeMode: { type: string }
+        authorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/SourceAuthority'
+        sovereignty:
+          type: object
+          properties:
+            zone: { type: string }
+            cloud: { type: string }
+            encryption: { type: string }
+            dataResidency: { type: string }
+            compliance:
+              type: array
+              items: { type: string }
+        security:
+          type: object
+          properties:
+            direction: { type: string }
+            description: { type: string }
+            authRequired: { type: boolean }
+    StagingEntry:
+      type: object
+      properties:
+        id: { type: integer }
+        authority: { type: string }
+        title: { type: string }
+        source_url: { type: string }
+        content_hash: { type: string }
+        category: { type: string }
+        detected_at: { type: string, format: date-time }
+    StagingRecentResponse:
+      type: object
+      properties:
+        count: { type: integer }
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/StagingEntry'
+        queriedAt: { type: string, format: date-time }

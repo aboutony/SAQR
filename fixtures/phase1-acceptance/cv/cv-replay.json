@@ -1,0 +1,78 @@
+{
+  "fixtureId": "cv-replay-001",
+  "providerType": "custom-vendor",
+  "cameras": [
+    {
+      "id": "CAM-BRANCH-01",
+      "name": "Main Entrance Camera",
+      "enabled": true,
+      "type": "custom-vendor"
+    },
+    {
+      "id": "CAM-BRANCH-02",
+      "name": "Storefront Camera",
+      "enabled": true,
+      "type": "custom-vendor"
+    }
+  ],
+  "frames": [
+    {
+      "cameraId": "CAM-BRANCH-01",
+      "timestamp": "2026-04-07T09:35:00.000Z",
+      "source": "custom-vendor",
+      "width": 1920,
+      "height": 1080,
+      "bufferBase64": "Y2FtZXJhLWZyYW1lLTE="
+    },
+    {
+      "cameraId": "CAM-BRANCH-02",
+      "timestamp": "2026-04-07T09:36:00.000Z",
+      "source": "custom-vendor",
+      "width": 1920,
+      "height": 1080,
+      "bufferBase64": "Y2FtZXJhLWZyYW1lLTI="
+    }
+  ],
+  "detectionsByCamera": {
+    "CAM-BRANCH-01": [
+      {
+        "classId": 0,
+        "code": "MOMAH-CV-001",
+        "nameEn": "Burnt-Out Signage",
+        "nameAr": "Burnt-Out Signage",
+        "category": "signage",
+        "confidence": 0.95,
+        "bbox": {
+          "x": 0.1,
+          "y": 0.2,
+          "width": 0.3,
+          "height": 0.4
+        },
+        "severity": "high"
+      }
+    ],
+    "CAM-BRANCH-02": [
+      {
+        "classId": 6,
+        "code": "MOMAH-CV-007",
+        "nameEn": "Unauthorized Partitioning",
+        "nameAr": "Unauthorized Partitioning",
+        "category": "structural",
+        "confidence": 0.88,
+        "bbox": {
+          "x": 0.2,
+          "y": 0.25,
+          "width": 0.2,
+          "height": 0.35
+        },
+        "severity": "critical"
+      }
+    ]
+  },
+  "expected": {
+    "cameraCount": 2,
+    "detectionCount": 2,
+    "persistedEvidenceCount": 2,
+    "maintenanceAlerts": 2
+  }
+}

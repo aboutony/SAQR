@@ -1,5 +1,5 @@
 // ============================================
-// SAQR CV Watchman — Genetec Security Center Client
+// SAQR CV Watchman - Genetec Security Center Client
 // Web SDK integration for frame grabbing
 // ============================================
 
@@ -16,6 +16,7 @@ class GenetecClient {
      * @param {string} config.password
      * @param {string} config.appId - Application registration ID
      * @param {number} config.maxFps
+     * @param {object} [config.logger]
      */
     constructor(config = {}) {
         this.host = config.host || 'localhost';
@@ -24,6 +25,7 @@ class GenetecClient {
         this.password = config.password || '';
         this.appId = config.appId || 'SAQR-Watchman';
         this.maxFps = config.maxFps || 1;
+        this.logger = config.logger || null;
         this.baseUrl = `https://${this.host}:${this.port}/WebSdk`;
         this.sessionId = null;
         this.lastGrabTime = new Map();
@@ -40,20 +42,29 @@ class GenetecClient {
             const response = await fetch(`${this.baseUrl}/Authentication`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Basic ${authString}`,
+                    Authorization: `Basic ${authString}`,
                     'Content-Type': 'application/json',
                     'X-Application-Id': this.appId,
                 },
                 body: JSON.stringify({ ApplicationId: this.appId }),
             });
 
-            if (!response.ok) throw new Error(`Auth failed: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Auth failed: ${response.status}`);
+            }
+
             const data = await response.json();
             this.sessionId = data.SessionId || data.Token;
-            console.log('✅ Genetec Security Center authenticated');
+            this.logger?.info('dependency.vms.provider_authenticated', {
+                provider: this.type,
+            });
             return true;
         } catch (err) {
-            console.error('❌ Genetec auth failed:', err.message);
+            this.logger?.error('dependency.vms.provider_auth_failed', err, {
+                provider: this.type,
+                host: this.host,
+                port: this.port,
+            });
             return false;
         }
     }
@@ -66,16 +77,21 @@ class GenetecClient {
             const response = await fetch(`${this.baseUrl}/Entities?EntityType=Camera`, {
                 headers: this._authHeaders(),
             });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
             const data = await response.json();
-            return (data.Entities || data).map(cam => ({
-                id: cam.Guid || cam.Id,
-                name: cam.Name || 'Unknown',
-                enabled: cam.IsOnline !== false,
+            return (data.Entities || data).map((camera) => ({
+                id: camera.Guid || camera.Id,
+                name: camera.Name || 'Unknown',
+                enabled: camera.IsOnline !== false,
                 type: 'genetec',
             }));
         } catch (err) {
-            console.warn('Genetec getCameras:', err.message);
+            this.logger?.warn('dependency.vms.camera_discovery_failed', {
+                provider: this.type,
+                reason: err.message,
+            });
             return [];
         }
     }
@@ -87,7 +103,9 @@ class GenetecClient {
         const now = Date.now();
         const lastGrab = this.lastGrabTime.get(cameraId) || 0;
         const minInterval = 1000 / this.maxFps;
-        if (now - lastGrab < minInterval) return null;
+        if (now - lastGrab < minInterval) {
+            return null;
+        }
         this.lastGrabTime.set(cameraId, now);
 
         try {
@@ -96,7 +114,10 @@ class GenetecClient {
                 { headers: this._authHeaders() }
             );
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             const buffer = Buffer.from(await response.arrayBuffer());
 
             return {
@@ -108,7 +129,11 @@ class GenetecClient {
                 height: 1080,
             };
         } catch (err) {
-            console.warn(`Genetec grabFrame(${cameraId}):`, err.message);
+            this.logger?.warn('cv.frame_grab_failed', {
+                provider: this.type,
+                cameraId,
+                reason: err.message,
+            });
             return null;
         }
     }
@@ -131,7 +156,7 @@ class GenetecClient {
         return {
             'X-Session-Id': this.sessionId,
             'X-Application-Id': this.appId,
-            'Accept': 'application/json',
+            Accept: 'application/json',
         };
     }
 }

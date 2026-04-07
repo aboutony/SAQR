@@ -1,5 +1,5 @@
 // ============================================
-// SAQR Sentinel — SAMA Circular Scraper
+// SAQR Sentinel - SAMA Circular Scraper
 // Headless Playwright scraper for:
 // https://www.sama.gov.sa/en-US/Circulars/Pages/BankCirculars.aspx
 // ============================================
@@ -7,16 +7,18 @@
 const crypto = require('crypto');
 
 /**
- * SAMA Bank Circulars Scraper
+ * SAMA Bank Circulars scraper.
  * Uses Playwright to navigate the JS-rendered SharePoint page
  * and extract the latest circular entries.
  *
  * @param {import('playwright').Browser} browser - Playwright browser instance
+ * @param {{ logger?: object }} [options]
  * @returns {Promise<Array<{authority: string, title: string, sourceUrl: string, category: string, publishDate: string, contentHash: string, detectedAt: string}>>}
  */
-async function scrapeSAMA(browser) {
+async function scrapeSAMA(browser, options = {}) {
     const TARGET_URL = 'https://www.sama.gov.sa/en-US/Circulars/Pages/BankCirculars.aspx';
     const results = [];
+    const logger = options.logger || null;
 
     let page;
     try {
@@ -26,32 +28,30 @@ async function scrapeSAMA(browser) {
         });
         page = await context.newPage();
 
-        // Navigate with extended timeout for government portals
         await page.goto(TARGET_URL, { waitUntil: 'networkidle', timeout: 30000 });
 
-        // Wait for the circular table to render (SharePoint dynamic content)
         await page.waitForSelector('tr.item, .ms-listviewtable tr, table tr', { timeout: 15000 }).catch(() => {
-            console.log('[SAMA] No table rows found — page may have changed structure');
+            logger?.warn('scrape.source_structure_warning', {
+                authority: 'SAMA',
+                sourceUrl: TARGET_URL,
+                reason: 'No table rows found; source structure may have changed.',
+            });
         });
 
-        // Extract circular entries
         const entries = await page.evaluate(() => {
             const rows = document.querySelectorAll('tr.item, .ms-listviewtable tbody tr');
             const items = [];
 
-            rows.forEach(row => {
+            rows.forEach((row) => {
                 const cells = row.querySelectorAll('td');
-                if (cells.length < 2) return;
+                if (cells.length < 2) {
+                    return;
+                }
 
-                // Extract title from first link or first cell
                 const link = row.querySelector('a');
                 const title = link ? link.textContent.trim() : cells[0].textContent.trim();
                 const href = link ? link.href : '';
-
-                // Try to get date from last or second cell
                 const dateText = cells[cells.length - 1]?.textContent.trim() || '';
-
-                // Try to get category
                 const category = cells.length > 2 ? cells[1]?.textContent.trim() : 'General';
 
                 if (title && title.length > 5) {
@@ -59,10 +59,9 @@ async function scrapeSAMA(browser) {
                 }
             });
 
-            return items.slice(0, 20); // Latest 20 entries max
+            return items.slice(0, 20);
         });
 
-        // Process entries with hashing
         for (const entry of entries) {
             const hashInput = `SAMA|${entry.title}|${entry.href}`;
             const contentHash = crypto.createHash('sha256').update(hashInput).digest('hex');
@@ -78,11 +77,20 @@ async function scrapeSAMA(browser) {
             });
         }
 
-        console.log(`[SAMA] Scraped ${results.length} circulars from ${TARGET_URL}`);
+        logger?.info('scrape.source_completed', {
+            authority: 'SAMA',
+            sourceUrl: TARGET_URL,
+            resultCount: results.length,
+        });
     } catch (err) {
-        console.error(`[SAMA] Scraper error: ${err.message}`);
+        logger?.error('scrape.source_failed', err, {
+            authority: 'SAMA',
+            sourceUrl: TARGET_URL,
+        });
     } finally {
-        if (page) await page.close().catch(() => { });
+        if (page) {
+            await page.close().catch(() => { });
+        }
     }
 
     return results;
@@ -101,15 +109,15 @@ function scrapeSAMADemo() {
         { title: 'Circular: Open Banking API Standard v3.1 Compliance Deadline', category: 'Open Banking', date: '2026-02-10' },
     ];
 
-    return circulars.map(c => {
-        const hashInput = `SAMA|${c.title}|${c.date}`;
+    return circulars.map((circular) => {
+        const hashInput = `SAMA|${circular.title}|${circular.date}`;
         const contentHash = crypto.createHash('sha256').update(hashInput).digest('hex');
         return {
             authority: 'SAMA',
-            title: c.title,
-            sourceUrl: `https://www.sama.gov.sa/en-US/Circulars/Pages/BankCirculars.aspx`,
-            category: c.category,
-            publishDate: c.date,
+            title: circular.title,
+            sourceUrl: 'https://www.sama.gov.sa/en-US/Circulars/Pages/BankCirculars.aspx',
+            category: circular.category,
+            publishDate: circular.date,
             contentHash,
             detectedAt: new Date().toISOString(),
         };

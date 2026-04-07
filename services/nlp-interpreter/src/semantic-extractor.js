@@ -10,7 +10,7 @@
 
 const crypto = require('crypto');
 const { parseCircular } = require('./regulatory-parser');
-const { extractObligations, extractParameters } = require('./obligation-extractor');
+const { extractObligations } = require('./obligation-extractor');
 
 // -----------------------------------------------
 // NER: Named Entity Recognition
@@ -47,25 +47,53 @@ const DATE_PATTERNS = [
 
 const CONSTRAINT_PATTERNS = {
     financialCap: [
-        /(?:maximum|cap|limit|الحد الأقصى|لا يتجاوز)\s*(?:of|بقيمة)?\s*(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)/gi,
-        /(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)\s*(?:cap|maximum|limit|كحد أقصى)/gi,
+        /(?:maximum|cap|limit|ceiling|الحد الأقصى)[^.]{0,80}?(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)/gi,
+        /(?:shall\s+not\s+exceed|must\s+not\s+exceed|may\s+not\s+exceed|not\s+exceed|لا\s+يتجاوز)[^.]{0,40}?(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)/gi,
+        /(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)[^.]{0,40}?(?:cap|maximum|limit|ceiling|كحد أقصى)/gi,
     ],
     percentageCap: [
-        /(?:maximum|cap|limit|not exceed|لا يتجاوز|الحد الأقصى)\s*(?:of)?\s*(\d+(?:\.\d+)?)\s*%/gi,
-        /(\d+(?:\.\d+)?)\s*%\s*(?:maximum|cap|limit|كحد أقصى)/gi,
+        /(?:maximum|cap|limit|shall\s+not\s+exceed|must\s+not\s+exceed|not\s+exceed|لا\s+يتجاوز|الحد الأقصى)[^.]{0,30}?(\d+(?:\.\d+)?)\s*%/gi,
+        /(\d+(?:\.\d+)?)\s*%[^.]{0,30}?(?:maximum|cap|limit|كحد أقصى)/gi,
     ],
     minimumThreshold: [
-        /(?:minimum|at least|not less than|no less than|لا يقل عن|على الأقل)\s*(?:of)?\s*(\d+(?:\.\d+)?)/gi,
+        /(?:minimum|at least|not less than|no less than|لا\s+يقل\s+عن|على الأقل)[^.]{0,20}?(\d+(?:\.\d+)?)/gi,
     ],
     timeConstraint: [
         /(?:within|خلال|في غضون)\s*(\d+)\s*(?:business|working|عمل)?\s*(?:days|أيام|يوم)/gi,
         /(\d+)\s*(?:calendar days|أيام تقويمية)/gi,
     ],
     penaltyAmount: [
-        /(?:penalty|fine|غرامة|عقوبة)\s*(?:of|up to|بقيمة|تصل إلى)?\s*(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)/gi,
+        /(?:penalty|fine|غرامة|عقوبة)[^.]{0,60}?(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)/gi,
         /(?:SAR|ريال)\s*([\d,]+(?:\.\d+)?)\s*(?:penalty|fine|غرامة)/gi,
     ],
 };
+
+const CONTEXT_BOUNDARY_PATTERN = /[.!?\n؛،]/;
+
+function inferConstraintUnit(type, context = '') {
+    if (type === 'percentageCap' || /%/.test(context)) return '%';
+    if (type === 'timeConstraint' || /(?:day|days|business|working|أيام|يوم)/i.test(context)) return 'days';
+    if (/(?:pt|point|points|نقطة)/i.test(context)) return 'pt';
+    return 'SAR';
+}
+
+function extractConstraintContext(text, matchIndex, matchText) {
+    let start = matchIndex;
+    let end = matchIndex + matchText.length;
+
+    while (start > 0 && !CONTEXT_BOUNDARY_PATTERN.test(text[start - 1])) {
+        start -= 1;
+    }
+
+    while (end < text.length && !CONTEXT_BOUNDARY_PATTERN.test(text[end])) {
+        end += 1;
+    }
+
+    return text
+        .slice(start, end)
+        .replace(/\s+/g, ' ')
+        .trim();
+}
 
 // -----------------------------------------------
 // Action Mapping Categories
@@ -140,7 +168,8 @@ function extractEntities(text, knownAuthority) {
  * @returns {Array<{ type: string, value: number, unit: string, context: string }>}
  */
 function extractConstraints(text) {
-    const constraints = [];
+    const matches = [];
+    const seen = new Set();
 
     for (const [type, patterns] of Object.entries(CONSTRAINT_PATTERNS)) {
         for (const pattern of patterns) {
@@ -150,22 +179,26 @@ function extractConstraints(text) {
                 const rawVal = (match[1] || '').replace(/,/g, '');
                 const value = parseFloat(rawVal);
                 if (isNaN(value)) continue;
+                const context = extractConstraintContext(text, match.index, match[0]);
+                const unit = inferConstraintUnit(type, context);
+                const dedupeKey = `${type}|${value}|${unit}|${context.toLowerCase()}`;
+                if (seen.has(dedupeKey)) continue;
+                seen.add(dedupeKey);
 
-                const unit = type.includes('percentage') ? '%'
-                    : type.includes('time') ? 'days'
-                        : 'SAR';
-
-                // Get surrounding context (± 80 chars)
-                const start = Math.max(0, match.index - 80);
-                const end = Math.min(text.length, match.index + match[0].length + 80);
-                const context = text.substring(start, end).replace(/\n/g, ' ').trim();
-
-                constraints.push({ type, value, unit, context });
+                matches.push({
+                    type,
+                    value,
+                    unit,
+                    context,
+                    index: match.index,
+                });
             }
         }
     }
 
-    return constraints;
+    return matches
+        .sort((left, right) => left.index - right.index)
+        .map(({ index, ...constraint }) => constraint);
 }
 
 /**

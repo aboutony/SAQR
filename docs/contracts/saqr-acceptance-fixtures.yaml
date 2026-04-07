@@ -1,0 +1,57 @@
+version: 1
+phase: "Phase 1"
+date: "2026-04-07"
+scope: "P1-503"
+manifest: "fixtures/phase1-acceptance/manifest.json"
+harness:
+  entrypoint: "tools/phase1-acceptance/run-phase1-acceptance.js"
+  commands:
+    - "node tools/phase1-acceptance/run-phase1-acceptance.js --scenario all --json"
+    - "node --test tools/phase1-acceptance/harness.test.js"
+scenarios:
+  cdc:
+    fixture: "fixtures/phase1-acceptance/cdc/cdc-replay.json"
+    validates:
+      - "Debezium-style envelope decoding"
+      - "CDC ruleset execution"
+      - "evidence sealing"
+      - "Merkle batch generation"
+    expected:
+      totalCdcEvents: 3
+      totalEvidenceRecords: 4
+      merkleBatch: true
+  nlp:
+    fixture: "fixtures/phase1-acceptance/nlp/nlp-replay.json"
+    validates:
+      - "circular parsing"
+      - "obligation extraction"
+      - "baseline loading"
+      - "current drift persistence semantics"
+    expected:
+      minimumObligationCount: 3
+      driftCount: 4
+      mustIncludeDriftTypes:
+        - "added"
+        - "removed"
+  sentinel:
+    fixture: "fixtures/phase1-acceptance/sentinel/sentinel-replay.json"
+    validates:
+      - "source-provider orchestration"
+      - "authority fan-in"
+      - "staging deduplication"
+    expected:
+      totalEntries: 3
+      ingested: 2
+      duplicates: 1
+  cv:
+    fixture: "fixtures/phase1-acceptance/cv/cv-replay.json"
+    validates:
+      - "custom VMS provider registry"
+      - "frame acquisition contract"
+      - "scan-cycle evidence creation"
+      - "maintenance notification"
+    expected:
+      cameraCount: 2
+      detectionCount: 2
+      persistedEvidenceCount: 2
+      maintenanceAlerts: 2

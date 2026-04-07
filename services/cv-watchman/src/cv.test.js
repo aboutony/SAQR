@@ -76,6 +76,40 @@ describe('VMS Adapter — Demo Mode', () => {
         assert.ok(frame1, 'First grab should succeed');
         assert.equal(frame2, null, 'Second grab should be rate-limited');
     });
+
+    it('accepts a delivery-team supplied provider registry', async () => {
+        const adapter = new VmsAdapter({
+            type: 'custom-vendor',
+            registry: {
+                'custom-vendor': () => ({
+                    async authenticate() {
+                        return true;
+                    },
+                    async getCameras() {
+                        return [{ id: 'CUSTOM-01', name: 'Custom Camera', enabled: true }];
+                    },
+                    async grabFrame(cameraId) {
+                        return {
+                            buffer: Buffer.from('custom-frame'),
+                            timestamp: new Date().toISOString(),
+                            cameraId,
+                            source: 'custom-vendor',
+                            width: 1280,
+                            height: 720,
+                        };
+                    },
+                    async getStatus() {
+                        return 'connected';
+                    },
+                }),
+            },
+        });
+
+        const connected = await adapter.connect();
+        assert.equal(connected, true);
+        assert.equal(adapter.getCameras().length, 1);
+        assert.equal(adapter.getCameras()[0].id, 'CUSTOM-01');
+    });
 });
 
 // -----------------------------------------------
@@ -83,13 +117,12 @@ describe('VMS Adapter — Demo Mode', () => {
 // -----------------------------------------------
 describe('Detector', () => {
     it('produces detections from valid frame', () => {
-        // Create a frame that should trigger detection (seed-dependent)
+        // Search deterministic frame payloads until one produces a detection.
         let frame = null;
         const meta = { cameraId: 'TEST-01', timestamp: new Date().toISOString(), width: 1920, height: 1080 };
 
-        // Try multiple frames to find one that triggers detection
-        for (let i = 0; i < 200; i++) {
-            const buf = Buffer.from(`TEST-FRAME-${i}-VIOLATION-${Date.now()}`);
+        for (let i = 0; i < 1000; i++) {
+            const buf = Buffer.from(`TEST-FRAME-${i}-VIOLATION`);
             const dets = detect(buf, meta);
             if (dets.length > 0) {
                 frame = { buffer: buf, detections: dets };
@@ -97,7 +130,7 @@ describe('Detector', () => {
             }
         }
 
-        assert.ok(frame, 'At least one frame should produce a detection within 200 tries');
+        assert.ok(frame, 'At least one deterministic frame should produce a detection within 1000 tries');
         assert.ok(frame.detections[0].code.startsWith('MOMAH-CV-'));
         assert.ok(frame.detections[0].confidence > 0);
         assert.ok(frame.detections[0].bbox);

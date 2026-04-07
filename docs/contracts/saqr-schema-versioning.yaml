@@ -1,0 +1,155 @@
+version: 1
+phase: "Phase 1"
+date: "2026-04-07"
+scope: "P1-501"
+baseline:
+  id: "phase1-baseline-2026-04-07"
+  artifacts:
+    - path: "infra/source-init/01-schema.sql"
+      scope: "mock source database baseline"
+    - path: "infra/init-scripts/01-evidence-vault.sql"
+      scope: "shadow and vault baseline"
+    - path: "infra/migrations/0001_platform_schema_migrations.sql"
+      scope: "platform migration ledger baseline"
+  documentation:
+    - path: "infra/migrations/README.md"
+      scope: "migration operating procedure"
+    - path: "docs/contracts/saqr-data-dictionary.md"
+      scope: "human-readable data contracts"
+migration_ledger:
+  path: "infra/migrations/0001_platform_schema_migrations.sql"
+  table: "platform.schema_migrations"
+  required_fields:
+    - "migration_id"
+    - "component"
+    - "schema_name"
+    - "checksum_sha256"
+    - "execution_mode"
+    - "compatibility_level"
+    - "applied_at"
+release_rules:
+  target_environment: "production-ready only"
+  demo_environment_policy: "frozen unless explicit approval is granted"
+  apply_order:
+    - "platform ledger migration"
+    - "source schema change"
+    - "shadow/vault schema change"
+    - "connector/topic compatibility update"
+    - "service rollout that consumes the new schema"
+compatibility_policy:
+  default_strategy: "forward_only"
+  phase1_default: "backward_compatible_additive"
+  preferred_changes:
+    - "new tables"
+    - "new indexes"
+    - "nullable columns"
+    - "compatibility-safe constraints after review"
+  prohibited_without_explicit_approval:
+    - "destructive changes to vault.evidence"
+    - "destructive changes to vault.merkle_log"
+    - "schema changes that break current API/service readers in the same release"
+naming_convention:
+  recommended_pattern: "VYYYYMMDDHHMM__short_description.sql"
+schemas:
+  public:
+    role: "source database schema replicated by Debezium"
+    write_owner: "client source systems"
+    primary_reader: "Debezium / CDC connector"
+    tables:
+      consumer_disclosures:
+        primary_key: "id"
+        replicated: true
+        mutation_policy: "source_owned"
+        current_consumers:
+          - "CDC connector"
+          - "Evidence Vault compliance engine"
+      fee_schedule:
+        primary_key: "id"
+        replicated: true
+        mutation_policy: "source_owned"
+        current_consumers:
+          - "CDC connector"
+          - "Evidence Vault compliance engine"
+      cooling_off_periods:
+        primary_key: "id"
+        replicated: true
+        mutation_policy: "source_owned"
+        current_consumers:
+          - "CDC connector"
+          - "Evidence Vault compliance engine"
+      branch_compliance:
+        primary_key: "id"
+        replicated: true
+        mutation_policy: "source_owned"
+        current_consumers:
+          - "CDC connector"
+          - "Evidence Vault compliance engine"
+  shadow:
+    role: "delivery-side operational shadow schema"
+    write_owner: "SAQR runtime services"
+    primary_reader: "API and runtime services"
+    tables:
+      cdc_events:
+        primary_key: "id"
+        append_only: true
+        mutation_policy: "append_only"
+        current_writer: "Evidence Vault CDC flow"
+      obligations:
+        primary_key: "id"
+        business_key: "obligation_id"
+        mutation_policy: "upsert_safe"
+        current_writer: "NLP ingestion flow"
+      instruction_drift:
+        primary_key: "id"
+        business_key: "alert_id"
+        mutation_policy: "insert_with_ack_updates"
+        current_writer: "NLP drift detection flow"
+      cv_detections:
+        primary_key: "id"
+        business_key: "evidence_id"
+        mutation_policy: "append_only_by_business_intent"
+        current_writer: "CV Watchman evidence flow"
+      camera_registry:
+        primary_key: "id"
+        business_key: "camera_id"
+        mutation_policy: "normal_crud"
+        current_writer: "delivery VMS onboarding"
+      regulatory_staging:
+        primary_key: "id"
+        business_key: "content_hash"
+        mutation_policy: "insert_first_then_analyzed_status_updates"
+        current_writer: "Sentinel Scrapers / Sovereign Bridge"
+  vault:
+    role: "immutable evidence and legal integrity schema"
+    write_owner: "Evidence Vault and CV evidence flow"
+    primary_reader: "API and audit consumers"
+    tables:
+      evidence:
+        primary_key: "id"
+        business_key: "sha256_hash"
+        immutable: true
+        mutation_policy: "immutable_trigger_blocked"
+      merkle_log:
+        primary_key: "id"
+        business_key: "batch_date"
+        immutable: true
+        mutation_policy: "immutable_trigger_blocked"
+      penalty_schedule:
+        primary_key: "id"
+        business_key: "violation_code"
+        mutation_policy: "operator_managed_reference_data"
+        seeded_rows: 6
+  platform:
+    role: "migration and platform governance schema"
+    write_owner: "delivery migration operator"
+    primary_reader: "release governance and audit review"
+    tables:
+      schema_migrations:
+        primary_key: "id"
+        business_key: "migration_id"
+        mutation_policy: "append_only_governance_ledger"
+delivery_expectations:
+  - "Record every applied schema change in platform.schema_migrations."
+  - "Update the data dictionary when table or column contracts change."
+  - "Preserve demo and production-ready environments as separate data planes."
+  - "Use forward-fix migrations instead of destructive rollback on immutable evidence paths."

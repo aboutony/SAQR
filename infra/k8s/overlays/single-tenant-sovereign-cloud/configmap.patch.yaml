@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: saqr-platform-config
+data:
+  SAQR_PACKAGE_PROFILE: "single-tenant-sovereign-cloud"
+  SAQR_TOPOLOGY_KEY: "single-tenant-sovereign-cloud"
+  SAQR_TOPOLOGY_PATTERN: "single_tenant"
+  SAQR_DEPLOYMENT_TARGET: "sovereign_cloud"
+  SAQR_BOUNDARY_SCOPE: "tenant"
+  SAQR_POLICY_MODEL: "saqr-reference-sovereign-policy"
+  SAQR_DEFAULT_RESIDENCY_REQUIREMENT: "topology_boundary"
+  SAQR_DEFAULT_ENCRYPTION_BOUNDARY: "tenant_managed_kms"
+  SAQR_DEFAULT_REPORTING_CROSS_BORDER_MODE: "metadata_only"
+  SAQR_ENTITY_PARTITION_MODE: "tenant"

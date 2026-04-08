@@ -1,0 +1,53 @@
+{
+  "fixtureId": "phase2-entity-reporting-001",
+  "hierarchyFixture": "fixtures/phase2-entity/hierarchies/saqr-reference-group.hierarchy.json",
+  "scopingFixture": "fixtures/phase2-entity/scoping/saqr-reference-entity-scoping.scoping.json",
+  "isolationFixture": "fixtures/phase2-entity/isolation/saqr-reference-entity-isolation.isolation.json",
+  "rollupFixture": "fixtures/phase2-entity/rollups/saqr-reference-portfolio-rollup.rollup.json",
+  "reportingFixture": "fixtures/phase2-entity/reports/saqr-reference-executive-reporting.report.json",
+  "commands": {
+    "executiveReport": {
+      "principalId": "usr-group-board",
+      "reportKey": "group-executive-summary",
+      "targetScope": {
+        "groupId": "grp-saqr"
+      }
+    },
+    "sameEntityWorkflowRead": {
+      "principalId": "usr-bank-entity-ops",
+      "resourceType": "workflow",
+      "action": "read",
+      "resourceScope": {
+        "entityId": "ent-saqr-bank-ksa"
+      }
+    },
+    "crossEntityWorkflowRead": {
+      "principalId": "usr-bank-entity-ops",
+      "resourceType": "workflow",
+      "action": "read",
+      "resourceScope": {
+        "entityId": "ent-saqr-insurance-ksa"
+      }
+    },
+    "groupReportDenied": {
+      "principalId": "usr-riyadh-investigator",
+      "resourceType": "report",
+      "action": "report",
+      "resourceScope": {
+        "groupId": "grp-saqr"
+      }
+    }
+  },
+  "expected": {
+    "reportBoundaryMode": "aggregate_read_only",
+    "reportOverallStatus": "breached",
+    "reportNodeCount": 10,
+    "controlHighlightKeys": ["bank-consumer-disclosure"],
+    "nodeHighlightIds": ["site-riyadh-hq"],
+    "sameEntityWorkflowBoundaryMode": "same_partition_direct",
+    "crossEntityWorkflowAllowed": false,
+    "crossEntityWorkflowReasonContains": "no matching scope grant",
+    "groupReportDeniedAllowed": false,
+    "groupReportDeniedReasonContains": "no matching scope grant"
+  }
+}

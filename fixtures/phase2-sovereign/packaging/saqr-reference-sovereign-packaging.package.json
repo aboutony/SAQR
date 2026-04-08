@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-sovereign-packaging",
+  "version": 1,
+  "name": "SAQR Reference Sovereign Packaging Model",
+  "description": "Reference rollout packaging profiles that map sovereign topology and policy rules to concrete compose, env, and Kubernetes overlay artifacts.",
+  "status": "active",
+  "topologyRef": {
+    "modelKey": "saqr-reference-sovereign-topology",
+    "version": 1
+  },
+  "policyRef": {
+    "modelKey": "saqr-reference-sovereign-policy",
+    "version": 1
+  },
+  "packageProfiles": [
+    {
+      "profileKey": "single-tenant-sovereign-cloud",
+      "topologyKey": "single-tenant-sovereign-cloud",
+      "composeFiles": [
+        "infra/docker-compose.production.yml",
+        "infra/docker-compose.single-tenant-sovereign-cloud.yml"
+      ],
+      "envTemplates": [
+        "infra/env/overlays/single-tenant-sovereign-cloud.env.template"
+      ],
+      "kustomizeFiles": [
+        "infra/k8s/overlays/single-tenant-sovereign-cloud/kustomization.yaml",
+        "infra/k8s/overlays/single-tenant-sovereign-cloud/configmap.patch.yaml",
+        "infra/k8s/overlays/single-tenant-sovereign-cloud/ingress.patch.yaml"
+      ],
+      "componentBindings": [
+        { "componentKey": "shield-ui", "distributionMode": "container_service", "runtimeArtifact": "apps/shield-ui/Dockerfile" },
+        { "componentKey": "api", "distributionMode": "container_service", "runtimeArtifact": "apps/api/Dockerfile" },
+        { "componentKey": "workflow-engine", "distributionMode": "embedded_module", "runtimeArtifact": "services/workflow-engine/package.json" },
+        { "componentKey": "sentinel-scrapers", "distributionMode": "container_service", "runtimeArtifact": "services/sentinel-scrapers/Dockerfile" },
+        { "componentKey": "cv-watchman", "distributionMode": "container_service", "runtimeArtifact": "services/cv-watchman/Dockerfile" },
+        { "componentKey": "nlp-interpreter", "distributionMode": "container_service", "runtimeArtifact": "services/nlp-interpreter/Dockerfile" },
+        { "componentKey": "evidence-vault", "distributionMode": "container_service", "runtimeArtifact": "services/evidence-vault/Dockerfile" }
+      ],
+      "deliveryNotes": [
+        "Use the Phase 1 base compose profile plus the single-tenant override for sovereign-cloud dry runs.",
+        "Treat workflow-engine as an embedded control-plane module in this increment."
+      ]
+    },
+    {
+      "profileKey": "per-country-sovereign-cloud",
+      "topologyKey": "per-country-sovereign-cloud",
+      "composeFiles": [
+        "infra/docker-compose.production.yml",
+        "infra/docker-compose.per-country-sovereign-cloud.yml"
+      ],
+      "envTemplates": [
+        "infra/env/overlays/per-country-sovereign-cloud.env.template"
+      ],
+      "kustomizeFiles": [
+        "infra/k8s/overlays/per-country-sovereign-cloud/kustomization.yaml",
+        "infra/k8s/overlays/per-country-sovereign-cloud/configmap.patch.yaml",
+        "infra/k8s/overlays/per-country-sovereign-cloud/ingress.patch.yaml"
+      ],
+      "componentBindings": [
+        { "componentKey": "shield-ui", "distributionMode": "container_service", "runtimeArtifact": "apps/shield-ui/Dockerfile" },
+        { "componentKey": "api", "distributionMode": "container_service", "runtimeArtifact": "apps/api/Dockerfile" },
+        { "componentKey": "workflow-engine", "distributionMode": "embedded_module", "runtimeArtifact": "services/workflow-engine/package.json" },
+        { "componentKey": "sentinel-scrapers", "distributionMode": "container_service", "runtimeArtifact": "services/sentinel-scrapers/Dockerfile" },
+        { "componentKey": "cv-watchman", "distributionMode": "container_service", "runtimeArtifact": "services/cv-watchman/Dockerfile" },
+        { "componentKey": "nlp-interpreter", "distributionMode": "container_service", "runtimeArtifact": "services/nlp-interpreter/Dockerfile" },
+        { "componentKey": "evidence-vault", "distributionMode": "container_service", "runtimeArtifact": "services/evidence-vault/Dockerfile" }
+      ],
+      "deliveryNotes": [
+        "Use country-scoped env templates and overlays to isolate evidence and worker services by country boundary.",
+        "Do not treat brokered reporting export as raw evidence replication."
+      ]
+    },
+    {
+      "profileKey": "per-cluster-entity-ring",
+      "topologyKey": "per-cluster-entity-ring",
+      "composeFiles": [
+        "infra/docker-compose.production.yml",
+        "infra/docker-compose.per-cluster-entity-ring.yml"
+      ],
+      "envTemplates": [
+        "infra/env/overlays/per-cluster-entity-ring.env.template"
+      ],
+      "kustomizeFiles": [
+        "infra/k8s/overlays/per-cluster-entity-ring/kustomization.yaml",
+        "infra/k8s/overlays/per-cluster-entity-ring/configmap.patch.yaml",
+        "infra/k8s/overlays/per-cluster-entity-ring/ingress.patch.yaml"
+      ],
+      "componentBindings": [
+        { "componentKey": "shield-ui", "distributionMode": "container_service", "runtimeArtifact": "apps/shield-ui/Dockerfile" },
+        { "componentKey": "api", "distributionMode": "container_service", "runtimeArtifact": "apps/api/Dockerfile" },
+        { "componentKey": "workflow-engine", "distributionMode": "embedded_module", "runtimeArtifact": "services/workflow-engine/package.json" },
+        { "componentKey": "sentinel-scrapers", "distributionMode": "container_service", "runtimeArtifact": "services/sentinel-scrapers/Dockerfile" },
+        { "componentKey": "cv-watchman", "distributionMode": "container_service", "runtimeArtifact": "services/cv-watchman/Dockerfile" },
+        { "componentKey": "nlp-interpreter", "distributionMode": "container_service", "runtimeArtifact": "services/nlp-interpreter/Dockerfile" },
+        { "componentKey": "evidence-vault", "distributionMode": "container_service", "runtimeArtifact": "services/evidence-vault/Dockerfile" }
+      ],
+      "deliveryNotes": [
+        "Use cluster-ring overlays when delivery isolates operating groups by cluster boundary rather than country.",
+        "Keep workflow-engine embedded until a separate service split is explicitly approved."
+      ]
+    },
+    {
+      "profileKey": "client-on-premises",
+      "topologyKey": "client-on-premises",
+      "composeFiles": [
+        "infra/docker-compose.production.yml",
+        "infra/docker-compose.client-on-premises.yml"
+      ],
+      "envTemplates": [
+        "infra/env/overlays/client-on-premises.env.template"
+      ],
+      "kustomizeFiles": [
+        "infra/k8s/overlays/client-on-premises/kustomization.yaml",
+        "infra/k8s/overlays/client-on-premises/configmap.patch.yaml",
+        "infra/k8s/overlays/client-on-premises/ingress.patch.yaml"
+      ],
+      "componentBindings": [
+        { "componentKey": "shield-ui", "distributionMode": "container_service", "runtimeArtifact": "apps/shield-ui/Dockerfile" },
+        { "componentKey": "api", "distributionMode": "container_service", "runtimeArtifact": "apps/api/Dockerfile" },
+        { "componentKey": "workflow-engine", "distributionMode": "embedded_module", "runtimeArtifact": "services/workflow-engine/package.json" },
+        { "componentKey": "sentinel-scrapers", "distributionMode": "container_service", "runtimeArtifact": "services/sentinel-scrapers/Dockerfile" },
+        { "componentKey": "cv-watchman", "distributionMode": "container_service", "runtimeArtifact": "services/cv-watchman/Dockerfile" },
+        { "componentKey": "nlp-interpreter", "distributionMode": "container_service", "runtimeArtifact": "services/nlp-interpreter/Dockerfile" },
+        { "componentKey": "evidence-vault", "distributionMode": "container_service", "runtimeArtifact": "services/evidence-vault/Dockerfile" }
+      ],
+      "deliveryNotes": [
+        "Use the on-prem override and env template for client-managed or air-gapped rollout paths.",
+        "Customer-managed HSM and premises-boundary policy assumptions must be preserved."
+      ]
+    }
+  ]
+}

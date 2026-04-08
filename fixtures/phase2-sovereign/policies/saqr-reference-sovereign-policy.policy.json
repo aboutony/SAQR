@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-sovereign-policy",
+  "version": 1,
+  "name": "SAQR Reference Sovereign Policy Model",
+  "description": "Reference residency, encryption-boundary, and cross-border movement rules for supported Phase 2 topologies.",
+  "status": "active",
+  "topologyRef": {
+    "modelKey": "saqr-reference-sovereign-topology",
+    "version": 1
+  },
+  "policyRules": [
+    {
+      "policyKey": "single-tenant-workflow-runtime",
+      "dataClass": "workflow_runtime",
+      "topologyPatterns": ["single_tenant"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "tenant_managed_kms",
+      "crossBorderMode": "approval_required",
+      "relatedComponents": ["workflow-engine", "api"]
+    },
+    {
+      "policyKey": "single-tenant-evidence-records",
+      "dataClass": "evidence_records",
+      "topologyPatterns": ["single_tenant"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "tenant_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["evidence-vault", "cv-watchman", "nlp-interpreter"]
+    },
+    {
+      "policyKey": "single-tenant-reporting-aggregates",
+      "dataClass": "reporting_aggregates",
+      "topologyPatterns": ["single_tenant"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "tenant_managed_kms",
+      "crossBorderMode": "metadata_only",
+      "relatedComponents": ["api", "workflow-engine"]
+    },
+    {
+      "policyKey": "single-tenant-credential-secrets",
+      "dataClass": "credential_secrets",
+      "topologyPatterns": ["single_tenant"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "tenant_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["api", "evidence-vault", "cv-watchman", "sentinel-scrapers"]
+    },
+    {
+      "policyKey": "per-country-workflow-runtime",
+      "dataClass": "workflow_runtime",
+      "topologyPatterns": ["per_country"],
+      "residencyRequirement": "country_boundary",
+      "encryptionBoundary": "country_managed_kms",
+      "crossBorderMode": "approval_required",
+      "relatedComponents": ["workflow-engine", "api"]
+    },
+    {
+      "policyKey": "per-country-evidence-records",
+      "dataClass": "evidence_records",
+      "topologyPatterns": ["per_country"],
+      "residencyRequirement": "country_boundary",
+      "encryptionBoundary": "country_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["evidence-vault", "cv-watchman", "nlp-interpreter"]
+    },
+    {
+      "policyKey": "per-country-reporting-aggregates",
+      "dataClass": "reporting_aggregates",
+      "topologyPatterns": ["per_country"],
+      "residencyRequirement": "country_boundary",
+      "encryptionBoundary": "country_managed_kms",
+      "crossBorderMode": "brokered_export_only",
+      "relatedComponents": ["api", "workflow-engine"]
+    },
+    {
+      "policyKey": "per-country-credential-secrets",
+      "dataClass": "credential_secrets",
+      "topologyPatterns": ["per_country"],
+      "residencyRequirement": "country_boundary",
+      "encryptionBoundary": "country_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["api", "evidence-vault", "cv-watchman", "sentinel-scrapers"]
+    },
+    {
+      "policyKey": "per-cluster-workflow-runtime",
+      "dataClass": "workflow_runtime",
+      "topologyPatterns": ["per_cluster"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "cluster_managed_kms",
+      "crossBorderMode": "approval_required",
+      "relatedComponents": ["workflow-engine", "api"]
+    },
+    {
+      "policyKey": "per-cluster-evidence-records",
+      "dataClass": "evidence_records",
+      "topologyPatterns": ["per_cluster"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "cluster_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["evidence-vault", "cv-watchman", "nlp-interpreter"]
+    },
+    {
+      "policyKey": "per-cluster-reporting-aggregates",
+      "dataClass": "reporting_aggregates",
+      "topologyPatterns": ["per_cluster"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "cluster_managed_kms",
+      "crossBorderMode": "brokered_export_only",
+      "relatedComponents": ["api", "workflow-engine"]
+    },
+    {
+      "policyKey": "per-cluster-credential-secrets",
+      "dataClass": "credential_secrets",
+      "topologyPatterns": ["per_cluster"],
+      "residencyRequirement": "topology_boundary",
+      "encryptionBoundary": "cluster_managed_kms",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["api", "evidence-vault", "cv-watchman", "sentinel-scrapers"]
+    },
+    {
+      "policyKey": "on-premises-workflow-runtime",
+      "dataClass": "workflow_runtime",
+      "topologyPatterns": ["on_premises"],
+      "residencyRequirement": "premises_boundary",
+      "encryptionBoundary": "customer_managed_hsm",
+      "crossBorderMode": "approval_required",
+      "relatedComponents": ["workflow-engine", "api"]
+    },
+    {
+      "policyKey": "on-premises-evidence-records",
+      "dataClass": "evidence_records",
+      "topologyPatterns": ["on_premises"],
+      "residencyRequirement": "premises_boundary",
+      "encryptionBoundary": "customer_managed_hsm",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["evidence-vault", "cv-watchman", "nlp-interpreter"]
+    },
+    {
+      "policyKey": "on-premises-reporting-aggregates",
+      "dataClass": "reporting_aggregates",
+      "topologyPatterns": ["on_premises"],
+      "residencyRequirement": "premises_boundary",
+      "encryptionBoundary": "customer_managed_hsm",
+      "crossBorderMode": "approval_required",
+      "relatedComponents": ["api", "workflow-engine"]
+    },
+    {
+      "policyKey": "on-premises-credential-secrets",
+      "dataClass": "credential_secrets",
+      "topologyPatterns": ["on_premises"],
+      "residencyRequirement": "premises_boundary",
+      "encryptionBoundary": "customer_managed_hsm",
+      "crossBorderMode": "prohibited",
+      "relatedComponents": ["api", "evidence-vault", "cv-watchman", "sentinel-scrapers"]
+    }
+  ]
+}

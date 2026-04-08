@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-sovereign-topology",
+  "version": 1,
+  "name": "SAQR Reference Sovereign Topology Model",
+  "description": "Reference topology patterns for sovereign cloud, per-country, per-cluster, and on-prem Phase 2 delivery planning.",
+  "status": "active",
+  "supportedTopologies": [
+    {
+      "topologyKey": "single-tenant-sovereign-cloud",
+      "pattern": "single_tenant",
+      "name": "Single-Tenant Sovereign Cloud",
+      "deploymentTarget": "sovereign_cloud",
+      "boundaryScope": "tenant",
+      "description": "One tenant-dedicated sovereign-cloud stack for a single client environment.",
+      "sharedComponents": [
+        "shield-ui",
+        "api",
+        "workflow-engine",
+        "sentinel-scrapers",
+        "cv-watchman",
+        "nlp-interpreter",
+        "evidence-vault"
+      ],
+      "isolatedComponents": [],
+      "externalDependencies": [
+        "postgres",
+        "kafka",
+        "identity-provider",
+        "vms-gateway",
+        "ingress-gateway"
+      ]
+    },
+    {
+      "topologyKey": "per-country-sovereign-cloud",
+      "pattern": "per_country",
+      "name": "Per-Country Sovereign Cloud",
+      "deploymentTarget": "sovereign_cloud",
+      "boundaryScope": "country",
+      "description": "Independent country-scoped sovereign-cloud stacks with isolated operational services per country boundary.",
+      "sharedComponents": [
+        "shield-ui",
+        "api",
+        "workflow-engine"
+      ],
+      "isolatedComponents": [
+        "sentinel-scrapers",
+        "cv-watchman",
+        "nlp-interpreter",
+        "evidence-vault"
+      ],
+      "externalDependencies": [
+        "postgres",
+        "kafka",
+        "identity-provider",
+        "vms-gateway",
+        "ingress-gateway"
+      ]
+    },
+    {
+      "topologyKey": "per-cluster-entity-ring",
+      "pattern": "per_cluster",
+      "name": "Per-Cluster Entity Ring",
+      "deploymentTarget": "sovereign_cloud",
+      "boundaryScope": "cluster",
+      "description": "One controlled cluster ring per isolated entity group or jurisdictional operating ring.",
+      "sharedComponents": [
+        "shield-ui",
+        "api"
+      ],
+      "isolatedComponents": [
+        "workflow-engine",
+        "sentinel-scrapers",
+        "cv-watchman",
+        "nlp-interpreter",
+        "evidence-vault"
+      ],
+      "externalDependencies": [
+        "postgres",
+        "kafka",
+        "identity-provider",
+        "vms-gateway",
+        "ingress-gateway"
+      ]
+    },
+    {
+      "topologyKey": "client-on-premises",
+      "pattern": "on_premises",
+      "name": "Client On-Premises",
+      "deploymentTarget": "on_premises",
+      "boundaryScope": "premises",
+      "description": "Client-managed on-premises or air-gapped deployment with the full SAQR stack operating inside client facilities.",
+      "sharedComponents": [
+        "shield-ui",
+        "api",
+        "workflow-engine",
+        "sentinel-scrapers",
+        "cv-watchman",
+        "nlp-interpreter",
+        "evidence-vault"
+      ],
+      "isolatedComponents": [],
+      "externalDependencies": [
+        "postgres",
+        "kafka",
+        "identity-provider",
+        "vms-gateway",
+        "ingress-gateway"
+      ]
+    }
+  ],
+  "componentPlacements": [
+    {
+      "componentKey": "shield-ui",
+      "runtimeClass": "stateless",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "Presentation layer stays shared within the active topology boundary."
+    },
+    {
+      "componentKey": "api",
+      "runtimeClass": "stateless",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "API may scale horizontally inside the topology boundary."
+    },
+    {
+      "componentKey": "workflow-engine",
+      "runtimeClass": "control_plane",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "Workflow control plane can remain shared within an approved topology boundary."
+    },
+    {
+      "componentKey": "sentinel-scrapers",
+      "runtimeClass": "worker",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "Scraper partitioning is topology-sensitive and may be isolated by country or cluster."
+    },
+    {
+      "componentKey": "cv-watchman",
+      "runtimeClass": "worker",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "Camera and VMS proximity can require topology-local isolation."
+    },
+    {
+      "componentKey": "nlp-interpreter",
+      "runtimeClass": "worker",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "NLP processing can remain shared or isolated depending on the topology boundary."
+    },
+    {
+      "componentKey": "evidence-vault",
+      "runtimeClass": "stateful",
+      "defaultPlacement": "shared_within_topology",
+      "allowedPatterns": [
+        "single_tenant",
+        "per_country",
+        "per_cluster",
+        "on_premises"
+      ],
+      "notes": "Evidence handling may need the strictest local isolation inside multi-country or multi-cluster patterns."
+    }
+  ]
+}

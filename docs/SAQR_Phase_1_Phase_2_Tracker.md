@@ -1,8 +1,8 @@
 # SAQR Phase 1 / Phase 2 Tracker
 
-Date: 2026-04-07
+Date: 2026-04-08
 Program: SAQR productionization
-Status baseline: Phase 1 complete, Phase 2 workflow workstream through P2-110 completed
+Status baseline: Phase 1 complete and Phase 2 complete, with both phases ready for delivery-team handoff in repo scope
 
 ## Working Rules
 
@@ -84,18 +84,18 @@ Add:
 | P2-108 | Phase 2 | Workflow Governance | Add workflow audit ledger and evidence-linked decision history | Completed | Workflow audit model |
 | P2-109 | Phase 2 | Workflow Integration | Define UI-safe workflow integration plan and approval gate for any necessary UI changes | Completed | UI-safe integration plan |
 | P2-110 | Phase 2 | Workflow Integration | Publish workflow API contracts, fixtures, and delivery seams | Completed | Workflow contract package |
-| P2-201 | Phase 2 | Multi-Entity Foundations | Define entity hierarchy for group, legal entity, business unit, site, and silo scopes | Pending | Multi-entity domain model |
-| P2-202 | Phase 2 | Multi-Entity Foundations | Define scoping rules across users, workflows, alerts, evidence, and reporting | Pending | Entity scoping contract |
-| P2-203 | Phase 2 | Multi-Entity Foundations | Define tenant isolation, partitioning, and cross-entity access boundaries | Pending | Isolation model |
-| P2-204 | Phase 2 | Multi-Entity Reporting | Add portfolio roll-up logic and inherited control aggregation model | Pending | Roll-up and aggregation design |
-| P2-205 | Phase 2 | Multi-Entity Reporting | Define cross-entity reporting and executive roll-up contract | Pending | Group reporting model |
-| P2-206 | Phase 2 | Sovereign Deployment | Define sovereign cloud, per-country, and on-prem deployment topology patterns | Pending | Topology matrix |
-| P2-207 | Phase 2 | Sovereign Deployment | Define residency, encryption boundary, and cross-border data-movement rules | Pending | Sovereign policy model |
-| P2-208 | Phase 2 | Sovereign Deployment | Extend deployment and config packaging for entity-aware sovereign rollout patterns | Pending | Entity-aware deployment blueprint |
-| P2-301 | Phase 2 | Validation | Build mock fixtures and scenario harnesses for workflow and multi-entity execution | Pending | Phase 2 acceptance fixtures |
-| P2-302 | Phase 2 | Validation | Add Phase 2 quality gates and regression coverage for new engine and entity logic | Pending | Phase 2 verification path |
-| P2-303 | Phase 2 | Documentation and Handoff | Produce Phase 2 architecture docs, contracts, and runbooks | Pending | Phase 2 documentation set |
-| P2-304 | Phase 2 | Documentation and Handoff | Produce Phase 2 handoff package for the delivery team | Pending | Delivery-team Phase 2 package |
+| P2-201 | Phase 2 | Multi-Entity Foundations | Define entity hierarchy for group, legal entity, business unit, site, and silo scopes | Completed | Multi-entity domain model |
+| P2-202 | Phase 2 | Multi-Entity Foundations | Define scoping rules across users, workflows, alerts, evidence, and reporting | Completed | Entity scoping contract |
+| P2-203 | Phase 2 | Multi-Entity Foundations | Define tenant isolation, partitioning, and cross-entity access boundaries | Completed | Isolation model |
+| P2-204 | Phase 2 | Multi-Entity Reporting | Add portfolio roll-up logic and inherited control aggregation model | Completed | Roll-up and aggregation design |
+| P2-205 | Phase 2 | Multi-Entity Reporting | Define cross-entity reporting and executive roll-up contract | Completed | Group reporting model |
+| P2-206 | Phase 2 | Sovereign Deployment | Define sovereign cloud, per-country, and on-prem deployment topology patterns | Completed | Topology matrix |
+| P2-207 | Phase 2 | Sovereign Deployment | Define residency, encryption boundary, and cross-border data-movement rules | Completed | Sovereign policy model |
+| P2-208 | Phase 2 | Sovereign Deployment | Extend deployment and config packaging for entity-aware sovereign rollout patterns | Completed | Entity-aware deployment blueprint |
+| P2-301 | Phase 2 | Validation | Build mock fixtures and scenario harnesses for workflow and multi-entity execution | Completed | Phase 2 acceptance fixtures |
+| P2-302 | Phase 2 | Validation | Add Phase 2 quality gates and regression coverage for new engine and entity logic | Completed | Phase 2 verification path |
+| P2-303 | Phase 2 | Documentation and Handoff | Produce Phase 2 architecture docs, contracts, and runbooks | Completed | Phase 2 documentation set |
+| P2-304 | Phase 2 | Documentation and Handoff | Produce Phase 2 handoff package for the delivery team | Completed | Delivery-team Phase 2 package |
 
 ## Phase 1 Execution Order
 
@@ -123,4 +123,16 @@ Add:
 - Phase 1 overall status: Completed and ready for delivery-team handoff
 - Phase 2 planning baseline: Completed
 - Phase 2 workflow foundations, runtime core, governance controls, and delivery seams: P2-101 to P2-110 completed
-- Phase 2 feature build: In progress
+- Phase 2 multi-entity foundation: P2-201 completed
+- Phase 2 multi-entity scoping model: P2-202 completed
+- Phase 2 multi-entity isolation model: P2-203 completed
+- Phase 2 multi-entity roll-up model: P2-204 completed
+- Phase 2 multi-entity reporting contract: P2-205 completed
+- Phase 2 sovereign topology model: P2-206 completed
+- Phase 2 sovereign policy model: P2-207 completed
+- Phase 2 sovereign packaging model: P2-208 completed
+- Phase 2 validation fixtures and scenario harnesses: P2-301 completed
+- Phase 2 quality gates and regression path: P2-302 completed
+- Phase 2 architecture docs, contract index, and runbooks: P2-303 completed
+- Phase 2 handoff package: P2-304 completed
+- Phase 2 overall status: Completed and ready for delivery-team handoff

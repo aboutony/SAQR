@@ -1,0 +1,84 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-206"
+purpose: "Define supported sovereign cloud, per-country, per-cluster, and on-prem topology patterns for Phase 2 delivery architecture."
+principles:
+  - "Backend and delivery-architecture only. This contract does not authorize UI redesign."
+  - "Topology patterns define placement and isolation strategy, not final residency or cross-border policy."
+  - "Phase 2 topology planning must build on the Phase 1 deployment blueprint and the Phase 2 multi-entity model."
+  - "Every supported topology must classify all SAQR platform components as shared or isolated within that topology boundary."
+enumerations:
+  topologyModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  topologyPattern:
+    - "single_tenant"
+    - "per_country"
+    - "per_cluster"
+    - "on_premises"
+  deploymentTarget:
+    - "sovereign_cloud"
+    - "on_premises"
+  boundaryScope:
+    - "tenant"
+    - "country"
+    - "cluster"
+    - "premises"
+  runtimeClass:
+    - "stateless"
+    - "stateful"
+    - "worker"
+    - "control_plane"
+  placementMode:
+    - "shared_within_topology"
+    - "dedicated_per_tenant"
+    - "dedicated_per_country"
+    - "dedicated_per_cluster"
+    - "dedicated_on_prem"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "supportedTopologies"
+    - "componentPlacements"
+  optionalFields:
+    - "description"
+topologyShape:
+  requiredFields:
+    - "topologyKey"
+    - "pattern"
+    - "name"
+    - "deploymentTarget"
+    - "boundaryScope"
+    - "description"
+    - "sharedComponents"
+    - "isolatedComponents"
+    - "externalDependencies"
+componentPlacementShape:
+  requiredFields:
+    - "componentKey"
+    - "runtimeClass"
+    - "defaultPlacement"
+    - "allowedPatterns"
+generationRules:
+  - "The reference model must include all four supported topology patterns in this increment."
+  - "Each topology must classify every SAQR platform component as shared or isolated within the topology boundary."
+  - "topology.boundaryScope and topology.deploymentTarget must align with the declared topology pattern."
+  - "Component placement defaults may be overridden by topology-specific isolation classification."
+  - "This increment defines topology and placement strategy only. Residency, encryption, and cross-border policy remain later work."
+referenceArtifacts:
+  implementationModule:
+    - "shared/sovereign-topology.js"
+  referenceFixture:
+    - "fixtures/phase2-sovereign/topologies/saqr-reference-sovereign-topology.topology.json"
+  validationEntryPoint:
+    - "tools/phase2-sovereign/validate-sovereign-topology.js"
+deliveryNotes:
+  - "The topology model is interface-ready for delivery teams and remains fixture-backed in this increment."
+  - "The workflow engine is now part of the supported deployment topology surface."
+  - "Entity-aware packaging extensions are now defined separately in the sovereign packaging contract."

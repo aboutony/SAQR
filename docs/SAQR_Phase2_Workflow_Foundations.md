@@ -131,9 +131,9 @@ Workflow instances are designed to link directly to existing Phase 1 evidence an
 
 This means workflow actions will be traceable back to the exact alert, detection, drift record, or staged regulatory change that triggered them.
 
-### Entity Scope Forward Compatibility
+### Entity Scope Linkage
 
-Phase 2 multi-entity work has not been implemented yet, but the workflow model already carries future-safe scope fields so later entity hierarchy work does not break contracts. The workflow foundations therefore include optional scope slots for:
+The workflow model carries the canonical Phase 2 scope fields that are now defined formally by the multi-entity hierarchy contract in `docs/contracts/saqr-entity-hierarchy.yaml`. The workflow foundations therefore include optional scope slots for:
 
 - `groupId`
 - `entityId`
@@ -141,7 +141,7 @@ Phase 2 multi-entity work has not been implemented yet, but the workflow model a
 - `siteId`
 - `siloId`
 
-These fields are optional in this increment but reserved by contract.
+These fields remain optional in the workflow event and workflow-definition contracts, but they are no longer undefined placeholders. `P2-201` now defines their hierarchy meaning and lineage behavior.
 
 ## Inbound Event Contract Summary
 
@@ -198,6 +198,7 @@ All workflow-triggering events must first be normalized into one common envelope
 - Sentinel live implementation scope is currently centered on `SAMA` and `SDAIA`.
 - NLP and CV are interface-ready and test-backed, but delivery still owns real-environment wiring and pilot validation.
 - Phase 2 workflow foundations are backend-first and do not yet expose an approved admin UI.
+- The canonical entity hierarchy is now defined separately in `docs/contracts/saqr-entity-hierarchy.yaml` and should be treated as the source of truth for future scope lineage.
 
 ## Next Recommended Step
 
@@ -208,6 +209,7 @@ The next logical task is `P2-103`: define the workflow DSL and validation rules 
 - Main tracker: `docs/SAQR_Phase_1_Phase_2_Tracker.md`
 - Phase 2 roadmap: `docs/SAQR_Phase2_Roadmap.md`
 - Phase 2 checklist: `docs/checklists/SAQR_Phase2_Execution_Checklist.md`
+- Multi-entity domain model: `docs/SAQR_Phase2_Multi_Entity_Domain_Model.md`
 - Existing service contracts: `docs/contracts/saqr-service-contracts.md`
 - Existing execution sequences: `docs/contracts/saqr-execution-sequences.yaml`
 - Existing data dictionary: `docs/contracts/saqr-data-dictionary.md`

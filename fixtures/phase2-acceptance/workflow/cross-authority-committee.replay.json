@@ -1,0 +1,135 @@
+{
+  "fixtureId": "phase2-workflow-committee-001",
+  "workflowDefinition": "fixtures/phase2-workflow/workflows/cross-authority-committee-review.workflow.json",
+  "publishApprovalRecord": {
+    "approvalRecordId": "APR-P2-ACPT-002",
+    "approvedBy": {
+      "actorType": "user",
+      "actorId": "admin-01",
+      "displayName": "Admin 01",
+      "roleKey": "admin"
+    },
+    "approvedAt": "2026-04-08T09:05:00.000Z"
+  },
+  "actorDirectory": {
+    "users": [
+      { "actorType": "user", "actorId": "analyst-01", "displayName": "Analyst 01", "roleKey": "analyst" },
+      { "actorType": "user", "actorId": "risk-01", "displayName": "Risk 01", "roleKey": "analyst" },
+      { "actorType": "user", "actorId": "admin-01", "displayName": "Admin 01", "roleKey": "admin" },
+      { "actorType": "user", "actorId": "board-01", "displayName": "Board 01", "roleKey": "board" },
+      { "actorType": "user", "actorId": "board-02", "displayName": "Board 02", "roleKey": "board" },
+      { "actorType": "user", "actorId": "board-03", "displayName": "Board 03", "roleKey": "board" }
+    ],
+    "roles": {
+      "analyst": ["analyst-01", "risk-01"],
+      "admin": ["admin-01"],
+      "board": ["board-01", "board-02", "board-03"]
+    },
+    "queues": {
+      "risk-triage": ["risk-01"]
+    },
+    "delegates": {}
+  },
+  "event": {
+    "eventId": "evt-phase2-committee-001",
+    "idempotencyKey": "dedupe-phase2-committee-001",
+    "eventType": "workflow.manual.triggered",
+    "sourceFamily": "manual",
+    "occurredAt": "2026-04-08T09:10:00.000Z",
+    "ingestedAt": "2026-04-08T09:10:01.000Z",
+    "severity": "critical",
+    "actor": {
+      "actorType": "user",
+      "actorId": "analyst-01",
+      "displayName": "Analyst 01",
+      "roleKey": "analyst"
+    },
+    "entityScope": {
+      "entityId": "ent-saqr-bank-ksa"
+    },
+    "correlation": {
+      "launchId": "launch-phase2-committee-001"
+    },
+    "evidenceRefs": [],
+    "payload": {
+      "launchCategory": "cross-authority-committee-review",
+      "authorities": ["SAMA", "SDAIA"],
+      "summary": "High-severity cross-authority remediation gate"
+    }
+  },
+  "captureStartAssignmentsAs": "triageAssignments",
+  "commands": [
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "risk-01",
+        "displayName": "Risk 01",
+        "roleKey": "analyst"
+      },
+      "notes": "Risk triage completed",
+      "captureAssignmentsAs": "committeeAssignments"
+    },
+    {
+      "type": "approve",
+      "decision": "approve",
+      "actor": {
+        "actorType": "user",
+        "actorId": "board-01",
+        "displayName": "Board 01",
+        "roleKey": "board"
+      },
+      "notes": "Board member one approved"
+    },
+    {
+      "type": "approve",
+      "decision": "approve",
+      "actor": {
+        "actorType": "user",
+        "actorId": "board-02",
+        "displayName": "Board 02",
+        "roleKey": "board"
+      },
+      "notes": "Board member two approved"
+    },
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "admin-01",
+        "displayName": "Admin 01",
+        "roleKey": "admin"
+      },
+      "notes": "Remediation dispatch confirmed"
+    }
+  ],
+  "expected": {
+    "workflowKey": "cross-authority-committee-review",
+    "finalState": "completed",
+    "finalCurrentStepKey": null,
+    "decisionCount": 2,
+    "approvalMode": "parallel_committee",
+    "assignmentSnapshots": {
+      "triageAssignments": ["risk-01"],
+      "committeeAssignments": ["board-01", "board-02", "board-03"]
+    },
+    "runtimeAuditEntryTypes": [
+      "instance_created",
+      "assignment_resolved",
+      "committee_round_opened",
+      "approval_recorded",
+      "approval_resolved",
+      "instance_completed"
+    ],
+    "governanceAuditEntryTypes": [
+      "workflow_published"
+    ],
+    "combinedSourceTypes": [
+      "runtime",
+      "governance"
+    ],
+    "evidenceRefIds": []
+  }
+}

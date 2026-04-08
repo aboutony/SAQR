@@ -1,0 +1,97 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-205"
+purpose: "Define the cross-entity reporting and executive roll-up contract for the Phase 2 multi-entity model."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "Reporting is read-only and must execute on the aggregation plane."
+  - "Named report definitions are the only supported reporting entrypoint in this increment."
+  - "Report generation depends on hierarchy, scoping, isolation, and roll-up references that must all match the loaded models."
+enumerations:
+  reportingModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  reportViewType:
+    - "executive_summary"
+    - "entity_portfolio"
+    - "control_heatmap"
+  reportingBoundaryMode:
+    - "aggregate_read_only"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "hierarchyRef"
+    - "scopingRef"
+    - "isolationRef"
+    - "rollupRef"
+    - "reportDefinitions"
+  optionalFields:
+    - "description"
+referenceShape:
+  hierarchyRef:
+    requiredFields:
+      - "hierarchyKey"
+      - "version"
+  scopingRef:
+    requiredFields:
+      - "modelKey"
+      - "version"
+  isolationRef:
+    requiredFields:
+      - "modelKey"
+      - "version"
+  rollupRef:
+    requiredFields:
+      - "modelKey"
+      - "version"
+reportDefinitionShape:
+  requiredFields:
+    - "reportKey"
+    - "name"
+    - "viewType"
+    - "targetRootLevels"
+    - "maxControlHighlights"
+    - "maxNodeHighlights"
+  optionalFields:
+    - "includeChildLevels"
+    - "audienceTags"
+reportOutputShape:
+  requiredFields:
+    - "reportKey"
+    - "reportName"
+    - "viewType"
+    - "principalId"
+    - "boundaryMode"
+    - "rootNodeId"
+    - "rootLevel"
+    - "rootScope"
+    - "overallStatus"
+    - "nodeCount"
+    - "nodeStatusCounts"
+    - "controlHighlights"
+    - "nodeHighlights"
+generationRules:
+  - "Report generation must resolve targetScope through the canonical entity hierarchy."
+  - "The resolved root node level must be declared in the report definition targetRootLevels."
+  - "Report generation must pass scoping and isolation evaluation with resourceType report and action report."
+  - "The only allowed boundary mode in this increment is aggregate_read_only."
+  - "controlHighlights and nodeHighlights must be capped by the report definition highlight limits."
+  - "nodeHighlights may exclude the root node and may be filtered by includeChildLevels."
+  - "This increment authorizes read-only aggregation output only; no workflow mutation or operational action is implied by a report view."
+referenceArtifacts:
+  implementationModule:
+    - "shared/entity-reporting.js"
+  referenceFixture:
+    - "fixtures/phase2-entity/reports/saqr-reference-executive-reporting.report.json"
+  validationEntryPoint:
+    - "tools/phase2-entity/validate-entity-reporting.js"
+deliveryNotes:
+  - "Executive reporting remains contract-first and fixture-backed in this increment."
+  - "The reference model is implementation-ready for delivery teams but still local and in-memory."
+  - "UI exposure, if ever needed, must remain behind the existing Phase 2 UI approval gate."

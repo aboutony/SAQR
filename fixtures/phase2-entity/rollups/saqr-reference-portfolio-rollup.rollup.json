@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-portfolio-rollup",
+  "version": 1,
+  "name": "SAQR Reference Portfolio Roll-Up Model",
+  "description": "Reference inherited-control and portfolio aggregation model for Phase 2.",
+  "status": "active",
+  "hierarchyRef": {
+    "hierarchyKey": "saqr-reference-group",
+    "version": 1
+  },
+  "controlDefinitions": [
+    {
+      "controlKey": "group-sanctions-screening",
+      "name": "Group Sanctions Screening",
+      "severity": "high",
+      "description": "Sanctions screening baseline applied across all operating entities."
+    },
+    {
+      "controlKey": "bank-consumer-disclosure",
+      "name": "Bank Consumer Disclosure",
+      "severity": "critical",
+      "description": "Consumer disclosure control inherited through the bank entity."
+    },
+    {
+      "controlKey": "riyadh-branch-signage",
+      "name": "Riyadh Branch Signage",
+      "severity": "medium",
+      "description": "Site-local signage control for Riyadh HQ."
+    },
+    {
+      "controlKey": "insurance-claims-turnaround",
+      "name": "Insurance Claims Turnaround",
+      "severity": "medium",
+      "description": "Claims handling SLA baseline for the insurance entity."
+    }
+  ],
+  "controlAssignments": [
+    {
+      "assignmentKey": "assign-group-sanctions",
+      "controlKey": "group-sanctions-screening",
+      "inheritanceMode": "inherit_to_descendants",
+      "scope": {
+        "groupId": "grp-saqr"
+      }
+    },
+    {
+      "assignmentKey": "assign-bank-disclosure",
+      "controlKey": "bank-consumer-disclosure",
+      "inheritanceMode": "inherit_to_descendants",
+      "scope": {
+        "entityId": "ent-saqr-bank-ksa"
+      }
+    },
+    {
+      "assignmentKey": "assign-riyadh-signage",
+      "controlKey": "riyadh-branch-signage",
+      "inheritanceMode": "local_only",
+      "scope": {
+        "siteId": "site-riyadh-hq"
+      }
+    },
+    {
+      "assignmentKey": "assign-insurance-claims",
+      "controlKey": "insurance-claims-turnaround",
+      "inheritanceMode": "inherit_to_descendants",
+      "scope": {
+        "entityId": "ent-saqr-insurance-ksa"
+      }
+    }
+  ],
+  "controlAssessments": [
+    {
+      "assessmentKey": "assess-group-bank-entity",
+      "controlKey": "group-sanctions-screening",
+      "scope": {
+        "entityId": "ent-saqr-bank-ksa"
+      },
+      "status": "attention",
+      "sourceType": "workflow"
+    },
+    {
+      "assessmentKey": "assess-group-insurance-entity",
+      "controlKey": "group-sanctions-screening",
+      "scope": {
+        "entityId": "ent-saqr-insurance-ksa"
+      },
+      "status": "compliant",
+      "sourceType": "workflow"
+    },
+    {
+      "assessmentKey": "assess-disclosure-riyadh-site",
+      "controlKey": "bank-consumer-disclosure",
+      "scope": {
+        "siteId": "site-riyadh-hq"
+      },
+      "status": "breached",
+      "sourceType": "cdc"
+    },
+    {
+      "assessmentKey": "assess-disclosure-jeddah-site",
+      "controlKey": "bank-consumer-disclosure",
+      "scope": {
+        "siteId": "site-jeddah-digital-ops"
+      },
+      "status": "compliant",
+      "sourceType": "cdc"
+    },
+    {
+      "assessmentKey": "assess-signage-riyadh-site",
+      "controlKey": "riyadh-branch-signage",
+      "scope": {
+        "siteId": "site-riyadh-hq"
+      },
+      "status": "attention",
+      "sourceType": "cv"
+    },
+    {
+      "assessmentKey": "assess-insurance-claims-riyadh",
+      "controlKey": "insurance-claims-turnaround",
+      "scope": {
+        "siteId": "site-claims-riyadh"
+      },
+      "status": "attention",
+      "sourceType": "workflow"
+    },
+    {
+      "assessmentKey": "assess-disclosure-riyadh-silo",
+      "controlKey": "bank-consumer-disclosure",
+      "scope": {
+        "siloId": "silo-riyadh-customer-hall"
+      },
+      "status": "attention",
+      "sourceType": "cdc"
+    },
+    {
+      "assessmentKey": "assess-group-jeddah-silo",
+      "controlKey": "group-sanctions-screening",
+      "scope": {
+        "siloId": "silo-jeddah-kyc-zone"
+      },
+      "status": "compliant",
+      "sourceType": "workflow"
+    }
+  ]
+}

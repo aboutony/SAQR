@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-entity-scoping",
+  "version": 1,
+  "name": "SAQR Reference Entity Scoping Model",
+  "description": "Reference scoping model for users, workflows, alerts, evidence, and reporting in Phase 2.",
+  "status": "active",
+  "hierarchyRef": {
+    "hierarchyKey": "saqr-reference-group",
+    "version": 1
+  },
+  "principals": [
+    {
+      "principalId": "usr-group-compliance",
+      "principalType": "user",
+      "displayName": "Group Compliance Lead",
+      "status": "active",
+      "roleKeys": [
+        "group-compliance",
+        "workflow-admin"
+      ],
+      "homeScope": {
+        "groupId": "grp-saqr"
+      },
+      "grants": [
+        {
+          "grantKey": "group-read-oversight",
+          "resourceTypes": [
+            "workflow",
+            "alert",
+            "evidence",
+            "report"
+          ],
+          "actions": [
+            "read",
+            "report"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "groupId": "grp-saqr"
+          },
+          "notes": "Group-level compliance oversight and reporting."
+        },
+        {
+          "grantKey": "bank-workflow-admin",
+          "resourceTypes": [
+            "workflow"
+          ],
+          "actions": [
+            "launch",
+            "approve",
+            "remediate",
+            "administer"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "entityId": "ent-saqr-bank-ksa"
+          },
+          "notes": "Operational workflow authority for the bank legal entity."
+        }
+      ]
+    },
+    {
+      "principalId": "usr-bank-entity-ops",
+      "principalType": "user",
+      "displayName": "Bank Entity Operations",
+      "status": "active",
+      "roleKeys": [
+        "entity-ops"
+      ],
+      "homeScope": {
+        "entityId": "ent-saqr-bank-ksa"
+      },
+      "grants": [
+        {
+          "grantKey": "bank-workflow-ops",
+          "resourceTypes": [
+            "workflow"
+          ],
+          "actions": [
+            "read",
+            "launch",
+            "approve",
+            "remediate"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "entityId": "ent-saqr-bank-ksa"
+          },
+          "notes": "Entity-bound workflow operating rights."
+        },
+        {
+          "grantKey": "bank-alert-evidence-ops",
+          "resourceTypes": [
+            "alert",
+            "evidence"
+          ],
+          "actions": [
+            "read",
+            "remediate"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "entityId": "ent-saqr-bank-ksa"
+          },
+          "notes": "Operational review of bank-scoped alerts and evidence."
+        }
+      ]
+    },
+    {
+      "principalId": "usr-riyadh-investigator",
+      "principalType": "user",
+      "displayName": "Riyadh Site Investigator",
+      "status": "active",
+      "roleKeys": [
+        "site-investigator"
+      ],
+      "homeScope": {
+        "siteId": "site-riyadh-hq"
+      },
+      "grants": [
+        {
+          "grantKey": "riyadh-site-investigation",
+          "resourceTypes": [
+            "workflow",
+            "alert",
+            "evidence"
+          ],
+          "actions": [
+            "read",
+            "remediate"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "siteId": "site-riyadh-hq"
+          },
+          "notes": "Site-local operations and remediation only."
+        }
+      ]
+    },
+    {
+      "principalId": "usr-group-board",
+      "principalType": "user",
+      "displayName": "Group Board Oversight",
+      "status": "active",
+      "roleKeys": [
+        "board"
+      ],
+      "homeScope": {
+        "groupId": "grp-saqr"
+      },
+      "grants": [
+        {
+          "grantKey": "group-board-reporting",
+          "resourceTypes": [
+            "report"
+          ],
+          "actions": [
+            "read",
+            "report"
+          ],
+          "scopeAccess": "self_and_descendants",
+          "scope": {
+            "groupId": "grp-saqr"
+          },
+          "notes": "Read-only reporting across the full group lineage."
+        }
+      ]
+    }
+  ]
+}

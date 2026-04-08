@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-executive-reporting",
+  "version": 1,
+  "name": "SAQR Reference Executive Reporting Model",
+  "description": "Reference reporting definitions for group and entity portfolio roll-ups in Phase 2.",
+  "status": "active",
+  "hierarchyRef": {
+    "hierarchyKey": "saqr-reference-group",
+    "version": 1
+  },
+  "scopingRef": {
+    "modelKey": "saqr-reference-entity-scoping",
+    "version": 1
+  },
+  "isolationRef": {
+    "modelKey": "saqr-reference-entity-isolation",
+    "version": 1
+  },
+  "rollupRef": {
+    "modelKey": "saqr-reference-portfolio-rollup",
+    "version": 1
+  },
+  "reportDefinitions": [
+    {
+      "reportKey": "group-executive-summary",
+      "name": "Group Executive Summary",
+      "viewType": "executive_summary",
+      "targetRootLevels": [
+        "group"
+      ],
+      "includeChildLevels": [
+        "entity",
+        "site"
+      ],
+      "maxControlHighlights": 3,
+      "maxNodeHighlights": 4,
+      "audienceTags": [
+        "board",
+        "group-compliance"
+      ]
+    },
+    {
+      "reportKey": "entity-portfolio-summary",
+      "name": "Entity Portfolio Summary",
+      "viewType": "entity_portfolio",
+      "targetRootLevels": [
+        "entity"
+      ],
+      "includeChildLevels": [
+        "businessUnit",
+        "site",
+        "silo"
+      ],
+      "maxControlHighlights": 4,
+      "maxNodeHighlights": 6,
+      "audienceTags": [
+        "group-compliance",
+        "entity-compliance"
+      ]
+    },
+    {
+      "reportKey": "group-control-heatmap",
+      "name": "Group Control Heatmap",
+      "viewType": "control_heatmap",
+      "targetRootLevels": [
+        "group",
+        "entity"
+      ],
+      "includeChildLevels": [
+        "entity",
+        "businessUnit",
+        "site",
+        "silo"
+      ],
+      "maxControlHighlights": 10,
+      "maxNodeHighlights": 10,
+      "audienceTags": [
+        "board",
+        "group-compliance"
+      ]
+    }
+  ]
+}

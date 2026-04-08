@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "hierarchyKey": "saqr-reference-group",
+  "version": 1,
+  "name": "SAQR Reference Group Hierarchy",
+  "description": "Reference multi-entity hierarchy for Phase 2 design, validation, and delivery-team implementation alignment.",
+  "status": "active",
+  "metadata": {
+    "owner": "phase-2-program",
+    "purpose": "reference-fixture"
+  },
+  "nodes": [
+    {
+      "nodeId": "grp-saqr",
+      "level": "group",
+      "scopeField": "groupId",
+      "name": "SAQR Group",
+      "code": "GRP-SAQR",
+      "description": "Top-level holding group for the reference hierarchy.",
+      "status": "active",
+      "metadata": {
+        "region": "KSA"
+      }
+    },
+    {
+      "nodeId": "ent-saqr-bank-ksa",
+      "level": "entity",
+      "scopeField": "entityId",
+      "name": "SAQR Bank KSA",
+      "code": "ENT-BANK-KSA",
+      "description": "Primary banking legal entity.",
+      "status": "active",
+      "parentNodeId": "grp-saqr",
+      "metadata": {
+        "licenseType": "bank"
+      }
+    },
+    {
+      "nodeId": "ent-saqr-insurance-ksa",
+      "level": "entity",
+      "scopeField": "entityId",
+      "name": "SAQR Insurance KSA",
+      "code": "ENT-INS-KSA",
+      "description": "Secondary insurance legal entity used for scope-conflict validation.",
+      "status": "active",
+      "parentNodeId": "grp-saqr",
+      "metadata": {
+        "licenseType": "insurance"
+      }
+    },
+    {
+      "nodeId": "bu-retail-banking",
+      "level": "businessUnit",
+      "scopeField": "businessUnitId",
+      "name": "Retail Banking",
+      "code": "BU-RETAIL",
+      "description": "Retail banking operating unit.",
+      "status": "active",
+      "parentNodeId": "ent-saqr-bank-ksa",
+      "metadata": {
+        "controlScope": "customer-facing"
+      }
+    },
+    {
+      "nodeId": "bu-claims-operations",
+      "level": "businessUnit",
+      "scopeField": "businessUnitId",
+      "name": "Claims Operations",
+      "code": "BU-CLAIMS",
+      "description": "Insurance claims operating unit.",
+      "status": "active",
+      "parentNodeId": "ent-saqr-insurance-ksa",
+      "metadata": {
+        "controlScope": "claims"
+      }
+    },
+    {
+      "nodeId": "site-riyadh-hq",
+      "level": "site",
+      "scopeField": "siteId",
+      "name": "Riyadh HQ Branch",
+      "code": "SITE-RUH-HQ",
+      "description": "Primary retail branch and operations headquarters.",
+      "status": "active",
+      "parentNodeId": "bu-retail-banking",
+      "metadata": {
+        "city": "Riyadh"
+      }
+    },
+    {
+      "nodeId": "site-jeddah-digital-ops",
+      "level": "site",
+      "scopeField": "siteId",
+      "name": "Jeddah Digital Operations",
+      "code": "SITE-JED-DIG",
+      "description": "Direct site-under-entity example for digital operations.",
+      "status": "active",
+      "parentNodeId": "ent-saqr-bank-ksa",
+      "metadata": {
+        "city": "Jeddah"
+      }
+    },
+    {
+      "nodeId": "site-claims-riyadh",
+      "level": "site",
+      "scopeField": "siteId",
+      "name": "Riyadh Claims Center",
+      "code": "SITE-RUH-CLM",
+      "description": "Claims site under the insurance entity for scope-conflict testing.",
+      "status": "active",
+      "parentNodeId": "bu-claims-operations",
+      "metadata": {
+        "city": "Riyadh"
+      }
+    },
+    {
+      "nodeId": "silo-riyadh-customer-hall",
+      "level": "silo",
+      "scopeField": "siloId",
+      "name": "Riyadh Customer Hall",
+      "code": "SILO-RUH-HALL",
+      "description": "Branch customer-facing remediation zone.",
+      "status": "active",
+      "parentNodeId": "site-riyadh-hq",
+      "metadata": {
+        "cameraZone": "customer-hall"
+      }
+    },
+    {
+      "nodeId": "silo-jeddah-kyc-zone",
+      "level": "silo",
+      "scopeField": "siloId",
+      "name": "Jeddah KYC Zone",
+      "code": "SILO-JED-KYC",
+      "description": "Digital onboarding and KYC operational zone.",
+      "status": "active",
+      "parentNodeId": "site-jeddah-digital-ops",
+      "metadata": {
+        "cameraZone": "kyc-zone"
+      }
+    }
+  ]
+}

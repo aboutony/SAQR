@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: saqr-platform
+spec:
+  rules:
+    - host: saqr.single-tenant.example.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: saqr-shield-ui
+                port:
+                  number: 80
+    - host: api.saqr.single-tenant.example.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: saqr-api
+                port:
+                  number: 3001

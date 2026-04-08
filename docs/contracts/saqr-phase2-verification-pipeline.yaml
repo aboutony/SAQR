@@ -1,0 +1,38 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-302, P2-304"
+qualityGates:
+  command: "npm run phase2:quality"
+  ciCommand: "npm run phase2:quality:ci"
+  script: "tools/ci/run-phase2-quality-gates.js"
+  workflow: ".github/workflows/phase2-quality-gates.yml"
+  gates:
+    - "Node syntax validation across Phase 2 runtime and tooling JS files"
+    - "Workflow validator, runtime-engine, and workflow-definition regression coverage"
+    - "Entity hierarchy, scoping, isolation, roll-up, and reporting regression coverage"
+    - "Sovereign topology, policy, and packaging regression coverage"
+    - "Phase 2 acceptance replays and harness tests"
+    - "Phase 2 handoff package verification"
+    - "UI baseline regression check"
+    - "Sovereign deployment compose overlay validation"
+includes:
+  - "phase2 workflow tests"
+  - "phase2 workflow validation"
+  - "phase2 entity tests and validations"
+  - "phase2 sovereign tests and validations"
+  - "phase2 acceptance fixtures and harness"
+  - "phase2 handoff package manifest and docs"
+  - "phase1 UI freeze baseline"
+  - "sovereign compose overlay config checks"
+freeToolchain:
+  - "Node.js 22"
+  - "npm"
+  - "GitHub Actions"
+  - "Docker Compose"
+  - "Node built-in test runner"
+primaryDocs:
+  - "docs/SAQR_Phase2_Quality_Gates_and_Regression.md"
+  - "docs/SAQR_Phase2_Mock_Harnesses_and_Acceptance_Payloads.md"
+  - "docs/handoff/SAQR_Phase2_Validation_Guide.md"
+  - "docs/checklists/SAQR_Phase2_Execution_Checklist.md"

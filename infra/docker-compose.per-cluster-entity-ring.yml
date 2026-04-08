@@ -1,0 +1,32 @@
+x-topology-env: &topology-env
+  SAQR_PACKAGE_PROFILE: "per-cluster-entity-ring"
+  SAQR_TOPOLOGY_KEY: "per-cluster-entity-ring"
+  SAQR_TOPOLOGY_PATTERN: "per_cluster"
+  SAQR_DEPLOYMENT_TARGET: "sovereign_cloud"
+  SAQR_BOUNDARY_SCOPE: "cluster"
+  SAQR_POLICY_MODEL: "saqr-reference-sovereign-policy"
+  SAQR_DEFAULT_RESIDENCY_REQUIREMENT: "topology_boundary"
+  SAQR_DEFAULT_ENCRYPTION_BOUNDARY: "cluster_managed_kms"
+  SAQR_DEFAULT_REPORTING_CROSS_BORDER_MODE: "brokered_export_only"
+  SAQR_ENTITY_PARTITION_MODE: "cluster"
+  SAQR_CLUSTER_RING: "replace-by-delivery-team"
+
+services:
+  shield-ui:
+    environment:
+      <<: *topology-env
+  api:
+    environment:
+      <<: *topology-env
+  evidence-vault:
+    environment:
+      <<: *topology-env
+  nlp-interpreter:
+    environment:
+      <<: *topology-env
+  cv-watchman:
+    environment:
+      <<: *topology-env
+  sentinel-scrapers:
+    environment:
+      <<: *topology-env

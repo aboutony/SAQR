@@ -1,0 +1,19 @@
+{
+  "phase": "Phase 2",
+  "scope": "P2-301",
+  "date": "2026-04-08",
+  "scenarios": {
+    "workflow-maker-checker": {
+      "fixture": "fixtures/phase2-acceptance/workflow/regulatory-drift-maker-checker.replay.json",
+      "description": "Replay the regulatory-drift workflow through governance publication, assignment, evidence collection, maker-checker approval, remediation, and audit-ledger projection."
+    },
+    "workflow-committee": {
+      "fixture": "fixtures/phase2-acceptance/workflow/cross-authority-committee.replay.json",
+      "description": "Replay the committee-based workflow through publication, queue routing, fixed-quorum approval, and remediation dispatch."
+    },
+    "entity-reporting": {
+      "fixture": "fixtures/phase2-acceptance/entity/group-reporting-access.replay.json",
+      "description": "Replay multi-entity reporting and access-control checks using the reference hierarchy, scoping, isolation, roll-up, and reporting models."
+    }
+  }
+}

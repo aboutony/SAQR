@@ -1,0 +1,43 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-301"
+manifest: "fixtures/phase2-acceptance/manifest.json"
+harness:
+  entrypoint: "tools/phase2-acceptance/run-phase2-acceptance.js"
+  commands:
+    - "node tools/phase2-acceptance/run-phase2-acceptance.js --scenario all --json"
+    - "node --test tools/phase2-acceptance/harness.test.js"
+scenarios:
+  workflow-maker-checker:
+    fixture: "fixtures/phase2-acceptance/workflow/regulatory-drift-maker-checker.replay.json"
+    validates:
+      - "workflow governance publication"
+      - "event-to-workflow matching"
+      - "maker-checker approval completion"
+      - "evidence-linked workflow audit projection"
+    expected:
+      finalState: "completed"
+      decisionCount: 1
+      approvalMode: "maker_checker"
+  workflow-committee:
+    fixture: "fixtures/phase2-acceptance/workflow/cross-authority-committee.replay.json"
+    validates:
+      - "committee-based workflow routing"
+      - "fixed-quorum approval execution"
+      - "runtime and governance audit aggregation"
+    expected:
+      finalState: "completed"
+      decisionCount: 2
+      approvalMode: "parallel_committee"
+  entity-reporting:
+    fixture: "fixtures/phase2-acceptance/entity/group-reporting-access.replay.json"
+    validates:
+      - "group reporting roll-up generation"
+      - "same-entity workflow access"
+      - "cross-entity scoping denial"
+      - "reporting-plane isolation semantics"
+    expected:
+      reportBoundaryMode: "aggregate_read_only"
+      reportOverallStatus: "breached"
+      reportNodeCount: 10

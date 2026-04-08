@@ -1,0 +1,67 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-203"
+purpose: "Define tenant isolation, partitioning, and cross-entity access boundaries for multi-entity runtime behavior."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "Authorization intent and runtime isolation are separate layers."
+  - "Entity-partitioned resources must not be mutated across partitions."
+  - "Cross-entity oversight may exist only through explicitly brokered or aggregation-only read paths."
+enumerations:
+  isolationModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  partitionLevel:
+    - "group"
+    - "entity"
+  storagePlane:
+    - "control_plane"
+    - "entity_data_plane"
+    - "aggregation_plane"
+  crossEntityReadMode:
+    - "deny"
+    - "brokered_read_only"
+    - "aggregate_read_only"
+  crossEntityWriteMode:
+    - "deny"
+    - "single_partition_only"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "hierarchyRef"
+    - "scopingRef"
+    - "resourcePolicies"
+resourcePolicyShape:
+  requiredFields:
+    - "resourceType"
+    - "partitionLevel"
+    - "storagePlane"
+    - "requiresEntityId"
+    - "crossEntityReadMode"
+    - "crossEntityWriteMode"
+  optionalFields:
+    - "notes"
+boundaryRules:
+  - "Resolve authorization first through the entity scoping contract."
+  - "Then resolve the resource partition envelope through the isolation contract."
+  - "If the resource uses entity_data_plane, direct access is allowed only when the grant and resource resolve to the same entity partition."
+  - "If the resource uses entity_data_plane and the access is cross-entity but read-only, brokered_read_only may allow a fan-out read path."
+  - "If the resource uses aggregation_plane, access is read-only and may return aggregated results only."
+  - "Cross-entity mutation must be denied unless the policy explicitly allows a single partition and the resolved partition matches."
+referenceArtifacts:
+  implementationModule:
+    - "shared/entity-isolation.js"
+  referenceFixture:
+    - "fixtures/phase2-entity/isolation/saqr-reference-entity-isolation.isolation.json"
+  validationEntryPoint:
+    - "tools/phase2-entity/validate-entity-isolation.js"
+deliveryNotes:
+  - "Workflow, alert, and evidence runtime data are entity-partitioned in the reference model."
+  - "Reporting remains read-only and runs on an aggregation plane in the reference model."
+  - "This increment defines runtime and storage boundaries only. Sovereign topology and residency policy remain later tasks."

@@ -1,7 +1,7 @@
 # SAQR Phase 2 Roadmap
 
-Date: 2026-04-07
-Scope: Phase 2 planning baseline
+Date: 2026-04-08
+Scope: Phase 2 execution baseline and closeout references
 
 ## Purpose
 
@@ -84,7 +84,32 @@ Target outcome:
 - Workflow audit model: `docs/SAQR_Phase2_Workflow_Audit_Model.md`
 - UI-safe integration plan: `docs/SAQR_Phase2_UI_Safe_Integration_Plan.md`
 - Workflow contract package: `docs/SAQR_Phase2_Workflow_Contract_Package.md`
+- Phase 2 acceptance kit: `docs/SAQR_Phase2_Mock_Harnesses_and_Acceptance_Payloads.md`
+- Phase 2 quality gates: `docs/SAQR_Phase2_Quality_Gates_and_Regression.md`
+- Phase 2 documentation set: `docs/SAQR_Phase2_Documentation_Set.md`
+- Multi-entity domain model: `docs/SAQR_Phase2_Multi_Entity_Domain_Model.md`
+- Entity scoping model: `docs/SAQR_Phase2_Entity_Scoping_Model.md`
+- Entity isolation model: `docs/SAQR_Phase2_Entity_Isolation_Model.md`
+- Entity roll-up model: `docs/SAQR_Phase2_Entity_Rollup_Model.md`
+- Entity reporting model: `docs/SAQR_Phase2_Entity_Reporting_Model.md`
+- Sovereign topology model: `docs/SAQR_Phase2_Sovereign_Topology_Model.md`
+- Sovereign policy model: `docs/SAQR_Phase2_Sovereign_Policy_Model.md`
+- Sovereign packaging model: `docs/SAQR_Phase2_Sovereign_Packaging_Model.md`
 - Workflow domain contract: `docs/contracts/saqr-workflow-domain.yaml`
 - Workflow event contract: `docs/contracts/saqr-workflow-events.yaml`
 - Workflow DSL contract: `docs/contracts/saqr-workflow-dsl.yaml`
-- Phase 1 handoff baseline: `docs/handoff/README.md`
+- Entity hierarchy contract: `docs/contracts/saqr-entity-hierarchy.yaml`
+- Entity scoping contract: `docs/contracts/saqr-entity-scoping.yaml`
+- Entity isolation contract: `docs/contracts/saqr-entity-isolation.yaml`
+- Entity roll-up contract: `docs/contracts/saqr-entity-rollup.yaml`
+- Entity reporting contract: `docs/contracts/saqr-entity-reporting.yaml`
+- Sovereign topology contract: `docs/contracts/saqr-sovereign-topology.yaml`
+- Sovereign policy contract: `docs/contracts/saqr-sovereign-policy.yaml`
+- Sovereign packaging contract: `docs/contracts/saqr-sovereign-packaging.yaml`
+- Phase 2 acceptance contract: `docs/contracts/saqr-phase2-acceptance-fixtures.yaml`
+- Phase 2 verification pipeline: `docs/contracts/saqr-phase2-verification-pipeline.yaml`
+- Phase 2 contract index: `docs/contracts/saqr-phase2-contract-index.md`
+- Phase 2 handoff package: `docs/handoff/README.md`
+- Phase 2 handoff summary: `docs/handoff/SAQR_Phase2_Handoff_Summary.md`
+- Phase 2 validation guide: `docs/handoff/SAQR_Phase2_Validation_Guide.md`
+- Phase 1 handoff baseline: `docs/handoff/SAQR_Phase1_Handoff_Summary.md`

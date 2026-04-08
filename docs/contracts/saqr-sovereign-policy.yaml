@@ -1,0 +1,78 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-207"
+purpose: "Define residency, encryption-boundary, and cross-border data-movement rules for supported Phase 2 sovereign topologies."
+principles:
+  - "Backend and delivery-policy only. This contract does not authorize UI redesign."
+  - "Policy rules build on the canonical sovereign topology contract and must match supported topology patterns."
+  - "Residency and encryption requirements are data-class specific and topology-pattern aware."
+  - "Cross-border movement must be explicitly classified, never assumed."
+enumerations:
+  policyModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  dataClass:
+    - "workflow_runtime"
+    - "evidence_records"
+    - "reporting_aggregates"
+    - "credential_secrets"
+  residencyRequirement:
+    - "topology_boundary"
+    - "country_boundary"
+    - "premises_boundary"
+  encryptionBoundary:
+    - "tenant_managed_kms"
+    - "country_managed_kms"
+    - "cluster_managed_kms"
+    - "customer_managed_hsm"
+  crossBorderMode:
+    - "prohibited"
+    - "metadata_only"
+    - "brokered_export_only"
+    - "approval_required"
+  movementKind:
+    - "replication"
+    - "export"
+    - "support_access"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "topologyRef"
+    - "policyRules"
+  optionalFields:
+    - "description"
+topologyRefShape:
+  requiredFields:
+    - "modelKey"
+    - "version"
+policyRuleShape:
+  requiredFields:
+    - "policyKey"
+    - "dataClass"
+    - "topologyPatterns"
+    - "residencyRequirement"
+    - "encryptionBoundary"
+    - "crossBorderMode"
+    - "relatedComponents"
+generationRules:
+  - "The policy document must cover every supported topology pattern and every defined data class."
+  - "Residency requirement and encryption boundary must match the declared topology pattern."
+  - "Cross-border movement evaluation must return an explicit allow or deny decision with a reason."
+  - "This increment defines policy rules only. Deployment packaging is defined separately in the sovereign packaging contract."
+referenceArtifacts:
+  implementationModule:
+    - "shared/sovereign-policy.js"
+  referenceFixture:
+    - "fixtures/phase2-sovereign/policies/saqr-reference-sovereign-policy.policy.json"
+  validationEntryPoint:
+    - "tools/phase2-sovereign/validate-sovereign-policy.js"
+deliveryNotes:
+  - "The reference policy model is interface-ready for delivery teams and remains fixture-backed in this increment."
+  - "Reporting aggregates may use controlled brokered export rules; evidence records do not."
+  - "Entity-aware deployment blueprint changes are now defined separately in the sovereign packaging contract."

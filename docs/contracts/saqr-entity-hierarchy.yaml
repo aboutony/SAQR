@@ -1,0 +1,115 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-201"
+purpose: "Define the canonical multi-entity hierarchy for group, legal entity, business unit, site, and silo scopes."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "The Phase 1 demo environment remains preserved and separate."
+  - "Entity hierarchy is the canonical source of truth for scope lineage."
+  - "All later scoping, isolation, reporting, and sovereign packaging must build on these same scope field names."
+enumerations:
+  hierarchyStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  nodeStatus:
+    - "active"
+    - "inactive"
+  entityLevel:
+    - "group"
+    - "entity"
+    - "businessUnit"
+    - "site"
+    - "silo"
+levelScopeMapping:
+  group:
+    scopeField: "groupId"
+    parentLevels: []
+    description: "Top-level group or holding-company scope."
+  entity:
+    scopeField: "entityId"
+    parentLevels:
+      - "group"
+    description: "Legal entity or licensed company boundary."
+  businessUnit:
+    scopeField: "businessUnitId"
+    parentLevels:
+      - "entity"
+    description: "Operating division inside one legal entity."
+  site:
+    scopeField: "siteId"
+    parentLevels:
+      - "entity"
+      - "businessUnit"
+    description: "Physical or logical operating site."
+  silo:
+    scopeField: "siloId"
+    parentLevels:
+      - "site"
+    description: "Most-granular operational zone such as a branch area, line, or room."
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "hierarchyKey"
+    - "version"
+    - "name"
+    - "status"
+    - "nodes"
+  optionalFields:
+    - "description"
+    - "metadata"
+  rules:
+    - "schemaVersion must equal 1."
+    - "hierarchyKey must be a lowercase slug."
+    - "version must be a positive integer."
+    - "status must use hierarchyStatus."
+    - "nodes must be a non-empty array."
+nodeShape:
+  requiredFields:
+    - "nodeId"
+    - "level"
+    - "name"
+  optionalFields:
+    - "scopeField"
+    - "code"
+    - "description"
+    - "status"
+    - "parentNodeId"
+    - "metadata"
+  rules:
+    - "nodeId must be unique within the document."
+    - "scopeField, when present, must match the canonical field for the level."
+    - "group nodes may not declare parentNodeId."
+    - "non-group nodes must declare parentNodeId."
+    - "parentNodeId must reference an existing node."
+    - "parent level must be allowed by levelScopeMapping."
+    - "cycles are forbidden."
+catalogShape:
+  derivedFields:
+    lineage:
+      description: "Resolved scope envelope containing groupId, entityId, businessUnitId, siteId, and siloId."
+    ancestorNodeIds:
+      description: "Ordered ancestor chain from group down to the direct parent."
+    childNodeIds:
+      description: "Immediate child nodes in source order."
+scopeResolutionRules:
+  - "A partial scope may be provided using any canonical scope field."
+  - "Resolution uses the deepest provided scope field as the anchor node."
+  - "Resolved output must include the full lineage from group to the anchor node."
+  - "Provided higher-level fields must match the resolved lineage or the scope is invalid."
+  - "Unknown node identifiers must be rejected."
+repoTruth:
+  - "Phase 2 workflow contracts already reserve groupId, entityId, businessUnitId, siteId, and siloId."
+  - "The current UI contains silo-oriented context, but this backend hierarchy is now the canonical source of truth for future scoping."
+  - "This increment defines hierarchy and lineage. Explicit scoping is now layered separately in docs/contracts/saqr-entity-scoping.yaml."
+referenceArtifacts:
+  implementationModule:
+    - "shared/entity-hierarchy.js"
+  referenceFixture:
+    - "fixtures/phase2-entity/hierarchies/saqr-reference-group.hierarchy.json"
+  validationEntryPoint:
+    - "tools/phase2-entity/validate-entity-hierarchy.js"
+deliveryNotes:
+  - "Delivery teams should treat these field names as stable and reuse them across workflow, evidence, alert, and reporting models."
+  - "This increment is interface-ready and uses local fixtures only. No live org directory or tenant store is assumed in-repo."

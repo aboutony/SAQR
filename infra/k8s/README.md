@@ -20,3 +20,7 @@ Recommended flow:
 3. Review ingress hosts, storage, image registry paths, and resource limits with the delivery team.
 4. Apply the manifests into the target namespace after client prerequisites are ready.
 
+Phase 2 additions:
+
+- `infra/k8s/overlays/*` contains sovereign rollout overlays for the supported topology patterns.
+- Use the overlay that matches the approved topology and policy model before client-specific tailoring.

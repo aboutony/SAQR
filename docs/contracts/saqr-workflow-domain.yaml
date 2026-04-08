@@ -1,14 +1,14 @@
-version: 5
+version: 6
 phase: "Phase 2"
-date: "2026-04-07"
-scope: "P2-101 to P2-108"
-purpose: "Define the backend workflow domain model for SAQR Phase 2, including approval-routing, SLA-automation, workflow-governance, and workflow-audit runtime concepts."
+date: "2026-04-08"
+scope: "P2-101 to P2-108, P2-201"
+purpose: "Define the backend workflow domain model for SAQR Phase 2, including approval-routing, SLA-automation, workflow-governance, workflow-audit runtime concepts, and canonical multi-entity scope linkage."
 principles:
   - "Backend-first. This contract does not authorize UI redesign."
   - "The demo environment remains preserved and separate from the production-ready track."
   - "Workflow execution must remain deterministic and event-driven."
   - "Approval routing must be provider-driven and interface-ready."
-  - "Runtime state must stay forward-compatible with later multi-entity work."
+  - "Runtime state must stay aligned with the canonical Phase 2 multi-entity hierarchy."
 enumerations:
   definitionStatus:
     - "draft"
@@ -179,6 +179,7 @@ domainObjects:
         type: "severity"
       entityScopeTemplate:
         type: "object"
+        description: "Optional scope template using canonical groupId, entityId, businessUnitId, siteId, and siloId fields."
       publishControls:
         type: "object"
         description: "Change-summary, approval requirement, rollback metadata, and publish timestamp controls."
@@ -321,6 +322,7 @@ domainObjects:
         type: "severity"
       entityScope:
         type: "object"
+        description: "Runtime scope envelope aligned to docs/contracts/saqr-entity-hierarchy.yaml."
       correlation:
         type: "object"
       owningQueue:
@@ -747,4 +749,4 @@ deliveryNotes:
   - "The current increment also implements deterministic governance APIs for versioning, publishing, rollback, and change history."
   - "The current increment now also implements audit-ledger projections and evidence-linked decision history as in-memory query services."
   - "Durable persistence and workflow APIs remain later Phase 2 work."
-  - "Entity-scope fields stay present now so later multi-entity work does not break workflow contracts."
+  - "Entity-scope fields align to the canonical hierarchy defined in docs/contracts/saqr-entity-hierarchy.yaml."

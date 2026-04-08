@@ -1,12 +1,12 @@
-version: 1
+version: 2
 phase: "Phase 2"
-date: "2026-04-07"
+date: "2026-04-08"
 scope: "P2-102"
 purpose: "Define the normalized inbound event contract for workflow-triggering events."
 principles:
   - "All event sources must normalize into one common envelope before workflow matching."
   - "The contract must preserve demo-vs-production separation."
-  - "The contract must remain forward-compatible with later multi-entity scoping."
+  - "The contract must remain aligned with the canonical Phase 2 multi-entity hierarchy."
   - "Normalized events must be idempotent enough to avoid duplicate workflow instances."
 envelope:
   requiredFields:
@@ -69,16 +69,19 @@ envelope:
     fields:
       groupId:
         type: "string"
-        description: "Reserved for Phase 2 multi-entity hierarchy."
+        description: "Canonical group scope field. See docs/contracts/saqr-entity-hierarchy.yaml."
       entityId:
         type: "string"
-        description: "Reserved for legal-entity scope."
+        description: "Canonical legal-entity scope field."
       businessUnitId:
         type: "string"
+        description: "Canonical business-unit scope field."
       siteId:
         type: "string"
+        description: "Canonical site scope field."
       siloId:
         type: "string"
+        description: "Canonical silo scope field."
   correlationShape:
     commonFields:
       sourceRecordKey:
@@ -261,7 +264,7 @@ routingExpectations:
     - "Producers may emit source-specific payloads, but the workflow ingress layer must normalize them into the common envelope."
     - "Severity labels must be normalized before trigger matching."
     - "Authority names must be canonicalized before trigger matching."
-    - "Entity scope values may be partially populated now but must preserve field names for future multi-entity work."
+    - "Entity scope values may be partially populated now but must preserve the canonical field names from the multi-entity hierarchy contract."
     - "Evidence references should point at immutable or stable upstream records whenever possible."
   deduplicationRules:
     - "The same event must not open duplicate workflow instances for the same workflow trigger when idempotencyKey matches."
@@ -274,3 +277,4 @@ deliveryNotes:
   - "NLP and CV are interface-ready and test-backed, but delivery still owns real-environment wiring and pilot validation."
   - "Sentinel live implementation coverage is currently centered on SAMA and SDAIA."
   - "This contract defines ingress only. Workflow DSL, runtime execution, and approval behavior are later Phase 2 items."
+  - "Entity hierarchy meaning and lineage behavior are now defined in docs/contracts/saqr-entity-hierarchy.yaml."

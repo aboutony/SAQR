@@ -25,6 +25,18 @@ Related Phase 2 workflow-foundation artifacts:
 - `docs/contracts/saqr-workflow-domain.yaml`
 - `docs/contracts/saqr-workflow-events.yaml`
 - `docs/contracts/saqr-workflow-dsl.yaml`
+- `docs/contracts/saqr-entity-hierarchy.yaml`
+- `docs/contracts/saqr-entity-scoping.yaml`
+- `docs/contracts/saqr-entity-isolation.yaml`
+- `docs/contracts/saqr-entity-rollup.yaml`
+- `docs/contracts/saqr-entity-reporting.yaml`
+- `docs/contracts/saqr-sovereign-topology.yaml`
+- `docs/contracts/saqr-sovereign-policy.yaml`
+- `docs/contracts/saqr-sovereign-packaging.yaml`
+- `docs/SAQR_Phase2_Multi_Entity_Domain_Model.md`
+- `docs/SAQR_Phase2_Entity_Scoping_Model.md`
+- `docs/SAQR_Phase2_Entity_Isolation_Model.md`
+- `docs/SAQR_Phase2_Entity_Rollup_Model.md`
 
 Related Phase 2 workflow-runtime artifact:
 
@@ -42,6 +54,12 @@ Related Phase 2 workflow-runtime artifact:
 Related acceptance-fixture artifact:
 
 - `docs/contracts/saqr-acceptance-fixtures.yaml`
+- `docs/contracts/saqr-phase2-acceptance-fixtures.yaml`
+
+Related Phase 2 verification artifact:
+
+- `docs/SAQR_Phase2_Quality_Gates_and_Regression.md`
+- `docs/contracts/saqr-phase2-verification-pipeline.yaml`
 
 Related deployment-blueprint artifact:
 
@@ -58,6 +76,18 @@ Related architecture and runbook entrypoint:
 Related final handoff-package entrypoint:
 
 - `docs/handoff/README.md`
+- `docs/handoff/SAQR_Phase1_Handoff_Summary.md`
+- `docs/handoff/SAQR_Phase2_Handoff_Summary.md`
+- `docs/handoff/SAQR_Phase2_Validation_Guide.md`
+
+Related Phase 2 architecture and runbook artifacts:
+
+- `docs/architecture/SAQR_Phase2_Architecture_Overview.md`
+- `docs/architecture/SAQR_Phase2_Component_and_Dependency_Matrix.md`
+- `docs/runbooks/SAQR_Phase2_Workflow_Operations_Runbook.md`
+- `docs/runbooks/SAQR_Phase2_Entity_and_Sovereign_Runbook.md`
+- `docs/SAQR_Phase2_Documentation_Set.md`
+- `docs/contracts/saqr-phase2-contract-index.md`
 
 ## Runtime Contract
 

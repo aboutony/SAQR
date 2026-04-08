@@ -1,0 +1,61 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-208"
+purpose: "Define entity-aware sovereign rollout packaging profiles for supported Phase 2 topology and policy combinations."
+principles:
+  - "Deployment packaging builds on the Phase 1 deployment blueprint instead of replacing it."
+  - "Each supported topology pattern must map to a concrete rollout package profile."
+  - "Packaging remains backend and delivery-architecture only. This contract does not authorize UI redesign."
+  - "The workflow-engine remains an embedded module in this increment unless a later service split is explicitly approved."
+enumerations:
+  packagingModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  distributionMode:
+    - "container_service"
+    - "embedded_module"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "topologyRef"
+    - "policyRef"
+    - "packageProfiles"
+  optionalFields:
+    - "description"
+packageProfileShape:
+  requiredFields:
+    - "profileKey"
+    - "topologyKey"
+    - "composeFiles"
+    - "envTemplates"
+    - "kustomizeFiles"
+    - "componentBindings"
+    - "deliveryNotes"
+componentBindingShape:
+  requiredFields:
+    - "componentKey"
+    - "distributionMode"
+    - "runtimeArtifact"
+generationRules:
+  - "Each supported topology pattern must map to one package profile in the reference model."
+  - "Each package profile must reference concrete compose, env-template, and kustomize-overlay artifacts."
+  - "Each package profile must bind every supported SAQR platform component."
+  - "Workflow-engine may remain packaged as an embedded module in this increment."
+  - "This increment defines delivery-ready rollout packaging only. Client-specific manifests and infrastructure code remain later work."
+referenceArtifacts:
+  implementationModule:
+    - "shared/sovereign-packaging.js"
+  referenceFixture:
+    - "fixtures/phase2-sovereign/packaging/saqr-reference-sovereign-packaging.package.json"
+  validationEntryPoint:
+    - "tools/phase2-sovereign/validate-sovereign-packaging.js"
+deliveryNotes:
+  - "Compose overrides and Kubernetes overlays now exist for the four supported sovereign rollout patterns."
+  - "Entity-aware policy hints are injected through env templates and ConfigMap patches."
+  - "Delivery teams still own client-specific secret values, ingress hosts, storage, and cluster controls."

@@ -1,0 +1,108 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-202"
+purpose: "Define canonical scoping rules across principals, workflows, alerts, evidence, and reporting."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "The hierarchy contract is the source of truth for scope lineage."
+  - "Access is explicit-grant based. No implicit sibling access is allowed."
+  - "Reporting scope remains bounded by grant lineage. Cross-entity portfolio roll-up remains later work."
+enumerations:
+  scopingModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  principalType:
+    - "user"
+    - "service"
+  principalStatus:
+    - "active"
+    - "inactive"
+  resourceType:
+    - "user"
+    - "workflow"
+    - "alert"
+    - "evidence"
+    - "report"
+  action:
+    - "read"
+    - "launch"
+    - "approve"
+    - "remediate"
+    - "administer"
+    - "report"
+  scopeAccess:
+    - "exact"
+    - "self_and_descendants"
+    - "self_and_ancestors"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "hierarchyRef"
+    - "principals"
+principalShape:
+  requiredFields:
+    - "principalId"
+    - "principalType"
+    - "displayName"
+    - "homeScope"
+    - "grants"
+  optionalFields:
+    - "status"
+    - "roleKeys"
+grantShape:
+  requiredFields:
+    - "grantKey"
+    - "resourceTypes"
+    - "actions"
+    - "scopeAccess"
+    - "scope"
+  optionalFields:
+    - "notes"
+resourceScopeRules:
+  user:
+    scopeSource: "principal.homeScope"
+    rule:
+      - "homeScope is descriptive. Explicit grants are authoritative for access."
+  workflow:
+    scopeSource: "workflow.entityScopeTemplate or workflowInstance.entityScope"
+    rule:
+      - "Workflow launch and runtime actions evaluate against exact workflow scope lineage."
+      - "Approval and remediation actions require an explicit workflow grant."
+  alert:
+    scopeSource: "normalized event entityScope"
+    rule:
+      - "Alert scope is inherited from the normalized source event."
+      - "Readers and operators may only access alerts within a matching explicit grant."
+  evidence:
+    scopeSource: "evidence lineage or linked alert scope"
+    rule:
+      - "Evidence scope is inherited from the evidence-producing lineage."
+      - "Evidence visibility follows the same explicit-grant rules as alerts."
+  report:
+    scopeSource: "requested reporting target scope"
+    rule:
+      - "Reports may target the grant scope itself or descendant scopes when the grant uses self_and_descendants."
+      - "Reporting does not imply access to sibling entities."
+evaluationRules:
+  - "Resolve all partial scopes through docs/contracts/saqr-entity-hierarchy.yaml before comparison."
+  - "exact allows only one anchor scope."
+  - "self_and_descendants allows the grant scope and any descendant scopes."
+  - "self_and_ancestors allows the grant scope and any ancestor scopes."
+  - "If no explicit grant matches resourceType, action, and scope relation, access is denied."
+  - "No implicit sibling, cousin, or cross-entity access is allowed in this increment."
+referenceArtifacts:
+  implementationModule:
+    - "shared/entity-scoping.js"
+  referenceFixture:
+    - "fixtures/phase2-entity/scoping/saqr-reference-entity-scoping.scoping.json"
+  validationEntryPoint:
+    - "tools/phase2-entity/validate-entity-scoping.js"
+deliveryNotes:
+  - "This increment defines explicit scoping. Runtime isolation is now layered separately in docs/contracts/saqr-entity-isolation.yaml."
+  - "Cross-entity reporting contracts and executive roll-up remain later tasks."

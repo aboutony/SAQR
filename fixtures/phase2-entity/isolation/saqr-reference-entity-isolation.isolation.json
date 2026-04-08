@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "modelKey": "saqr-reference-entity-isolation",
+  "version": 1,
+  "name": "SAQR Reference Entity Isolation Model",
+  "description": "Reference isolation and partitioning policy for multi-entity runtime boundaries in Phase 2.",
+  "status": "active",
+  "hierarchyRef": {
+    "hierarchyKey": "saqr-reference-group",
+    "version": 1
+  },
+  "scopingRef": {
+    "modelKey": "saqr-reference-entity-scoping",
+    "version": 1
+  },
+  "resourcePolicies": [
+    {
+      "resourceType": "user",
+      "partitionLevel": "group",
+      "storagePlane": "control_plane",
+      "requiresEntityId": false,
+      "crossEntityReadMode": "deny",
+      "crossEntityWriteMode": "single_partition_only",
+      "notes": "Principal metadata and grants remain control-plane metadata."
+    },
+    {
+      "resourceType": "workflow",
+      "partitionLevel": "entity",
+      "storagePlane": "entity_data_plane",
+      "requiresEntityId": true,
+      "crossEntityReadMode": "brokered_read_only",
+      "crossEntityWriteMode": "single_partition_only",
+      "notes": "Workflow instance state and operational actions must stay inside one entity partition. Definition metadata may still remain in a shared control plane."
+    },
+    {
+      "resourceType": "alert",
+      "partitionLevel": "entity",
+      "storagePlane": "entity_data_plane",
+      "requiresEntityId": true,
+      "crossEntityReadMode": "brokered_read_only",
+      "crossEntityWriteMode": "single_partition_only",
+      "notes": "Alert state is partitioned by the resolved entity scope from the originating event."
+    },
+    {
+      "resourceType": "evidence",
+      "partitionLevel": "entity",
+      "storagePlane": "entity_data_plane",
+      "requiresEntityId": true,
+      "crossEntityReadMode": "brokered_read_only",
+      "crossEntityWriteMode": "single_partition_only",
+      "notes": "Evidence records remain entity-partitioned. Cross-entity oversight must use brokered read-only fan-out."
+    },
+    {
+      "resourceType": "report",
+      "partitionLevel": "group",
+      "storagePlane": "aggregation_plane",
+      "requiresEntityId": false,
+      "crossEntityReadMode": "aggregate_read_only",
+      "crossEntityWriteMode": "deny",
+      "notes": "Reports operate on an aggregation plane and remain read-only in this increment."
+    }
+  ]
+}

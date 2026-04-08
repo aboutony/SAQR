@@ -1,0 +1,32 @@
+x-topology-env: &topology-env
+  SAQR_PACKAGE_PROFILE: "per-country-sovereign-cloud"
+  SAQR_TOPOLOGY_KEY: "per-country-sovereign-cloud"
+  SAQR_TOPOLOGY_PATTERN: "per_country"
+  SAQR_DEPLOYMENT_TARGET: "sovereign_cloud"
+  SAQR_BOUNDARY_SCOPE: "country"
+  SAQR_POLICY_MODEL: "saqr-reference-sovereign-policy"
+  SAQR_DEFAULT_RESIDENCY_REQUIREMENT: "country_boundary"
+  SAQR_DEFAULT_ENCRYPTION_BOUNDARY: "country_managed_kms"
+  SAQR_DEFAULT_REPORTING_CROSS_BORDER_MODE: "brokered_export_only"
+  SAQR_ENTITY_PARTITION_MODE: "country"
+  SAQR_COUNTRY_CODE: "replace-by-delivery-team"
+
+services:
+  shield-ui:
+    environment:
+      <<: *topology-env
+  api:
+    environment:
+      <<: *topology-env
+  evidence-vault:
+    environment:
+      <<: *topology-env
+  nlp-interpreter:
+    environment:
+      <<: *topology-env
+  cv-watchman:
+    environment:
+      <<: *topology-env
+  sentinel-scrapers:
+    environment:
+      <<: *topology-env

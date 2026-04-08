@@ -1,0 +1,82 @@
+version: 1
+phase: "Phase 2"
+date: "2026-04-08"
+scope: "P2-204"
+purpose: "Define portfolio roll-up logic and inherited control aggregation for the multi-entity model."
+principles:
+  - "Backend-first. This contract does not authorize UI redesign."
+  - "Control assignments inherit downward; assessments remain exact to their assessed node."
+  - "Roll-up summaries aggregate effective node control states upward."
+  - "Cross-entity reporting contracts remain later work; this increment defines aggregation logic only."
+enumerations:
+  rollupModelStatus:
+    - "draft"
+    - "active"
+    - "retired"
+  controlSeverity:
+    - "critical"
+    - "high"
+    - "medium"
+    - "low"
+  controlStatus:
+    - "compliant"
+    - "attention"
+    - "breached"
+    - "not_assessed"
+    - "not_applicable"
+  inheritanceMode:
+    - "local_only"
+    - "inherit_to_descendants"
+  assessmentSourceType:
+    - "manual"
+    - "cdc"
+    - "nlp"
+    - "cv"
+    - "workflow"
+documentShape:
+  requiredFields:
+    - "schemaVersion"
+    - "modelKey"
+    - "version"
+    - "name"
+    - "status"
+    - "hierarchyRef"
+    - "controlDefinitions"
+    - "controlAssignments"
+  optionalFields:
+    - "controlAssessments"
+controlDefinitionShape:
+  requiredFields:
+    - "controlKey"
+    - "name"
+    - "severity"
+controlAssignmentShape:
+  requiredFields:
+    - "assignmentKey"
+    - "controlKey"
+    - "inheritanceMode"
+    - "scope"
+controlAssessmentShape:
+  requiredFields:
+    - "assessmentKey"
+    - "controlKey"
+    - "scope"
+    - "status"
+    - "sourceType"
+rollupRules:
+  - "The most specific applicable assignment wins when a node is covered by the same control from multiple ancestor scopes."
+  - "local_only applies only at the assignment node."
+  - "inherit_to_descendants applies at the assignment node and all descendant nodes."
+  - "Assessments apply only to the exact assessed node."
+  - "If a control applies to a node and no exact assessment exists, the effective status is not_assessed."
+  - "Portfolio roll-up aggregates node summaries and control summaries upward from the selected root node."
+referenceArtifacts:
+  implementationModule:
+    - "shared/entity-rollup.js"
+  referenceFixture:
+    - "fixtures/phase2-entity/rollups/saqr-reference-portfolio-rollup.rollup.json"
+  validationEntryPoint:
+    - "tools/phase2-entity/validate-entity-rollup.js"
+deliveryNotes:
+  - "This increment defines aggregation logic only. Cross-entity executive reporting contracts remain later work."
+  - "The reference model is interface-ready and uses local fixtures only."

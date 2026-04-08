@@ -1,0 +1,180 @@
+{
+  "fixtureId": "phase2-workflow-maker-checker-001",
+  "workflowDefinition": "fixtures/phase2-workflow/workflows/regulatory-drift-review.workflow.json",
+  "publishApprovalRecord": {
+    "approvalRecordId": "APR-P2-ACPT-001",
+    "approvedBy": {
+      "actorType": "user",
+      "actorId": "admin-01",
+      "displayName": "Admin 01",
+      "roleKey": "admin"
+    },
+    "approvedAt": "2026-04-08T08:05:00.000Z"
+  },
+  "actorDirectory": {
+    "users": [
+      { "actorType": "user", "actorId": "analyst-01", "displayName": "Analyst 01", "roleKey": "analyst" },
+      { "actorType": "user", "actorId": "analyst-02", "displayName": "Analyst 02", "roleKey": "analyst" },
+      { "actorType": "user", "actorId": "auditor-01", "displayName": "Auditor 01", "roleKey": "auditor" },
+      { "actorType": "user", "actorId": "admin-01", "displayName": "Admin 01", "roleKey": "admin" },
+      { "actorType": "user", "actorId": "board-01", "displayName": "Board 01", "roleKey": "board" },
+      { "actorType": "user", "actorId": "board-02", "displayName": "Board 02", "roleKey": "board" },
+      { "actorType": "user", "actorId": "board-03", "displayName": "Board 03", "roleKey": "board" },
+      { "actorType": "user", "actorId": "risk-01", "displayName": "Risk 01", "roleKey": "analyst" },
+      { "actorType": "user", "actorId": "specific-01", "displayName": "Specific 01", "roleKey": "admin" },
+      { "actorType": "user", "actorId": "delegate-01", "displayName": "Delegate 01", "roleKey": "admin" },
+      { "actorType": "user", "actorId": "blocked-01", "displayName": "Blocked 01", "roleKey": "auditor" }
+    ],
+    "roles": {
+      "analyst": ["analyst-01", "analyst-02", "risk-01"],
+      "auditor": ["auditor-01", "blocked-01"],
+      "admin": ["admin-01", "delegate-01", "specific-01"],
+      "board": ["board-01", "board-02", "board-03"]
+    },
+    "queues": {
+      "compliance-analysts": ["analyst-01", "analyst-02"],
+      "risk-triage": ["risk-01"]
+    },
+    "delegates": {
+      "user:auditor-01": ["delegate-01"]
+    }
+  },
+  "event": {
+    "eventId": "evt-phase2-drift-001",
+    "idempotencyKey": "dedupe-phase2-drift-001",
+    "eventType": "nlp.drift.detected",
+    "sourceFamily": "nlp",
+    "occurredAt": "2026-04-08T08:10:00.000Z",
+    "ingestedAt": "2026-04-08T08:10:01.000Z",
+    "severity": "high",
+    "authority": "SAMA",
+    "actor": {
+      "actorType": "user",
+      "actorId": "analyst-01",
+      "displayName": "Analyst 01",
+      "roleKey": "analyst"
+    },
+    "entityScope": {
+      "siteId": "site-riyadh-hq"
+    },
+    "correlation": {
+      "alertId": "DRIFT-ACPT-001",
+      "documentKey": "DOC-ACPT-001",
+      "evidenceKey": "EVID-TRIGGER-001",
+      "contentHash": "hash-phase2-drift-001"
+    },
+    "evidenceRefs": [
+      {
+        "refType": "instruction_drift",
+        "refId": "DRIFT-ACPT-001",
+        "refHash": "hash-trigger-drift-001"
+      }
+    ],
+    "payload": {
+      "alertId": "DRIFT-ACPT-001",
+      "driftType": "parameter_change",
+      "title": "Fee cap changed",
+      "description": "Administrative fee cap reduced."
+    }
+  },
+  "captureStartAssignmentsAs": "triageAssignments",
+  "commands": [
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "analyst-01",
+        "displayName": "Analyst 01",
+        "roleKey": "analyst"
+      },
+      "notes": "Triage complete"
+    },
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "analyst-01",
+        "displayName": "Analyst 01",
+        "roleKey": "analyst"
+      },
+      "notes": "Source evidence attached",
+      "evidenceRefs": [
+        {
+          "refType": "regulatory_staging",
+          "refId": "RULE-ACPT-001",
+          "refHash": "hash-rule-acpt-001"
+        }
+      ]
+    },
+    {
+      "type": "approve",
+      "decision": "approve",
+      "actor": {
+        "actorType": "user",
+        "actorId": "auditor-01",
+        "displayName": "Auditor 01",
+        "roleKey": "auditor"
+      },
+      "notes": "Maker-checker approval granted",
+      "evidenceRefs": [
+        {
+          "refType": "vault_evidence",
+          "refId": "EVID-DECISION-001",
+          "refHash": "hash-decision-acpt-001"
+        }
+      ]
+    },
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "analyst-01",
+        "displayName": "Analyst 01",
+        "roleKey": "analyst"
+      },
+      "notes": "Remediation dispatched"
+    },
+    {
+      "type": "advance",
+      "outcome": "onSuccess",
+      "actor": {
+        "actorType": "user",
+        "actorId": "auditor-01",
+        "displayName": "Auditor 01",
+        "roleKey": "auditor"
+      },
+      "notes": "Closure verified"
+    }
+  ],
+  "expected": {
+    "workflowKey": "regulatory-drift-review",
+    "finalState": "completed",
+    "finalCurrentStepKey": null,
+    "decisionCount": 1,
+    "approvalMode": "maker_checker",
+    "assignmentSnapshots": {
+      "triageAssignments": ["analyst-01", "analyst-02"]
+    },
+    "runtimeAuditEntryTypes": [
+      "instance_created",
+      "assignment_resolved",
+      "approval_recorded",
+      "approval_resolved",
+      "instance_completed"
+    ],
+    "governanceAuditEntryTypes": [
+      "workflow_published"
+    ],
+    "combinedSourceTypes": [
+      "runtime",
+      "governance"
+    ],
+    "evidenceRefIds": [
+      "RULE-ACPT-001",
+      "EVID-DECISION-001"
+    ]
+  }
+}
